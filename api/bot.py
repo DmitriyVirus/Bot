@@ -5,6 +5,7 @@ app = FastAPI()
 
 @app.on_event("startup")
 async def on_startup():
+    print("Setting webhook...")
     await tgbot.set_webhook()
     
 @app.get("/")
