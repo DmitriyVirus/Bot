@@ -4,6 +4,7 @@
     { "src": "api/bot.py", "use": "@vercel/python" }
   ],
   "routes": [
+    { "src": "/favicon.png", "dest": "/static/favicon.png" },
     { "src": "/(.*)", "dest": "/api/bot.py" }
   ]
 }
