@@ -2,4 +2,3 @@ fastapi
 uvicorn
 aiogram
 python-decouple
-telebot
