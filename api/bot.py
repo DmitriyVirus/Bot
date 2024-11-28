@@ -3,6 +3,10 @@ from tgbot import tgbot
 
 app = FastAPI()
 
+@app.on_event("startup")
+async def on_startup():
+    await tgbot.set_webhook()
+    
 @app.get("/")
 async def read_root():
     return {"message": "Привет, мир!"}
