@@ -1,8 +1,10 @@
-from aiogram import Router
-from aiogram.types import Message
+from fastapi import FastAPI, Request
+from tgbot import tgbot
 
-router = Router()
+app = FastAPI()
 
-@router.message()
-async def echo(message: Message):
-    await message.answer(f"Echo: {message.text}")
+@app.post('/api/bot')
+async def tgbot_webhook_route(request: Request):
+    update_dict = await request.json()
+    await tgbot.update_bot(update_dict)
+    return ''
