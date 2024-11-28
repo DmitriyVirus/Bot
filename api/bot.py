@@ -6,7 +6,12 @@ app = FastAPI()
 @app.on_event("startup")
 async def on_startup():
     print("Setting webhook...")
-    await tgbot.set_webhook()
+    webhook_info = await tgbot.bot.get_webhook_info()
+    if webhook_info.url != tgbot.webhook_url:
+        await tgbot.set_webhook()
+        print(f"Webhook set to {tgbot.webhook_url}")
+    else:
+        print("Webhook already set")
     
 @app.get("/")
 async def read_root():
