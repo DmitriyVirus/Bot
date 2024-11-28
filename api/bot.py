@@ -1,12 +1,7 @@
 from tgbot import tgbot
 from fastapi import FastAPI, Request
-from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
-
-@app.get("/favicon.png")
-async def favicon():
-    return RedirectResponse(url="/static/favicon.png")
 
 @app.on_event("startup")
 async def on_startup():
