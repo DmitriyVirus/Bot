@@ -1,20 +1,32 @@
 import asyncio
 from aiogram import Bot, Dispatcher, Router
-from config import config
-from tgbot.handlers import router
+from aiogram.exceptions import TelegramRetryAfter
 
 class TGBot:
     def __init__(self, router: Router) -> None:
-        self.token = config('TOKEN')
+        self.bot = Bot(token=config('TOKEN'))
         self.webhook_url = config('WEBHOOK_URL')
-        self.bot = Bot(self.token)
-        self.dp = Dispatcher()
-        self.dp.include_router(router)
 
     async def update_bot(self, update: dict) -> None:
-        await self.dp.feed_raw_update(self.bot, update)
+        try:
+            await self.bot.process_update(update)
+        except Exception as e:
+            print(f"Error updating bot: {e}")
+        finally:
+            await self.bot.session.close()
 
-    async def set_webhook(self) -> None:
-        await self.bot.set_webhook(self.webhook_url)
+    async def set_webhook(self):
+        retries = 5
+        for _ in range(retries):
+            try:
+                await self.bot.set_webhook(self.webhook_url)
+                print(f"Webhook set to {self.webhook_url}")
+                break
+            except TelegramRetryAfter as e:
+                print(f"Rate limit exceeded, retrying in {e.retry_after} seconds...")
+                await asyncio.sleep(e.retry_after)
+            except Exception as e:
+                print(f"Error setting webhook: {e}")
+                break
 
 tgbot = TGBot(router)
