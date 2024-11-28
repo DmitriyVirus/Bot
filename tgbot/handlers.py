@@ -5,4 +5,4 @@ router = Router()
 
 @router.message()
 async def echo(message: Message):
-    await message.answer(f"Echo: {message.text}")
+    await message.answer(f"Повторяю: {message.text}")
