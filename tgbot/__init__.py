@@ -16,5 +16,10 @@ class TGBot:
     async def update_bot(self, update: dict) -> None:
         await self.dp.feed_raw_update(self.bot, update)
         await self.bot.session.close()
+        
+    async def set_webhook(self) -> None:
+        webhook_url = config('WEBHOOK_URL')
+        await self.bot.set_webhook(webhook_url)
+        await self.bot.session.close()
 
 tgbot = TGBot(router)
