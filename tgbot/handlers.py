@@ -7,12 +7,6 @@ from tgbot.triggers import TRIGGERS
 
 router = Router()
 
-@router.message()
-async def welcome_new_member(message: Message):
-    if message.new_chat_members:
-        for new_member in message.new_chat_members:
-            await message.answer(f"Привет, {new_member.first_name}! Добро пожаловать в наш чат!")
-        
 # Обработчик команды /help
 @router.message(Command(commands=["help"]))  # Используем фильтр Command
 async def help_handler(message: Message):
