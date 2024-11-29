@@ -6,26 +6,35 @@ from tgbot.views import join_message, left_message
 from tgbot.triggers import TRIGGERS
 from tgbot import views
 
+# Настройка логирования
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 router = Router()
 
-# Обработчик изменения статуса участников (приход и уход)
-# Обработчик для нового участника
-@router.chat_member(ChatMemberUpdatedFilter(member_status_changed=IS_NOT_MEMBER >> IS_MEMBER))
+# Обработчик присоединения пользователя
+@router.chat_member(ChatMemberUpdatedFilter(IS_NOT_MEMBER >> IS_MEMBER))
 async def on_user_join(event: ChatMemberUpdated):
-    logging.info(f"Received chat_member update (user joined): {event}")
-    if event.new_chat_member and event.new_chat_member.status == "member":
-        user = event.new_chat_member.user
-        message = views.join_message(user.first_name)  # Генерируем сообщение с помощью функции join_message
-        await event.bot.send_message(event.chat.id, message)
+    logger.info(f"New user joined: {event.new_chat_member.user.first_name}")
+    try:
+        # Логируем информацию о пользователе и отправляем сообщение
+        welcome_message = views.join_message(event.new_chat_member.user.first_name)
+        await event.bot.send_message(event.chat.id, welcome_message)
+        logger.info(f"Welcome message sent to {event.new_chat_member.user.first_name}")
+    except Exception as e:
+        logger.error(f"Error while sending welcome message: {e}")
 
-# Обработчик для ушедшего участника
-@router.chat_member(ChatMemberUpdatedFilter(member_status_changed=IS_MEMBER >> IS_NOT_MEMBER))
+# Обработчик выхода пользователя
+@router.chat_member(ChatMemberUpdatedFilter(IS_MEMBER >> IS_NOT_MEMBER))
 async def on_user_left(event: ChatMemberUpdated):
-    logging.info(f"Received chat_member update (user left): {event}")
-    if event.old_chat_member and event.old_chat_member.status == "member":
-        user = event.old_chat_member.user
-        message = views.left_message(user.first_name)  # Генерируем сообщение с помощью функции left_message
-        await event.bot.send_message(event.chat.id, message)
+    logger.info(f"User left: {event.old_chat_member.user.first_name}")
+    try:
+        # Логируем информацию о пользователе и отправляем сообщение
+        left_message = views.left_message(event.old_chat_member.user.first_name)
+        await event.bot.send_message(event.chat.id, left_message)
+        logger.info(f"Left message sent to {event.old_chat_member.user.first_name}")
+    except Exception as e:
+        logger.error(f"Error while sending left message: {e}")
         
 # Обработчик команды /help
 @router.message(Command(commands=["help"]))  # Используем фильтр Command
