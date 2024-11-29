@@ -11,18 +11,16 @@ class TGBot:
         token = config('TOKEN')
         self.bot = Bot(token)
         self.dp = Dispatcher()
-        self.dp.include_router(router)  # Используем router из handlers
+        self.dp.include_router(router)  # Подключаем роутер
         self.webhook_url = config('WEBHOOK_URL')
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(self.set_webhook())
 
     async def update_bot(self, update: dict) -> None:
         await self.dp.feed_raw_update(self.bot, update)
         await self.bot.session.close()
 
-    async def set_webhook(self):
+    async def set_webhook(self) -> None:
         await self.bot.set_webhook(self.webhook_url)
-        await self.bot.session.close()
+        print(f"Webhook set to {self.webhook_url}")
 
 # Инициализация tgbot с импортированным router
 tgbot = TGBot(router)
