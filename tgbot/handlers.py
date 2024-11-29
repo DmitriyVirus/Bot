@@ -15,6 +15,8 @@ async def help_handler(message: Message):
     for i, trigger in enumerate(TRIGGERS, 1):
         # Извлекаем часть до символа ":" или оставляем сам текст, если ":" нет
         trigger_text = trigger.split(":")[0]
+        # Преобразуем первую букву в верхний регистр
+        trigger_text = trigger_text.capitalize()
         help_text += f"{i}. {trigger_text}\n"  # Добавляем номер и фразу
     
     await message.answer(help_text, parse_mode="Markdown")
