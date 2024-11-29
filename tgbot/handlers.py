@@ -1,37 +1,19 @@
 import logging
 from aiogram import Router
-from aiogram.types import Message, ChatMemberUpdated
-from aiogram.filters import Command, IS_MEMBER, IS_NOT_MEMBER, ChatMemberUpdatedFilter
-from tgbot.views import join_message, left_message
+from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.filters import Command  # Импорт фильтра Command
 from tgbot.triggers import TRIGGERS
-from tgbot import views
+
+router = Router()
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-router = Router()
-
 @router.message()
 async def debug_handler(message: Message):
     logger.info(f"Debugging update: {message}")
 
-@router.message(lambda message: hasattr(message, 'new_chat_members') and message.new_chat_members)
-async def greet_new_members(message: Message):
-    logging.info(f"Получено событие добавления новых участников: {message.new_chat_members}")
-    for new_member in message.new_chat_members:
-        if new_member.is_bot:
-            logging.info(f"Пропущен бот: {new_member}")
-            continue
-        logging.info(f"Формируется приветствие для {new_member.first_name} (ID: {new_member.id})")
-        welcome_text = f"Добро пожаловать, {new_member.first_name}! Надеемся, вам понравится у нас 😊."
-        try:
-            await message.answer(welcome_text)
-            logging.info(f"Отправлено приветствие для {new_member.first_name} (ID: {new_member.id})")
-        except Exception as e:
-            logging.error(f"Ошибка при отправке приветствия {new_member.first_name}: {e}")
-
-        
 # Обработчик команды /help
 @router.message(Command(commands=["help"]))  # Используем фильтр Command
 async def help_handler(message: Message):
@@ -48,7 +30,7 @@ async def help_handler(message: Message):
         help_text += f"{i}. {trigger_text}\n"  # Добавляем номер и фразу
     
     await message.answer(help_text, parse_mode="Markdown")
-            
+
 @router.message(lambda message: message.text and any(trigger in message.text.lower() for trigger in TRIGGERS))
 async def trigger_handler(message: Message):
     message_text = message.text.lower()  # Преобразуем текст в нижний регистр
