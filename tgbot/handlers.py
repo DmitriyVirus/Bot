@@ -7,10 +7,9 @@ from tgbot.triggers import TRIGGERS
 
 router = Router()
 
-#@router.chat_member(ChatMemberUpdatedFilter(IS_MEMBER >> IS_NOT_MEMBER))
+@router.chat_member(ChatMemberUpdatedFilter(IS_MEMBER >> IS_NOT_MEMBER))
 async def on_user_leave(event: ChatMemberUpdated):
     """Обработчик для выхода пользователя"""
-    # Когда пользователь покидает чат
     if event.old_chat_member.status == "member" and event.new_chat_member.status == "left":
         user = event.old_chat_member.user
         await event.bot.send_message(event.chat.id, f"{user.full_name} покинул чат!")
@@ -18,10 +17,10 @@ async def on_user_leave(event: ChatMemberUpdated):
 @router.chat_member(ChatMemberUpdatedFilter(IS_NOT_MEMBER >> IS_MEMBER))
 async def on_user_join(event: ChatMemberUpdated):
     """Обработчик для входа пользователя"""
-    # Когда новый пользователь вступает в чат
     if event.old_chat_member.status == "left" and event.new_chat_member.status == "member":
         user = event.new_chat_member.user
         await event.bot.send_message(event.chat.id, f"Добро пожаловать, {user.full_name}!")
+
 # Обработчик команды /help
 @router.message(Command(commands=["help"]))  # Используем фильтр Command
 async def help_handler(message: Message):
