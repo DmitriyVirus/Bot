@@ -7,7 +7,7 @@ from tgbot.triggers import TRIGGERS
 
 router = Router()
 
-@router.chat_member(ChatMemberUpdatedFilter(ChatMemberUpdatedFilter(IS_NOT_MEMBER >> IS_MEMBER))
+@router.chat_member(ChatMemberUpdatedFilter(ChatMemberUpdatedFilter(IS_NOT_MEMBER >> IS_MEMBER)))
 async def on_user_join(event: ChatMemberUpdated):
     logging.info(f"Received update: {event}")
     if event.new_chat_member:
