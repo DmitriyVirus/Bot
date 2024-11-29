@@ -30,7 +30,7 @@ async def trigger_handler(message: Message):
             if isinstance(response, dict):  # Если ответ это словарь (с текстом, изображением или gif)
                 # Отправляем текст
                 if "text" in response:
-                    await message.answer(response["text"])
+                    await message.answer(response["text"], parse_mode="Markdown")
                 
                 # Отправляем изображение, если есть
                 if "image" in response:
@@ -41,5 +41,5 @@ async def trigger_handler(message: Message):
                     await message.answer_animation(response["gif"])
             
             else:
-                await message.answer(response)  # Отправляем текст
+                await message.answer(response, parse_mode="Markdown")  # Отправляем текст
             break  # Прекращаем проверку после первого совпадения
