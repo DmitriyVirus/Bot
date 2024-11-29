@@ -4,26 +4,29 @@ from aiogram.types import Message, ChatMemberUpdated
 from aiogram.filters import Command, IS_MEMBER, IS_NOT_MEMBER, ChatMemberUpdatedFilter
 from tgbot.views import join_message, left_message
 from tgbot.triggers import TRIGGERS
+from tgbot import views
 
 router = Router()
 
 # Обработчик изменения статуса участников (приход и уход)
+# Обработчик для нового участника
 @router.chat_member(ChatMemberUpdatedFilter(member_status_changed=IS_NOT_MEMBER >> IS_MEMBER))
 async def on_user_join(event: ChatMemberUpdated):
     logging.info(f"Received chat_member update (user joined): {event}")
     if event.new_chat_member and event.new_chat_member.status == "member":
         user = event.new_chat_member.user
-        logging.info(f"User {user.full_name} joined the chat.")
-        await event.bot.send_message(event.chat.id, f"Добро пожаловать, {user.full_name}!")
+        message = views.join_message(user.first_name)  # Генерируем сообщение с помощью функции join_message
+        await event.bot.send_message(event.chat.id, message)
 
+# Обработчик для ушедшего участника
 @router.chat_member(ChatMemberUpdatedFilter(member_status_changed=IS_MEMBER >> IS_NOT_MEMBER))
 async def on_user_left(event: ChatMemberUpdated):
     logging.info(f"Received chat_member update (user left): {event}")
     if event.old_chat_member and event.old_chat_member.status == "member":
         user = event.old_chat_member.user
-        logging.info(f"User {user.full_name} left the chat.")
-        await event.bot.send_message(event.chat.id, f"Прощай, {user.full_name}!")
-
+        message = views.left_message(user.first_name)  # Генерируем сообщение с помощью функции left_message
+        await event.bot.send_message(event.chat.id, message)
+        
 # Обработчик команды /help
 @router.message(Command(commands=["help"]))  # Используем фильтр Command
 async def help_handler(message: Message):
