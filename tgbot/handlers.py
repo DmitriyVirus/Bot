@@ -1,3 +1,4 @@
+import logging
 from aiogram import Router
 from aiogram.types import Message, ChatMemberUpdated
 from aiogram.filters import Command, IS_MEMBER, IS_NOT_MEMBER, ChatMemberUpdatedFilter
@@ -6,16 +7,10 @@ from tgbot.triggers import TRIGGERS
 
 router = Router()
 
-@router.chat_member(ChatMemberUpdatedFilter(member_status_changed=True))
-async def on_chat_member(event: ChatMemberUpdated):
-    """Обработчик для входа и выхода пользователя"""
-    old_status = event.old_chat_member.status
-    new_status = event.new_chat_member.status
-    
-    if old_status == "member" and new_status == "left":
-        user = event.old_chat_member.user
-        await event.bot.send_message(event.chat.id, f"{user.full_name} покинул чат!")
-    elif old_status == "left" and new_status == "member":
+@router.chat_member(ChatMemberUpdatedFilter(ChatMemberUpdatedFilter(IS_NOT_MEMBER >> IS_MEMBER))
+async def on_user_join(event: ChatMemberUpdated):
+    logging.info(f"Received update: {event}")
+    if event.new_chat_member:
         user = event.new_chat_member.user
         await event.bot.send_message(event.chat.id, f"Добро пожаловать, {user.full_name}!")
 
