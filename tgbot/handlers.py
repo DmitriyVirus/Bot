@@ -7,12 +7,15 @@ from tgbot.triggers import TRIGGERS
 
 router = Router()
 
-@router.chat_member(ChatMemberUpdatedFilter(member_status_changed=IS_NOT_MEMBER >> IS_MEMBER))
+@router.chat_member()
 async def on_user_join(event: ChatMemberUpdated):
-    logging.info(f"Received update: {event}")
-    if event.new_chat_member:
+    logging.info(f"Received chat_member update: {event}")
+    if event.new_chat_member and event.new_chat_member.status == "member":
         user = event.new_chat_member.user
+        logging.info(f"Sending welcome message to {user.full_name}")
         await event.bot.send_message(event.chat.id, f"Добро пожаловать, {user.full_name}!")
+    else:
+        logging.info(f"Not a new member, event: {event}")
 
 # Обработчик команды /help
 @router.message(Command(commands=["help"]))  # Используем фильтр Command
