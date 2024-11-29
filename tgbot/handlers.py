@@ -12,29 +12,31 @@ logger = logging.getLogger(__name__)
 
 router = Router()
 
-# Обработчик присоединения пользователя
+# Обработчик для присоединения пользователя
 @router.chat_member(ChatMemberUpdatedFilter(IS_NOT_MEMBER >> IS_MEMBER))
 async def on_user_join(event: ChatMemberUpdated):
-    logger.info(f"New user joined: {event.new_chat_member.user.first_name}")
+    user_name = event.new_chat_member.user.first_name
+    logger.info(f"User joined: {user_name}")
     try:
-        # Логируем информацию о пользователе и отправляем сообщение
-        welcome_message = views.join_message(event.new_chat_member.user.first_name)
+        # Отправка приветственного сообщения
+        welcome_message = f"Привет, {user_name}! Добро пожаловать в чат!"
         await event.bot.send_message(event.chat.id, welcome_message)
-        logger.info(f"Welcome message sent to {event.new_chat_member.user.first_name}")
+        logger.info(f"Welcome message sent to {user_name}")
     except Exception as e:
         logger.error(f"Error while sending welcome message: {e}")
 
-# Обработчик выхода пользователя
+# Обработчик для ухода пользователя
 @router.chat_member(ChatMemberUpdatedFilter(IS_MEMBER >> IS_NOT_MEMBER))
-async def on_user_left(event: ChatMemberUpdated):
-    logger.info(f"User left: {event.old_chat_member.user.first_name}")
+async def on_user_leave(event: ChatMemberUpdated):
+    user_name = event.old_chat_member.user.first_name
+    logger.info(f"User left: {user_name}")
     try:
-        # Логируем информацию о пользователе и отправляем сообщение
-        left_message = views.left_message(event.old_chat_member.user.first_name)
-        await event.bot.send_message(event.chat.id, left_message)
-        logger.info(f"Left message sent to {event.old_chat_member.user.first_name}")
+        # Отправка прощального сообщения
+        goodbye_message = f"Пока, {user_name}. Надеемся, ты вернешься!"
+        await event.bot.send_message(event.chat.id, goodbye_message)
+        logger.info(f"Goodbye message sent to {user_name}")
     except Exception as e:
-        logger.error(f"Error while sending left message: {e}")
+        logger.error(f"Error while sending goodbye message: {e}")
         
 # Обработчик команды /help
 @router.message(Command(commands=["help"]))  # Используем фильтр Command
