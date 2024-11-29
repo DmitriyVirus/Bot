@@ -1,6 +1,6 @@
 from aiogram import Router
-from aiogram.types import Message, ChatMemberUpdated, ChatMember
-from aiogram.filters import Command  # Импорт фильтра Command
+from aiogram.types import Message, ChatMemberUpdated
+from aiogram.filters import ChatMemberFilter, Command
 from tgbot.triggers import TRIGGERS
 
 router = Router()
@@ -43,3 +43,11 @@ async def trigger_handler(message: Message):
             else:
                 await message.answer(response, parse_mode="Markdown")  # Отправляем текст
             break  # Прекращаем проверку после первого совпадения
+
+@router.chat_member(ChatMemberFilter.ChatMemberUpdated)
+async def new_member_handler(update: ChatMemberUpdated):
+    # Проверяем, что пользователь присоединился
+    if update.new_chat_member.status == "member":
+        new_user = update.new_chat_member.user
+        welcome_message = f"Привет, {new_user.full_name}! Добро пожаловать в чат!"
+        await update.bot.send_message(update.chat.id, welcome_message)
