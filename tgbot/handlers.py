@@ -8,8 +8,9 @@ router = Router()
 # Обработчик команды /help
 @router.message(Command(commands=["help"]))  # Используем фильтр Command
 async def help_handler(message: Message):
-    help_text = "Я приветствую новиков и реагирую на некоторые фразы:\n\n" \
-                "Я могу ответить на следующие фразы:\n"
+    help_text = "*Привет, дружище! Я Бот этого чата и слежу за тобой!*\n\n" \
+                "Я приветствую новичков, слежу за порядком и делаю рассылки по активностям.\n\n" \
+                "Так же, я могу ответить на следующие фразы:\n"
     
     # Перебираем триггеры и нумеруем их
     for i, trigger in enumerate(TRIGGERS, 1):
@@ -21,7 +22,7 @@ async def help_handler(message: Message):
     
     await message.answer(help_text, parse_mode="Markdown")
 
-@router.message()
+@router.message(lambda message: any(trigger in message.text.lower() for trigger in TRIGGERS))
 async def trigger_handler(message: Message):
     message_text = message.text.lower()  # Преобразуем текст в нижний регистр
     for trigger, response in TRIGGERS.items():
