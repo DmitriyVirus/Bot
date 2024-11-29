@@ -19,14 +19,15 @@ async def favicon():
 async def on_startup():
     try:
         print("Setting webhook...")
-        webhook_info = await tgbot.bot.get_webhook_info()
-        if webhook_info.url != tgbot.webhook_url:
-            await tgbot.set_webhook()
-            print(f"Webhook set to {tgbot.webhook_url}")
-        else:
-            print("Webhook already set")
+        await tgbot.set_webhook()
     except Exception as e:
         print(f"Error setting webhook: {e}")
+
+@app.on_event("shutdown")
+async def on_shutdown():
+    await tgbot.bot.session.close()
+    print("Bot session closed.")
+
 
 # Главная страница
 @app.get("/", include_in_schema=False)
