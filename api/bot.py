@@ -9,7 +9,8 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Обработка favicon
-@app.get("/favicon.png")
+@app.get("/favicon.png", include_in_schema=False)
+@app.head("/favicon.png", include_in_schema=False)
 async def favicon():
     return RedirectResponse(url="/static/favicon.png")
 
@@ -28,9 +29,11 @@ async def on_startup():
         print(f"Error setting webhook: {e}")
 
 # Главная страница
-@app.get("/")
+@app.get("/", include_in_schema=False)
+@app.head("/", include_in_schema=False)
 async def read_root():
     return {"message": "Привет, мир!"}
+
 
 # Обработка webhook-запросов от Telegram
 @app.post('/api/bot')
