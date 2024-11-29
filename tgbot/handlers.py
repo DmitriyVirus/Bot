@@ -7,6 +7,20 @@ from tgbot.triggers import TRIGGERS
 
 router = Router()
 
+@router.chat_member(ChatMemberUpdatedFilter(IS_NOT_MEMBER >> IS_MEMBER))
+async def on_user_join(event: ChatMemberUpdated):
+    if event.new_chat_member.user and event.new_chat_member.user.first_name:
+        await event.answer(join_message(event.new_chat_member.user.first_name))
+    else:
+        print("Ошибка: Имя нового участника не определено.")
+
+@router.chat_member(ChatMemberUpdatedFilter(IS_MEMBER >> IS_NOT_MEMBER))
+async def on_user_left(event: ChatMemberUpdated):
+    if event.old_chat_member.user and event.old_chat_member.user.first_name:
+        await event.answer(left_message(event.old_chat_member.user.first_name))
+    else:
+        print("Ошибка: Имя покинувшего участника не определено.")
+        
 # Обработчик команды /help
 @router.message(Command(commands=["help"]))  # Используем фильтр Command
 async def help_handler(message: Message):
@@ -45,17 +59,3 @@ async def trigger_handler(message: Message):
             else:
                 await message.answer(response, parse_mode="Markdown")  # Отправляем текст
             break  # Прекращаем проверку после первого совпадения 
-
-@router.chat_member(ChatMemberUpdatedFilter(IS_NOT_MEMBER >> IS_MEMBER))
-async def on_user_join(event: ChatMemberUpdated):
-    if event.new_chat_member.user and event.new_chat_member.user.first_name:
-        await event.answer(join_message(event.new_chat_member.user.first_name))
-    else:
-        print("Ошибка: Имя нового участника не определено.")
-
-@router.chat_member(ChatMemberUpdatedFilter(IS_MEMBER >> IS_NOT_MEMBER))
-async def on_user_left(event: ChatMemberUpdated):
-    if event.old_chat_member.user and event.old_chat_member.user.first_name:
-        await event.answer(left_message(event.old_chat_member.user.first_name))
-    else:
-        print("Ошибка: Имя покинувшего участника не определено.")
