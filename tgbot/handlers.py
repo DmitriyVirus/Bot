@@ -5,12 +5,15 @@ from tgbot.triggers import TRIGGERS
 router = Router()
 
 # Обработчик команды /help
-@router.message(commands=["help"])
+@router.message(Command(commands=["help"]))
 async def help_handler(message: Message):
     help_text = (
         "Я приветствую новиков и реагирую на некоторые фразы:\n\n"
         "Я могу ответить на следующие фразы:\n"
-        f"{''.join(f'*{trigger}* - {response if isinstance(response, str) else response.get('text', '')}\n' for trigger, response in TRIGGERS.items())}"
+        + "\n".join(
+            f"*{trigger}* - {response if isinstance(response, str) else response.get('text', '')}"
+            for trigger, response in TRIGGERS.items()
+        )
     )
     await message.answer(help_text, parse_mode="Markdown")
 
