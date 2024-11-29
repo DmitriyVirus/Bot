@@ -38,7 +38,7 @@ async def help_handler(message: Message):
     
     await message.answer(help_text, parse_mode="Markdown")
             
-@router.message(lambda message: any(trigger in message.text.lower() for trigger in TRIGGERS))
+@router.message(lambda message: any(trigger in message.text for trigger in TRIGGERS))
 async def trigger_handler(message: Message):
     message_text = message.text.lower()  # Преобразуем текст в нижний регистр
     for trigger, response in TRIGGERS.items():
