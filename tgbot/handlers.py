@@ -9,45 +9,33 @@ from tgbot import views
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+logging.info(f"Registered handlers: {dispatcher.routers}")
 
 router = Router()
 
-from aiogram import Router
-from aiogram.types import Message
-import logging
-
-router = Router()
-
-# Настройка логирования
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+@router.message()
+async def debug_handler(message: Message):
+    logger.info(f"Debugging update: {message}")
 
 # Обработчик для присоединения пользователя
 @router.message()
 async def on_user_join(message: Message):
+    logger.info(f"Processing message: {message}")
     if message.new_chat_members:
+        logger.info(f"New members detected: {message.new_chat_members}")
         for member in message.new_chat_members:
             user_name = member.first_name
-            logger.info(f"User joined: {user_name}")
-            try:
-                welcome_message = f"Привет, {user_name}! Добро пожаловать в чат!"
-                await message.answer(welcome_message)
-                logger.info(f"Welcome message sent to {user_name}")
-            except Exception as e:
-                logger.error(f"Error while sending welcome message: {e}")
+            welcome_message = f"Привет, {user_name}! Добро пожаловать в чат!"
+            await message.answer(welcome_message)
 
-# Обработчик для ухода пользователя
 @router.message()
 async def on_user_leave(message: Message):
+    logger.info(f"Processing message: {message}")
     if message.left_chat_member:
+        logger.info(f"Member left: {message.left_chat_member}")
         user_name = message.left_chat_member.first_name
-        logger.info(f"User left: {user_name}")
-        try:
-            goodbye_message = f"Пока, {user_name}. Надеемся, ты вернешься!"
-            await message.answer(goodbye_message)
-            logger.info(f"Goodbye message sent to {user_name}")
-        except Exception as e:
-            logger.error(f"Error while sending goodbye message: {e}")
+        goodbye_message = f"Пока, {user_name}. Надеемся, ты вернешься!"
+        await message.answer(goodbye_message)
         
 # Обработчик команды /help
 @router.message(Command(commands=["help"]))  # Используем фильтр Command
