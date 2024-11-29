@@ -1,8 +1,9 @@
 from aiogram import Router
 from aiogram.types import Message, ChatMemberUpdated
-from aiogram.filters import Command, ChatMemberUpdatedFilter  # Используем правильный фильтр
+from aiogram.filters import Command, ChatMemberUpdatedFilter, IS_NOT_MEMBER, IS_MEMBER
+from tgbot.views import join_message, left_message
 from tgbot.triggers import TRIGGERS
-from tgbot.views import join_message
+
 
 router = Router()
 
@@ -45,8 +46,10 @@ async def trigger_handler(message: Message):
                 await message.answer(response, parse_mode="Markdown")  # Отправляем текст
             break  # Прекращаем проверку после первого совпадения 
 
-@router.chat_member(ChatMemberUpdatedFilter(member_status_changed=True))
+@router.chat_member(ChatMemberUpdatedFilter(IS_NOT_MEMBER >> IS_MEMBER))
 async def on_user_join(event: ChatMemberUpdated):
-    """Обработчик, который приветствует новых участников чата"""
-    if event.new_chat_member.status == "member":  # Проверяем, что новый пользователь присоединился
-        await event.answer(join_message(event.new_chat_member.user.first_name))
+    await event.answer(join_message(event.new_chat_member.user.first_name))
+
+@router.chat_member(ChatMemberUpdatedFilter(IS_MEMBER >> IS_NOT_MEMBER))
+async def on_user_left(event: ChatMemberUpdated):
+    await event.answer(left_message(event.old_chat_member.user.first_name))
