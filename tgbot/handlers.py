@@ -8,18 +8,10 @@ from tgbot.triggers import TRIGGERS
 router = Router()
 
 @router.chat_member(ChatMemberUpdatedFilter(IS_NOT_MEMBER >> IS_MEMBER))
-async def on_user_join(event: ChatMemberUpdated):
-    if event.new_chat_member.user and event.new_chat_member.user.first_name:
-        await event.answer(join_message(event.new_chat_member.user.first_name))
-    else:
-        print("Ошибка: Имя нового участника не определено.")
-
-@router.chat_member(ChatMemberUpdatedFilter(IS_MEMBER >> IS_NOT_MEMBER))
-async def on_user_left(event: ChatMemberUpdated):
-    if event.old_chat_member.user and event.old_chat_member.user.first_name:
-        await event.answer(left_message(event.old_chat_member.user.first_name))
-    else:
-        print("Ошибка: Имя покинувшего участника не определено.")
+@router.message(content_types=['new_chat_members'])
+async def welcome_new_member(message: Message):
+    for new_member in message.new_chat_members:
+        await message.answer(f"Привет, {new_member.first_name}! Добро пожаловать в наш чат!")
         
 # Обработчик команды /help
 @router.message(Command(commands=["help"]))  # Используем фильтр Command
@@ -38,7 +30,7 @@ async def help_handler(message: Message):
     
     await message.answer(help_text, parse_mode="Markdown")
             
-@router.message(lambda message: any(trigger in message.text for trigger in TRIGGERS))
+@router.message(lambda message: any(trigger in message.text.lower() for trigger in TRIGGERS))
 async def trigger_handler(message: Message):
     message_text = message.text.lower()  # Преобразуем текст в нижний регистр
     for trigger, response in TRIGGERS.items():
