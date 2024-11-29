@@ -8,19 +8,18 @@ from tgbot.triggers import TRIGGERS
 router = Router()
 
 # Обработчик изменения статуса участников (приход и уход)
-@router.chat_member(ChatMemberUpdatedFilter())
-async def on_user_status_changed(event: ChatMemberUpdated):
-    # Логируем событие
-    logging.info(f"Received chat_member update: {event}")
-
-    # Обработка прихода нового пользователя
-    if event.old_chat_member.status == "left" and event.new_chat_member.status == "member":
+@router.chat_member(ChatMemberUpdatedFilter(member_status_changed=IS_NOT_MEMBER >> IS_MEMBER))
+async def on_user_join(event: ChatMemberUpdated):
+    logging.info(f"Received chat_member update (user joined): {event}")
+    if event.new_chat_member and event.new_chat_member.status == "member":
         user = event.new_chat_member.user
         logging.info(f"User {user.full_name} joined the chat.")
         await event.bot.send_message(event.chat.id, f"Добро пожаловать, {user.full_name}!")
 
-    # Обработка ухода пользователя
-    elif event.old_chat_member.status == "member" and event.new_chat_member.status == "left":
+@router.chat_member(ChatMemberUpdatedFilter(member_status_changed=IS_MEMBER >> IS_NOT_MEMBER))
+async def on_user_left(event: ChatMemberUpdated):
+    logging.info(f"Received chat_member update (user left): {event}")
+    if event.old_chat_member and event.old_chat_member.status == "member":
         user = event.old_chat_member.user
         logging.info(f"User {user.full_name} left the chat.")
         await event.bot.send_message(event.chat.id, f"Прощай, {user.full_name}!")
