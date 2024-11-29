@@ -4,10 +4,9 @@ from aiogram.filters import Command, IS_MEMBER, IS_NOT_MEMBER, ChatMemberUpdated
 from tgbot.views import join_message, left_message
 from tgbot.triggers import TRIGGERS
 
-
 router = Router()
 
-@router.chat_member(ChatMemberUpdatedFilter())
+@router.chat_member(ChatMemberUpdatedFilter(member_status_changed=True))
 async def on_chat_member(event: ChatMemberUpdated):
     """Обработчик для входа и выхода пользователя"""
     old_status = event.old_chat_member.status
