@@ -12,31 +12,42 @@ logger = logging.getLogger(__name__)
 
 router = Router()
 
+from aiogram import Router
+from aiogram.types import Message
+import logging
+
+router = Router()
+
+# Настройка логирования
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # Обработчик для присоединения пользователя
-@router.chat_member(ChatMemberUpdatedFilter(IS_NOT_MEMBER >> IS_MEMBER))
-async def on_user_join(event: ChatMemberUpdated):
-    user_name = event.new_chat_member.user.first_name
-    logger.info(f"User joined: {user_name}")
-    try:
-        # Отправка приветственного сообщения
-        welcome_message = f"Привет, {user_name}! Добро пожаловать в чат!"
-        await event.bot.send_message(event.chat.id, welcome_message)
-        logger.info(f"Welcome message sent to {user_name}")
-    except Exception as e:
-        logger.error(f"Error while sending welcome message: {e}")
+@router.message()
+async def on_user_join(message: Message):
+    if message.new_chat_members:
+        for member in message.new_chat_members:
+            user_name = member.first_name
+            logger.info(f"User joined: {user_name}")
+            try:
+                welcome_message = f"Привет, {user_name}! Добро пожаловать в чат!"
+                await message.answer(welcome_message)
+                logger.info(f"Welcome message sent to {user_name}")
+            except Exception as e:
+                logger.error(f"Error while sending welcome message: {e}")
 
 # Обработчик для ухода пользователя
-@router.chat_member(ChatMemberUpdatedFilter(IS_MEMBER >> IS_NOT_MEMBER))
-async def on_user_leave(event: ChatMemberUpdated):
-    user_name = event.old_chat_member.user.first_name
-    logger.info(f"User left: {user_name}")
-    try:
-        # Отправка прощального сообщения
-        goodbye_message = f"Пока, {user_name}. Надеемся, ты вернешься!"
-        await event.bot.send_message(event.chat.id, goodbye_message)
-        logger.info(f"Goodbye message sent to {user_name}")
-    except Exception as e:
-        logger.error(f"Error while sending goodbye message: {e}")
+@router.message()
+async def on_user_leave(message: Message):
+    if message.left_chat_member:
+        user_name = message.left_chat_member.first_name
+        logger.info(f"User left: {user_name}")
+        try:
+            goodbye_message = f"Пока, {user_name}. Надеемся, ты вернешься!"
+            await message.answer(goodbye_message)
+            logger.info(f"Goodbye message sent to {user_name}")
+        except Exception as e:
+            logger.error(f"Error while sending goodbye message: {e}")
         
 # Обработчик команды /help
 @router.message(Command(commands=["help"]))  # Используем фильтр Command
