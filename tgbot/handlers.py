@@ -21,28 +21,6 @@ async def help_handler(message: Message):
         help_text += f"{i}. {trigger_text}\n"  # Добавляем номер и фразу
     
     await message.answer(help_text, parse_mode="Markdown")
-
-@router.chat_member()
-async def new_member_handler(event: ChatMemberUpdated):
-    new_member = event.new_chat_member
-    chat_id = event.chat.id
-    
-    # Проверка на тип вступления
-    if new_member.status == ChatMember.NEW:
-        first_name = new_member.user.first_name
-        if event.old_chat_member and event.old_chat_member.inviter is None:  # Вступление по ссылке
-            greeting = f"Привет, {first_name}! Ты пришел по ссылке, добро пожаловать!"
-        elif event.old_chat_member:  # Вступление вручную
-            greeting = f"Привет, {first_name}! Добро пожаловать, ты был приглашен вручную!"
-        else:
-            # Для случаев, когда приглашение неизвестно
-            greeting = f"Привет, {first_name}! Добро пожаловать в наш чат!"
-
-        try:
-            await event.bot.send_message(chat_id, greeting)
-        except Exception as e:
-            print(f"Ошибка при отправке сообщения: {e}")
-
             
 @router.message(lambda message: any(trigger in message.text.lower() for trigger in TRIGGERS))
 async def trigger_handler(message: Message):
