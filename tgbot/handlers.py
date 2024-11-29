@@ -1,5 +1,5 @@
 import logging
-from aiogram import Router
+from aiogram import Router, Dispatcher
 from aiogram.types import Message, ChatMemberUpdated
 from aiogram.filters import Command, IS_MEMBER, IS_NOT_MEMBER, ChatMemberUpdatedFilter
 from tgbot.views import join_message, left_message
