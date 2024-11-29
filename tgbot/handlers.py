@@ -6,14 +6,6 @@ from tgbot.triggers import TRIGGERS
 
 router = Router()
 
-# Настройка логирования
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-@router.message()
-async def debug_handler(message: Message):
-    logger.info(f"Debugging update: {message}")
-
 # Обработчик команды /help
 @router.message(Command(commands=["help"]))  # Используем фильтр Command
 async def help_handler(message: Message):
@@ -52,3 +44,18 @@ async def trigger_handler(message: Message):
             else:
                 await message.answer(response, parse_mode="Markdown")  # Отправляем текст
             break  # Прекращаем проверку после первого совпадения
+
+@router.message(lambda message: hasattr(message, 'new_chat_members') and message.new_chat_members)
+async def greet_new_members(message: Message):
+    logging.info(f"Получено событие добавления новых участников: {message.new_chat_members}")
+    for new_member in message.new_chat_members:
+        if new_member.is_bot:
+            logging.info(f"Пропущен бот: {new_member}")
+            continue
+        logging.info(f"Формируется приветствие для {new_member.first_name} (ID: {new_member.id})")
+        welcome_text = f"Добро пожаловать, {new_member.first_name}! Надеемся, вам понравится у нас 😊."
+        try:
+            await message.answer(welcome_text)
+            logging.info(f"Отправлено приветствие для {new_member.first_name} (ID: {new_member.id})")
+        except Exception as e:
+            logging.error(f"Ошибка при отправке приветствия {new_member.first_name}: {e}")
