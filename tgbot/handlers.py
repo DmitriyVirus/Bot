@@ -7,7 +7,7 @@ from tgbot.triggers import TRIGGERS
 
 router = Router()
 
-@router.chat_member(ChatMemberUpdatedFilter(IS_NOT_MEMBER >> IS_MEMBER))
+@router.chat_member(ChatMemberUpdatedFilter(member_status_changed=IS_NOT_MEMBER >> IS_MEMBER))
 async def on_user_join(event: ChatMemberUpdated):
     logging.info(f"Received update: {event}")
     if event.new_chat_member:
@@ -31,7 +31,7 @@ async def help_handler(message: Message):
     
     await message.answer(help_text, parse_mode="Markdown")
             
-@router.message(lambda message: any(trigger in message.text.lower() for trigger in TRIGGERS))
+@router.message(lambda message: message.text and any(trigger in message.text.lower() for trigger in TRIGGERS))
 async def trigger_handler(message: Message):
     message_text = message.text.lower()  # Преобразуем текст в нижний регистр
     for trigger, response in TRIGGERS.items():
@@ -51,4 +51,4 @@ async def trigger_handler(message: Message):
             
             else:
                 await message.answer(response, parse_mode="Markdown")  # Отправляем текст
-            break  # Прекращаем проверку после первого совпадения 
+            break  # Прекращаем проверку после первого совпадения
