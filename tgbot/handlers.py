@@ -1,5 +1,5 @@
 from aiogram import Router
-from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import Message, ChatMemberUpdated, ChatMember
 from aiogram.filters import Command  # Импорт фильтра Command
 from tgbot.triggers import TRIGGERS
 
@@ -22,6 +22,24 @@ async def help_handler(message: Message):
     
     await message.answer(help_text, parse_mode="Markdown")
 
+# Приветствие новых пользователей
+@router.chat_member()
+async def new_member_handler(event: ChatMemberUpdated):
+    new_member = event.new_chat_member
+    chat_id = event.chat.id
+    
+    # Проверка на тип вступления
+    if new_member.status == ChatMember.NEW:
+        if event.old_chat_member.inviter is None:  # Вступление по ссылке
+            greeting = f"Привет, {new_member.user.first_name}! Ты пришел по ссылке, добро пожаловать!"
+        else:  # Вступление вручную
+            greeting = f"Привет, {new_member.user.first_name}! Добро пожаловать, ты был приглашен вручную!"
+
+        try:
+            await event.bot.send_message(chat_id, greeting)
+        except TelegramAPIError as e:
+            print(f"Ошибка при отправке сообщения: {e}")
+            
 @router.message(lambda message: any(trigger in message.text.lower() for trigger in TRIGGERS))
 async def trigger_handler(message: Message):
     message_text = message.text.lower()  # Преобразуем текст в нижний регистр
