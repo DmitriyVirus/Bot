@@ -1,6 +1,6 @@
 from aiogram import Router
 from aiogram.types import Message, ChatMemberUpdated
-from aiogram.filters import Command, ChatMemberUpdatedFilter, ChatMemberStatusUpdated IS_NOT_MEMBER, IS_MEMBER
+from aiogram.filters import Command, ChatMemberUpdatedFilter, ChatMemberStatusUpdated, IS_NOT_MEMBER, IS_MEMBER
 from tgbot.views import join_message, left_message
 from tgbot.triggers import TRIGGERS
 
