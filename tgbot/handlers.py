@@ -1,5 +1,6 @@
 from aiogram import Router
 from aiogram.types import Message
+from aiogram.filters import Command  # Импорт фильтра Command
 from tgbot.triggers import TRIGGERS
 
 router = Router()
