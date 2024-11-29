@@ -1,24 +1,27 @@
 from aiogram import Router
 from aiogram.types import Message, ChatMemberUpdated
-from aiogram.filters import Command, ChatMemberUpdatedFilter
+from aiogram.filters import Command, IS_MEMBER, IS_NOT_MEMBER, ChatMemberUpdatedFilter
 from tgbot.views import join_message, left_message
 from tgbot.triggers import TRIGGERS
 
 
 router = Router()
 
-# Обработчик для нового участника
-@router.chat_member(ChatMemberUpdatedFilter)
-async def new_member_handler(event: ChatMemberUpdated):
-    if event.new_chat_member and event.old_chat_member:
-        new_member = event.new_chat_member
-        old_member = event.old_chat_member
+#@router.chat_member(ChatMemberUpdatedFilter(IS_MEMBER >> IS_NOT_MEMBER))
+async def on_user_leave(event: ChatMemberUpdated):
+    """Обработчик для выхода пользователя"""
+    # Когда пользователь покидает чат
+    if event.old_chat_member.status == "member" and event.new_chat_member.status == "left":
+        user = event.old_chat_member.user
+        await event.bot.send_message(event.chat.id, f"{user.full_name} покинул чат!")
 
-        if new_member.status == "member" and old_member.status == "left":
-            new_user = new_member.user
-            welcome_text = f"Привет, {new_user.full_name}! Добро пожаловать в наш чат!"
-            await event.bot.send_message(event.chat.id, welcome_text)
-
+@router.chat_member(ChatMemberUpdatedFilter(IS_NOT_MEMBER >> IS_MEMBER))
+async def on_user_join(event: ChatMemberUpdated):
+    """Обработчик для входа пользователя"""
+    # Когда новый пользователь вступает в чат
+    if event.old_chat_member.status == "left" and event.new_chat_member.status == "member":
+        user = event.new_chat_member.user
+        await event.bot.send_message(event.chat.id, f"Добро пожаловать, {user.full_name}!")
 # Обработчик команды /help
 @router.message(Command(commands=["help"]))  # Используем фильтр Command
 async def help_handler(message: Message):
