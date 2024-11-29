@@ -1,6 +1,6 @@
 from aiogram import Router
 from aiogram.types import Message, ChatMemberUpdated
-from aiogram.filters import Command, ChatMemberUpdatedFilter, IS_NOT_MEMBER, IS_MEMBER
+from aiogram.filters import Command, ChatMemberUpdatedFilter, ChatMemberStatusUpdated IS_NOT_MEMBER, IS_MEMBER
 from tgbot.views import join_message, left_message
 from tgbot.triggers import TRIGGERS
 
@@ -45,3 +45,12 @@ async def trigger_handler(message: Message):
             else:
                 await message.answer(response, parse_mode="Markdown")  # Отправляем текст
             break  # Прекращаем проверку после первого совпадения 
+            
+# Обработчик для нового участника
+@router.chat_member(ChatMemberStatusUpdated)
+async def new_member_handler(event: ChatMemberUpdated):
+    # Проверяем, что новый участник только что присоединился
+    if event.new_chat_member.status == "member" and event.old_chat_member.status == "left":
+        new_user = event.new_chat_member.user
+        welcome_text = f"Привет, {new_user.full_name}! Добро пожаловать в наш чат!"
+        await event.bot.send_message(event.chat.id, welcome_text)
