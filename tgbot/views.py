@@ -1,3 +1,6 @@
-def join_message(user_first_name: str) -> str:
-    """Функция для создания приветственного сообщения для нового пользователя"""
-    return f"Привет, {user_first_name}! Добро пожаловать в чат!"
+# tgbot/views.py
+def join_message(username):
+    return f"Привет, {username}! Добро пожаловать в наш чат!"
+
+def left_message(username):
+    return f"Прощай, {username}. Надеемся, ты вернешься!"
