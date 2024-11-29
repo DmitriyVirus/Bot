@@ -6,16 +6,17 @@ from tgbot.triggers import TRIGGERS
 router = Router()
 
 # Обработчик команды /help
-@router.message(Command(commands=["help"]))
+@router.message(Command(commands=["help"]))  # Используем фильтр Command
 async def help_handler(message: Message):
-    help_text = (
-        "Я приветствую новиков и реагирую на некоторые фразы:\n\n"
-        "Я могу ответить на следующие фразы:\n"
-        + "\n".join(
-            f"*{trigger}* - {response if isinstance(response, str) else response.get('text', '')}"
-            for trigger, response in TRIGGERS.items()
-        )
-    )
+    help_text = "Я приветствую новиков и реагирую на некоторые фразы:\n\n" \
+                "Я могу ответить на следующие фразы:\n"
+    
+    # Перебираем триггеры, добавляем только текст до ":"
+    for trigger in TRIGGERS:
+        # Извлекаем часть до символа ":" или оставляем сам текст, если ":" нет
+        trigger_text = trigger.split(":")[0]
+        help_text += f"*'{trigger_text}'*"
+    
     await message.answer(help_text, parse_mode="Markdown")
 
 @router.message()
