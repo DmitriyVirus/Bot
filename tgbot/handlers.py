@@ -1,5 +1,5 @@
 import logging
-from aiogram import Router, Dispatcher
+from aiogram import Router
 from aiogram.types import Message, ChatMemberUpdated
 from aiogram.filters import Command, IS_MEMBER, IS_NOT_MEMBER, ChatMemberUpdatedFilter
 from tgbot.views import join_message, left_message
@@ -9,7 +9,6 @@ from tgbot import views
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-logging.info(f"Registered handlers: {dispatcher.routers}")
 
 router = Router()
 
