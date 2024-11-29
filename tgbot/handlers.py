@@ -16,34 +16,23 @@ router = Router()
 async def debug_handler(message: Message):
     logger.info(f"Debugging update: {message}")
 
-# Обработчик для присоединения пользователя
-@router.chat_member(ChatMemberUpdatedFilter(IS_NOT_MEMBER >> IS_MEMBER))
-async def on_user_join(event: ChatMemberUpdated):
-    user_name = event.new_chat_member.user.first_name
-    chat_id = event.chat.id
-    logging.info(f"User joined: {user_name} in chat: {chat_id}")
-    
-    try:
-        # Отправка приветственного сообщения
-        welcome_message = f"Привет, {user_name}! Добро пожаловать в чат!"
-        await event.bot.send_message(chat_id, welcome_message)
-        logging.info(f"Welcome message sent to {user_name} in chat {chat_id}")
-    except Exception as e:
-        logging.error(f"Error while sending welcome message to chat {chat_id}: {e}")
-
-@router.chat_member(ChatMemberUpdatedFilter(IS_MEMBER >> IS_NOT_MEMBER))
-async def on_user_leave(event: ChatMemberUpdated):
-    user_name = event.old_chat_member.user.first_name
-    chat_id = event.chat.id
-    logging.info(f"User left: {user_name} from chat: {chat_id}")
-    
-    try:
-        # Отправка прощального сообщения
-        goodbye_message = f"Пока, {user_name}. Надеемся, ты вернешься!"
-        await event.bot.send_message(chat_id, goodbye_message)
-        logging.info(f"Goodbye message sent to {user_name} in chat {chat_id}")
-    except Exception as e:
-        logging.error(f"Error while sending goodbye message to chat {chat_id}: {e}")
+router.message(lambda message: message.new_chat_members)
+async def greet_new_members(message: Message):
+    for new_member in message.new_chat_members:
+        # Пропускаем ботов
+        if new_member.is_bot:
+            continue
+        # Формируем приветственное сообщение
+        welcome_text = (
+            f"Добро пожаловать, {new_member.first_name}!"
+            " Надеемся, вам понравится у нас 😊."
+        )
+        try:
+            # Отправляем сообщение в чат
+            await message.answer(welcome_text)
+            logging.info(f"Отправлено приветствие для {new_member.first_name} (ID: {new_member.id})")
+        except Exception as e:
+            logging.error(f"Ошибка при отправке приветствия {new_member.first_name}: {e}")
         
 # Обработчик команды /help
 @router.message(Command(commands=["help"]))  # Используем фильтр Command
