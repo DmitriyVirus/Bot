@@ -10,21 +10,14 @@ router = Router()
 # Обработчик для нового участника
 @router.chat_member(ChatMemberUpdatedFilter)
 async def new_member_handler(event: ChatMemberUpdated):
-    # Проверяем, что это событие связано с присоединением нового участника
-    new_member = event.new_chat_member
-    old_member = event.old_chat_member
+    if event.new_chat_member and event.old_chat_member:
+        new_member = event.new_chat_member
+        old_member = event.old_chat_member
 
-    # Проверяем, что новый участник не был в группе ранее и только что присоединился
-    if new_member.status == "member" and old_member.status == "left":
-        new_user = new_member.user
-        welcome_text = f"Привет, {new_user.full_name}! Добро пожаловать в наш чат!"
-        await event.bot.send_message(event.chat.id, welcome_text)
-
-    # Также можно добавить проверку для событий выхода из чата, если нужно
-    if new_member.status == "left" and old_member.status == "member":
-        left_user = old_member.user
-        farewell_text = f"Прощай, {left_user.full_name}! Надеемся увидеть тебя снова!"
-        await event.bot.send_message(event.chat.id, farewell_text)
+        if new_member.status == "member" and old_member.status == "left":
+            new_user = new_member.user
+            welcome_text = f"Привет, {new_user.full_name}! Добро пожаловать в наш чат!"
+            await event.bot.send_message(event.chat.id, welcome_text)
 
 # Обработчик команды /help
 @router.message(Command(commands=["help"]))  # Используем фильтр Command
