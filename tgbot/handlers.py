@@ -48,8 +48,14 @@ async def trigger_handler(message: Message):
 
 @router.chat_member(ChatMemberUpdatedFilter(IS_NOT_MEMBER >> IS_MEMBER))
 async def on_user_join(event: ChatMemberUpdated):
-    await event.answer(join_message(event.new_chat_member.user.first_name))
+    if event.new_chat_member.user and event.new_chat_member.user.first_name:
+        await event.answer(join_message(event.new_chat_member.user.first_name))
+    else:
+        print("Ошибка: Имя нового участника не определено.")
 
 @router.chat_member(ChatMemberUpdatedFilter(IS_MEMBER >> IS_NOT_MEMBER))
 async def on_user_left(event: ChatMemberUpdated):
-    await event.answer(left_message(event.old_chat_member.user.first_name))
+    if event.old_chat_member.user and event.old_chat_member.user.first_name:
+        await event.answer(left_message(event.old_chat_member.user.first_name))
+    else:
+        print("Ошибка: Имя покинувшего участника не определено.")
