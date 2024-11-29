@@ -16,7 +16,7 @@ router = Router()
 async def debug_handler(message: Message):
     logger.info(f"Debugging update: {message}")
 
-router.message(lambda message: message.new_chat_members)
+@router.message(lambda message: message.new_chat_members)
 async def greet_new_members(message: Message):
     for new_member in message.new_chat_members:
         # Пропускаем ботов
