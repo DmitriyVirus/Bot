@@ -11,11 +11,11 @@ async def help_handler(message: Message):
     help_text = "Я приветствую новиков и реагирую на некоторые фразы:\n\n" \
                 "Я могу ответить на следующие фразы:\n"
     
-    # Перебираем триггеры, добавляем только текст до ":"
+    # Перебираем триггеры
     for trigger in TRIGGERS:
         # Извлекаем часть до символа ":" или оставляем сам текст, если ":" нет
         trigger_text = trigger.split(":")[0]
-        help_text += f"*'{trigger_text}'*"
+        help_text += f"{i}. {trigger_text}\n"
     
     await message.answer(help_text, parse_mode="Markdown")
 
