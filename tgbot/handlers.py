@@ -22,7 +22,6 @@ async def help_handler(message: Message):
     
     await message.answer(help_text, parse_mode="Markdown")
 
-# Приветствие новых пользователей
 @router.chat_member()
 async def new_member_handler(event: ChatMemberUpdated):
     new_member = event.new_chat_member
@@ -30,15 +29,20 @@ async def new_member_handler(event: ChatMemberUpdated):
     
     # Проверка на тип вступления
     if new_member.status == ChatMember.NEW:
-        if event.old_chat_member.inviter is None:  # Вступление по ссылке
-            greeting = f"Привет, {new_member.user.first_name}! Ты пришел по ссылке, добро пожаловать!"
-        else:  # Вступление вручную
-            greeting = f"Привет, {new_member.user.first_name}! Добро пожаловать, ты был приглашен вручную!"
+        first_name = new_member.user.first_name
+        if event.old_chat_member and event.old_chat_member.inviter is None:  # Вступление по ссылке
+            greeting = f"Привет, {first_name}! Ты пришел по ссылке, добро пожаловать!"
+        elif event.old_chat_member:  # Вступление вручную
+            greeting = f"Привет, {first_name}! Добро пожаловать, ты был приглашен вручную!"
+        else:
+            # Для случаев, когда приглашение неизвестно
+            greeting = f"Привет, {first_name}! Добро пожаловать в наш чат!"
 
         try:
             await event.bot.send_message(chat_id, greeting)
-        except TelegramAPIError as e:
+        except Exception as e:
             print(f"Ошибка при отправке сообщения: {e}")
+
             
 @router.message(lambda message: any(trigger in message.text.lower() for trigger in TRIGGERS))
 async def trigger_handler(message: Message):
