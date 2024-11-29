@@ -1,7 +1,8 @@
-from fastapi import FastAPI, Request
-from fastapi.responses import RedirectResponse
-from fastapi.staticfiles import StaticFiles
 from tgbot import tgbot
+from aiogram.types import BotCommand
+from fastapi import FastAPI, Request
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import RedirectResponse
 
 app = FastAPI()
 
@@ -20,6 +21,11 @@ async def on_startup():
     try:
         print("Setting webhook...")
         await tgbot.set_webhook()
+         # Настройка команд
+        commands = [
+            BotCommand(command="/help", description="Справка о боте"),
+        ]
+        await tgbot.bot.set_my_commands(commands)
     except Exception as e:
         print(f"Error setting webhook: {e}")
 
