@@ -1,3 +1,4 @@
+import json
 from tgbot import tgbot
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
@@ -41,7 +42,9 @@ async def read_root():
 async def tgbot_webhook_route(request: Request):
     try:
         update_dict = await request.json()
+        print("Received update:", json.dumps(update_dict, indent=4))  # Логирование обновления
         await tgbot.update_bot(update_dict)
         return ''
     except Exception as e:
+        print(f"Error processing update: {e}")
         return {"error": str(e)}
