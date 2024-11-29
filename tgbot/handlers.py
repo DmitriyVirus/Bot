@@ -8,18 +8,29 @@ router = Router()
 # Обработчик команды /help
 @router.message(Command(commands=["help"]))  # Используем фильтр Command
 async def help_handler(message: Message):
-    help_text = "Я приветствую новиков и реагирую на некоторые фразы:\n\n" \
+    help_text = "Я приветствую новичков и реагирую на следующие фразы:\n\n" \
                 "Я могу ответить на следующие фразы:\n"
     
-    # Перебираем триггеры и нумеруем их
+    # Создаем InlineKeyboardMarkup
+    keyboard = InlineKeyboardMarkup()
+
+    # Перебираем триггеры и добавляем их как кнопки
     for i, trigger in enumerate(TRIGGERS, 1):
-        # Извлекаем часть до символа ":" или оставляем сам текст, если ":" нет
-        trigger_text = trigger.split(":")[0]
-        # Преобразуем первую букву в верхний регистр
-        trigger_text = trigger_text.capitalize()
-        help_text += f"{i}. {trigger_text}\n"  # Добавляем номер и фразу
+        # Извлекаем часть до символа ":" и делаем первую букву заглавной
+        trigger_text = trigger.split(":")[0].capitalize()
+        
+        # Добавляем кнопку для каждого триггера с номером
+        button = InlineKeyboardButton(
+            text=f"{i}. **{trigger_text}**", 
+            callback_data=f"trigger_{trigger}"
+        )
+        keyboard.add(button)
     
-    await message.answer(help_text, parse_mode="Markdown")
+    # Формируем текст с нумерацией и жирным шрифтом
+    help_text += "\n".join([f"{i}. **{trigger.split(':')[0].capitalize()}**" for i, trigger in enumerate(TRIGGERS, 1)])
+
+    # Отправляем сообщение с кнопками
+    await message.answer(help_text, reply_markup=keyboard, parse_mode="Markdown")
 
 @router.message()
 async def trigger_handler(message: Message):
