@@ -45,7 +45,7 @@ async def trigger_handler(message: Message):
             break  # Прекращаем проверку после первого совпадения 
 
 # Обработчик для приветствия новых участников чата
-@router.chat_member(ChatMemberUpdatedFilter())  # Используем ChatMemberUpdatedFilter
+@router.chat_member(ChatMemberUpdatedFilter(member_status_changed=True))  # Указываем member_status_changed=True
 async def new_member_handler(update: ChatMemberUpdated):
     # Проверяем, что пользователь присоединился
     if update.new_chat_member.status == "member":
