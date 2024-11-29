@@ -2,6 +2,7 @@ from aiogram import Router
 from aiogram.types import Message, ChatMemberUpdated
 from aiogram.filters import Command, ChatMemberUpdatedFilter  # Используем правильный фильтр
 from tgbot.triggers import TRIGGERS
+from tgbot.views import join_message
 
 router = Router()
 
@@ -44,11 +45,8 @@ async def trigger_handler(message: Message):
                 await message.answer(response, parse_mode="Markdown")  # Отправляем текст
             break  # Прекращаем проверку после первого совпадения 
 
-# Обработчик для приветствия новых участников чата
-@router.chat_member(ChatMemberUpdatedFilter(member_status_changed=True))  # Указываем member_status_changed=True
-async def new_member_handler(update: ChatMemberUpdated):
-    # Проверяем, что пользователь присоединился
-    if update.new_chat_member.status == "member":
-        new_user = update.new_chat_member.user
-        welcome_message = f"Привет, {new_user.full_name}! Добро пожаловать в чат!"
-        await update.bot.send_message(update.chat.id, welcome_message)
+@router.chat_member(ChatMemberUpdatedFilter(member_status_changed=True))
+async def on_user_join(event: ChatMemberUpdated):
+    """Обработчик, который приветствует новых участников чата"""
+    if event.new_chat_member.status == "member":  # Проверяем, что новый пользователь присоединился
+        await event.answer(join_message(event.new_chat_member.user.first_name))
