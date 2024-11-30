@@ -39,18 +39,24 @@ async def on_startup():
         print("Setting webhook...")
         await tgbot.set_webhook()
 
-        # Настроим планировщик и добавим задачу
-        scheduler = AsyncIOScheduler()
+      # Настраиваем планировщик
+        scheduler = AsyncIOScheduler(timezone=ukraine_tz)  # Указываем часовой пояс
         scheduler.add_job(
-            send_reminder,  # Задача для напоминания
-            trigger='cron',  # Используем cron
-            hour=15,  # Час 
-            minute=30,  # Минуты 
-            second=0  # Секунды 
+            send_reminder,
+            trigger='cron',
+            hour=15,  # Час для оповещения
+            minute=45  # Минуты
         )
+        # Можно добавить дополнительные напоминания с разными временами
+        scheduler.add_job(
+            send_reminder,
+            trigger='cron',
+            hour=16,  # Еще одно время для напоминания
+            minute=0
+        )
+        
         # Запуск планировщика
         scheduler.start()
-
     except Exception as e:
         print(f"Error setting webhook: {e}")
 
@@ -63,10 +69,18 @@ async def on_shutdown():
 @app.get("/", include_in_schema=False)
 @app.head("/", include_in_schema=False)
 async def read_root():
-    current_time = datetime.now()  # Получаем текущее время
-    formatted_time = current_time.strftime("%Y-%m-%d %H:%M:%S")  # Форматируем в строку
-    return {"message": f"Привет, мир! Текущее время на сервере: {formatted_time}"}
-
+    # Время на сервере (в часовом поясе сервера)
+    server_time = datetime.now()
+    formatted_server_time = server_time.strftime("%Y-%m-%d %H:%M:%S")
+    # Время в вашей тайм-зоне (Европа/Киев)
+    ukraine_time = datetime.now(ukraine_tz)
+    formatted_ukraine_time = ukraine_time.strftime("%Y-%m-%d %H:%M:%S")
+    # Возвращаем оба времени
+    return {
+        "message": "Привет, мир!",
+        "server_time": f"Время на сервере: {formatted_server_time}",
+        "ukraine_time": f"Время в Украине: {formatted_ukraine_time}"
+    }
 # Обработка webhook-запросов от Telegram
 @app.post('/api/bot')
 async def tgbot_webhook_route(request: Request):
