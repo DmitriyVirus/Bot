@@ -8,10 +8,15 @@
     { "src": "/favicon.png", "dest": "/static/favicon.png" },
     { "src": "/(.*)", "dest": "/api/bot.py" }
   ]
-   "crons": [
+  "crons": [
     {
-      "path": "/api/bot/cron",
+      "path": "/api/bot/cron1",
       "schedule": "0 6 * * 1-5",
+      "timezone": "Europe/Kiev"
+    },
+    {
+      "path": "/api/bot/cron2",
+      "schedule": "0 14 * * 5",
       "timezone": "Europe/Kiev"
     }
   ]
