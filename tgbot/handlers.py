@@ -86,7 +86,7 @@ async def fu_handler(message: Message):
 # Обработчик команды /dno
 @router.message(Command(commands=["dno"]))  # Используем фильтр Command
 async def dno_handler(message: Message):
-    video_file_id = "AAMCAgADGQEAAgMhZ0rb7JhDgleA0AgGLD8tECVY-zMAAkVZAAJWTlhKXGYSGwkdSekBAAdtAAM2BA"  # Ваш file_id
+    video_file_id = "BAACAgIAAxkBAAIDImdK3qVe2zCyGZNxRMPeWUL6DL5lAAJlWQACVk5YSrZ9OPVNhsglNgQ"  # Ваш file_id
     try:
         # Отправляем видео с использованием file_id
         await message.answer_video(video_file_id)
