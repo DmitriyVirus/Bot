@@ -1,3 +1,4 @@
+import os
 import json
 import logging
 from tgbot import tgbot
@@ -35,22 +36,11 @@ async def on_shutdown():
     await tgbot.bot.session.close()
     print("Bot session closed.")
 
-# Главная страница с текущим временем
+# Главная страница
 @app.get("/", include_in_schema=False)
-@app.head("/", include_in_schema=False)
 async def read_root():
-    # Время на сервере (в часовом поясе сервера)
-    server_time = datetime.now()
-    formatted_server_time = server_time.strftime("%Y-%m-%d %H:%M:%S")
-    # Время в вашей тайм-зоне (Европа/Киев)
-    ukraine_time = datetime.now(ukraine_tz)
-    formatted_ukraine_time = ukraine_time.strftime("%Y-%m-%d %H:%M:%S")
-    # Возвращаем оба времени
-    return {
-        "message": "Привет, мир!",
-        "server_time": f"Время на сервере: {formatted_server_time}",
-        "ukraine_time": f"Время в Украине: {formatted_ukraine_time}"
-    }
+    return FileResponse(os.path.join(os.getcwd(), "index.html"))
+    
 # Обработка webhook-запросов от Telegram
 @app.post('/api/bot')
 async def tgbot_webhook_route(request: Request):
