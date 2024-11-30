@@ -10,6 +10,7 @@ app = FastAPI()
 
 # Получите ID чата, куда будут отправляться сообщения
 CHAT_ID = -1002388880478  
+
 # Функция для отправки сообщения
 async def send_daily_message():
     message = "Доброе утро! 🌅 Начинаем новый день!"
@@ -19,19 +20,6 @@ async def send_daily_message():
         logging.info(f"Сообщение отправлено: {message}")
     except Exception as e:
         logging.error(f"Ошибка при отправке сообщения: {e}")
-
-# Настроим планировщик
-scheduler = AsyncIOScheduler()
-scheduler.add_job(
-    send_daily_message,
-    trigger='cron',  # Используем cron
-    hour=12,  # Час (9:00)
-    minute=41,  # Минуты
-    second=0  # Секунды
-)
-
-# Запуск планировщика
-scheduler.start()
 
 # Монтируем директорию для статических файлов
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -48,6 +36,20 @@ async def on_startup():
     try:
         print("Setting webhook...")
         await tgbot.set_webhook()
+        
+        # Настроим планировщик и добавим задание
+        scheduler = AsyncIOScheduler()
+        scheduler.add_job(
+            send_daily_message,
+            trigger='cron',  # Используем cron
+            hour=12,  # Час (12:00)
+            minute=50,  # Минуты (50)
+            second=0  # Секунды (0)
+        )
+
+        # Запуск планировщика
+        scheduler.start()
+
     except Exception as e:
         print(f"Error setting webhook: {e}")
 
@@ -56,13 +58,11 @@ async def on_shutdown():
     await tgbot.bot.session.close()
     print("Bot session closed.")
 
-
 # Главная страница
 @app.get("/", include_in_schema=False)
 @app.head("/", include_in_schema=False)
 async def read_root():
     return {"message": "Привет, мир!"}
-
 
 # Обработка webhook-запросов от Telegram
 @app.post('/api/bot')
@@ -75,3 +75,4 @@ async def tgbot_webhook_route(request: Request):
     except Exception as e:
         print(f"Error processing update: {e}")
         return {"error": str(e)}
+
