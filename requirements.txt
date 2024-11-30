@@ -2,5 +2,4 @@ fastapi
 uvicorn
 aiogram
 python-decouple
-apscheduler
 pytz 
