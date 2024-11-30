@@ -57,7 +57,7 @@ async def send_reminder():
         text = "Привет! Это ваше напоминание на будний день."
         photo_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Blue_sky%2C_white-gray_clouds.JPG/1920px-Blue_sky%2C_white-gray_clouds.JPG"
         # Отправка текста
-        await tgbot.bot.send_message(chat_id=config('CHAT_ID'), text=text, photo=photo_url)
+        await tgbot.bot.send_message(chat_id=config('CHAT_ID'), photo=photo_url, caption=text)
     except Exception as e:
         logging.error(f"Ошибка при отправке напоминания: {e}")
         return {"status": "error", "message": str(e)}
