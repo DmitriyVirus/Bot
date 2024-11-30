@@ -105,8 +105,8 @@ async def send_welcome(message: Message):
         # Логируем ошибку, если не удалось отправить сообщение
         logging.error(f"Ошибка при отправке приветствия: {e}")
         
-# Обработчик команды /help
-@router.message(Command(commands=["help"]))  # Используем фильтр Command
+# Обработчик команды /bot
+@router.message(Command(commands=["bot"]))  # Используем фильтр Command
 async def help_handler(message: Message):
     help_text = HELP_TEXT_HEADER    
     # Перебираем триггеры и нумеруем их
