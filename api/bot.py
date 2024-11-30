@@ -14,7 +14,6 @@ CHAT_ID = -1002388880478
 # Функция для отправки сообщения
 async def send_daily_message():
     message = "Доброе утро! 🌅 Начинаем новый день!"
-    
     try:
         await tgbot.bot.send_message(CHAT_ID, message)
         logging.info(f"Сообщение отправлено: {message}")
@@ -36,20 +35,18 @@ async def on_startup():
     try:
         print("Setting webhook...")
         await tgbot.set_webhook()
-        
+
         # Настроим планировщик и добавим задание
         scheduler = AsyncIOScheduler()
         scheduler.add_job(
             send_daily_message,
             trigger='cron',  # Используем cron
-            hour=12,  # Час (12:00)
-            minute=50,  # Минуты (50)
+            hour=13,  # Час (12:00)
+            minute=10,  # Минуты (50)
             second=0  # Секунды (0)
         )
-
         # Запуск планировщика
         scheduler.start()
-
     except Exception as e:
         print(f"Error setting webhook: {e}")
 
@@ -75,4 +72,3 @@ async def tgbot_webhook_route(request: Request):
     except Exception as e:
         print(f"Error processing update: {e}")
         return {"error": str(e)}
-
