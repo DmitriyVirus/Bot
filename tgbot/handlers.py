@@ -37,6 +37,7 @@ async def say_goodbye(message: Message):
     try:
         await message.answer(goodbye_text)
         logging.info(f"Отправлено прощание для {left_member.first_name} (ID: {left_member.id})")
+        await message.answer_video("BAACAgIAAxkBAAIDIGdK0OJwj31wUKdAUgxygDBJs2IdAAL3WAACVk5YSsQhdK_UudsRNgQ")
     except Exception as e:
         logging.error(f"Ошибка при отправке прощания для {left_member.first_name}: {e}")
         
