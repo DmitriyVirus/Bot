@@ -63,3 +63,8 @@ async def tgbot_webhook_route(request: Request):
         print(f"Error processing update: {e}")
         return {"error": str(e)}
 
+@app.get("/api/bot/cron")
+async def cron_job():
+    message = "Сегодня рабочий день у всех"
+    await tgbot.bot.send_message(chat_id=-1002388880478, text=message)  # Ваш чат ID
+    return {"status": "success"}
