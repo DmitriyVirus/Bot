@@ -47,7 +47,7 @@ async def tgbot_webhook_route(request: Request):
 @app.get("/favicon.png", include_in_schema=False)
 @app.head("/favicon.png", include_in_schema=False)
 async def favicon():
-    return FileResponse(os.path.join(os.getcwd(), "static", "favicon.png"))
+    return FileResponse(os.path.join(os.getcwd(), "static", "favicon.ico"))
 
 
 @app.get('/send_reminder', include_in_schema=False)
