@@ -45,7 +45,7 @@ async def say_goodbye(message: Message):
 @router.message(Command(commands=["fu"]))  # Используем фильтр Command
 async def fu_handler(message: Message):
     # Пример того, как можно использовать триггер из TRIGGERS
-    trigger = "fu"  # Триггер, на который будет реагировать команда /fu
+    trigger = "код красный тут матюки"  # Триггер, на который будет реагировать команда /fu
     if trigger in TRIGGERS:
         response = TRIGGERS[trigger]  # Получаем ответ для триггера
         # Если ответ это строка (текст)
