@@ -17,7 +17,7 @@ async def greet_new_members(message: Message):
         logging.info(f"Формируется приветствие для {new_member.first_name} (ID: {new_member.id})")
         
         # Используем текст из triggers.py и подставляем имя пользователя
-        welcome_text = WELCOME_TEXT.format(first_name=new_member.first_name)
+        welcome_text = f"⚡⚡⚡Привет, *{new_member.first_name}*! Теперь ты часть команды.⚡⚡⚡ {WELCOME_TEXT}"
         try:
             await message.answer(welcome_text, parse_mode="Markdown")  # Указываем режим Markdown
             logging.info(f"Отправлено приветствие для {new_member.first_name} (ID: {new_member.id})")
@@ -82,6 +82,18 @@ async def fu_handler(message: Message):
                 await message.answer_animation(response["gif"])
     else:
         await message.answer("Нет ответа для этой команды.", parse_mode="Markdown")
+
+# Обработчик команды /dno
+@router.message(Command(commands=["dno"]))  # Используем фильтр Command
+async def dno_handler(message: Message):
+    video_file_id = "AAMCAgADGQEAAgMhZ0rb7JhDgleA0AgGLD8tECVY-zMAAkVZAAJWTlhKXGYSGwkdSekBAAdtAAM2BA"  # Ваш file_id
+    try:
+        # Отправляем видео с использованием file_id
+        await message.answer_video(video_file_id)
+        print(f"Видео отправлено пользователю {message.from_user.id}")
+    except Exception as e:
+        await message.answer(f"Ошибка при отправке видео: {e}")
+        print(f"Ошибка при отправке видео: {e}")
         
 # Обработчик команды /help
 @router.message(Command(commands=["help"]))  # Используем фильтр Command
