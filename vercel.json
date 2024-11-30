@@ -5,7 +5,7 @@
   ],
   "routes": [
     { "src": "/api/bot", "dest": "/api/bot.py" },
-    { "src": "/favicon.png", "dest": "/static/favicon.png" },
+    { "src": "/favicon.ico", "dest": "/static/favicon.ico" },
     { "src": "/(.*)", "dest": "/api/bot.py" }
   ]
 }
