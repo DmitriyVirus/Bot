@@ -6,6 +6,14 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
+logging.basicConfig(level=logging.INFO)
+
+try:
+    scheduler = AsyncIOScheduler()
+    logging.info("AsyncIOScheduler создан успешно.")
+except Exception as e:
+    logging.error(f"Ошибка при создании AsyncIOScheduler: {e}")
+    
 app = FastAPI()
 
 # Получите ID чата, куда будут отправляться сообщения
