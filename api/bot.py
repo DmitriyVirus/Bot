@@ -18,10 +18,13 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 async def favicon():
     return RedirectResponse(url="/static/favicon.png")
      
+# Часовой пояс для Украины
+ukraine_tz = timezone("Europe/Kyiv")
+
 # Функция для отправки напоминания
 async def send_reminder():
     try:
-        message = "Напоминание🌟"
+        message = "Напоминание 🌟"
         # Отправка сообщения в Telegram
         await tgbot.bot.send_message(chat_id=-1002388880478, text=message)
         logging.info(f"Сообщение отправлено: {message}")
@@ -40,8 +43,8 @@ async def on_startup():
         scheduler.add_job(
             send_reminder,  # Задача для напоминания
             trigger='cron',  # Используем cron
-            hour=13,  # Час 
-            minute=15,  # Минуты 
+            hour=15,  # Час 
+            minute=30,  # Минуты 
             second=0  # Секунды 
         )
         # Запуск планировщика
