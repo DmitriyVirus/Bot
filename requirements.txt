@@ -1,5 +1,5 @@
 fastapi
 uvicorn
 aiogram
-apscheduler==3.8.1
+apscheduler
 python-decouple
