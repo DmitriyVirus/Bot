@@ -21,7 +21,7 @@ async def favicon():
 # Функция для отправки напоминания
 async def send_reminder():
     try:
-        message = "Напоминание: время 14:40! 🌟"
+        message = "Напоминание🌟"
         # Отправка сообщения в Telegram
         await tgbot.bot.send_message(chat_id=-1002388880478, text=message)
         logging.info(f"Сообщение отправлено: {message}")
@@ -40,9 +40,9 @@ async def on_startup():
         scheduler.add_job(
             send_reminder,  # Задача для напоминания
             trigger='cron',  # Используем cron
-            hour=14,  # Час (14:00)
-            minute=40,  # Минуты (40)
-            second=0  # Секунды (0)
+            hour=13,  # Час 
+            minute=0,  # Минуты 
+            second=0  # Секунды 
         )
         # Запуск планировщика
         scheduler.start()
