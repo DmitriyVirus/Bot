@@ -1,6 +1,7 @@
 import json
 import logging
 from tgbot import tgbot
+from datetime import datetime
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
@@ -16,7 +17,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 @app.head("/favicon.png", include_in_schema=False)
 async def favicon():
     return RedirectResponse(url="/static/favicon.png")
-
+     
 # Функция для отправки напоминания
 async def send_reminder():
     try:
@@ -54,11 +55,13 @@ async def on_shutdown():
     await tgbot.bot.session.close()
     print("Bot session closed.")
 
-# Главная страница
+# Главная страница с текущим временем
 @app.get("/", include_in_schema=False)
 @app.head("/", include_in_schema=False)
 async def read_root():
-    return {"message": "Привет, мир!"}
+    current_time = datetime.now()  # Получаем текущее время
+    formatted_time = current_time.strftime("%Y-%m-%d %H:%M:%S")  # Форматируем в строку
+    return {"message": f"Привет, мир! Текущее время на сервере: {formatted_time}"}
 
 # Обработка webhook-запросов от Telegram
 @app.post('/api/bot')
