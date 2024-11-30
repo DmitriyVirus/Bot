@@ -2,7 +2,7 @@ import logging
 from aiogram import Router
 from aiogram.types import Message
 from aiogram.filters import Command
-from tgbot.triggers import TRIGGERS
+from tgbot.triggers import TRIGGERS, WELCOME_TEXT
 
 router = Router()
 
@@ -15,14 +15,11 @@ async def greet_new_members(message: Message):
             logging.info(f"Пропущен бот: {new_member}")
             continue
         logging.info(f"Формируется приветствие для {new_member.first_name} (ID: {new_member.id})")
-        welcome_text = f"""Привет, {new_member.first_name}! Теперь ты часть команды. Быть в основе - означает участвовать в жизни и развитии клана.
-        Мы качаем учеников, делимся полезной информацией, отвечаем на вопросы, участвуем в клановых мероприятиях, организуем сборы, помогаем с прокачкой, 
-        ищем и приводим новых людей, проводим собеседования, разбираемся с варами (если изредка они появляются) и др.
-        Если ты новичок, то нам нужно увидеть, как ты сможешь поучаствовать в развитии клана, как ты сможешь нас усилить. 
-        Прокачка своих основных персонажей и выполнение клановых миссий не считается. Это то, что каждый должен делать по умолчанию.
-        Если ты уже в основе, но никак в развитии клана не участвуешь, то ты и не участник клана. При нехватке свободных мест предпочтение будет отдаваться наиболее активным."""
+        
+        # Используем текст из triggers.py и подставляем имя пользователя
+        welcome_text = WELCOME_TEXT.format(first_name=new_member.first_name)
         try:
-            await message.answer(welcome_text)
+            await message.answer(welcome_text, parse_mode="Markdown")  # Указываем режим Markdown
             logging.info(f"Отправлено приветствие для {new_member.first_name} (ID: {new_member.id})")
         except Exception as e:
             logging.error(f"Ошибка при отправке приветствия {new_member.first_name}: {e}")
