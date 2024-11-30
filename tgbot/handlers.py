@@ -45,10 +45,20 @@ async def say_goodbye(message: Message):
 @router.message(Command(commands=["fu"]))  # Используем фильтр Command
 async def fu_handler(message: Message):
     # Пример того, как можно использовать триггер из TRIGGERS
-    trigger = "на кол посадить"  # Триггер, на который будет реагировать команда /fu
+    trigger = "fu"  # Триггер, на который будет реагировать команда /fu
     if trigger in TRIGGERS:
         response = TRIGGERS[trigger]  # Получаем ответ для триггера
-        await message.answer(response, parse_mode="Markdown")  # Отправляем ответ
+        # Если ответ это строка (текст)
+        if isinstance(response, str):
+            await message.answer(response, parse_mode="Markdown")      
+        # Если ответ это словарь с ключами 'text', 'image', 'gif'
+        elif isinstance(response, dict):
+            if "text" in response:
+                await message.answer(response["text"], parse_mode="Markdown")
+            if "image" in response:
+                await message.answer_photo(response["image"])
+            if "gif" in response:
+                await message.answer_animation(response["gif"])
     else:
         await message.answer("Нет ответа для этой команды.", parse_mode="Markdown")
         
