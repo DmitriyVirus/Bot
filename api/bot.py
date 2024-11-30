@@ -2,6 +2,7 @@ import os
 import json
 import logging
 from tgbot import tgbot
+from decouple import config
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse, FileResponse
