@@ -31,7 +31,7 @@ TRIGGERS = {
         "image": "https://memepedia.ru/wp-content/uploads/2021/02/bonk-mem-bonk-8.jpg"
     },
     "на кол посадить": {
-        "text": "Вот так примерно?\n",
+        "text": "Вот так его!!\n",
         "gif": "https://lastfm.freetls.fastly.net/i/u/ar0/4192f84a3d4a4828c8c836229da960df.gif"
     },
 }
