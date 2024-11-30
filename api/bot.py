@@ -38,6 +38,7 @@ async def on_shutdown():
 
 # Главная страница
 @app.get("/", include_in_schema=False)
+@app.head("/", include_in_schema=False)
 async def read_root():
     return FileResponse(os.path.join(os.getcwd(), "static", "index.html"))
     
