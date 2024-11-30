@@ -44,10 +44,7 @@ async def say_goodbye(message: Message):
 # Обработчик команды /help
 @router.message(Command(commands=["help"]))  # Используем фильтр Command
 async def help_handler(message: Message):
-    help_text = "*Привет, дружище! Я Бот этого чата и слежу за тобой!*\n\n" \
-                "Я приветствую новичков, слежу за порядком и делаю рассылки по активностям.\n\n" \
-                "Также я могу ответить на следующие фразы:\n"
-    
+    help_text = HELP_TEXT_HEADER    
     # Перебираем триггеры и нумеруем их
     for i, trigger in enumerate(TRIGGERS, 1):
         trigger_text = trigger.split(":")[0]  # Извлекаем часть до символа ":" или оставляем сам текст, если ":" нет
