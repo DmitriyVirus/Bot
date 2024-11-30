@@ -33,11 +33,10 @@ async def say_goodbye(message: Message):
         logging.info(f"Пропущен бот: {left_member}")
         return
     logging.info(f"Формируется прощание для {left_member.first_name} (ID: {left_member.id})") 
-    goodbye_text = f"Прощай, {left_member.first_name}! Мы НЕ будем скучать по тебе. Если передумаешь, обратно не пустим! 👋"
+    goodbye_text = f"Прощай, {left_member.first_name}! Мы НЕ будем скучать по тебе.👋"
     try:
         await message.answer(goodbye_text)
         logging.info(f"Отправлено прощание для {left_member.first_name} (ID: {left_member.id})")
-        await message.answer_video("BAACAgIAAxkBAAIDIGdK0OJwj31wUKdAUgxygDBJs2IdAAL3WAACVk5YSsQhdK_UudsRNgQ")
     except Exception as e:
         logging.error(f"Ошибка при отправке прощания для {left_member.first_name}: {e}")
 
@@ -62,6 +61,30 @@ async def fu_handler(message: Message):
     else:
         await message.answer("Нет ответа для этой команды.", parse_mode="Markdown")
 
+# Обработчик команды /bye1
+@router.message(Command(commands=["bye1"]))  # Используем фильтр Command
+async def dno_handler(message: Message):
+    video_file_id = "BAACAgIAAxkBAAIDIGdK0OJwj31wUKdAUgxygDBJs2IdAAL3WAACVk5YSsQhdK_UudsRNgQ"  # Ваш file_id
+    try:
+        # Отправляем видео с использованием file_id
+        await message.answer_video(video_file_id)
+        print(f"Видео отправлено пользователю {message.from_user.id}")
+    except Exception as e:
+        await message.answer(f"Ошибка при отправке видео: {e}")
+        print(f"Ошибка при отправке видео: {e}")
+
+# Обработчик команды /bye2
+@router.message(Command(commands=["bye2"]))  # Используем фильтр Command
+async def dno_handler(message: Message):
+    video_file_id = "BAACAgIAAxkBAAIDI2dLDIjfeiMQ55Ae8yv-GzRHfSnZAAIzXAACVk5YSlsGnAdQnVQ7NgQ"  # Ваш file_id
+    try:
+        # Отправляем видео с использованием file_id
+        await message.answer_video(video_file_id)
+        print(f"Видео отправлено пользователю {message.from_user.id}")
+    except Exception as e:
+        await message.answer(f"Ошибка при отправке видео: {e}")
+        print(f"Ошибка при отправке видео: {e}")
+        
 # Обработчик команды /nakol
 @router.message(Command(commands=["nakol"]))  # Используем фильтр Command
 async def fu_handler(message: Message):
