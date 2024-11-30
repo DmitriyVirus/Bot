@@ -6,6 +6,31 @@ from fastapi.responses import RedirectResponse
 
 app = FastAPI()
 
+# Получите ID чата, куда будут отправляться сообщения
+CHAT_ID = -1002388880478  
+# Функция для отправки сообщения
+async def send_daily_message():
+    message = "Доброе утро! 🌅 Начинаем новый день!"
+    
+    try:
+        await tgbot.bot.send_message(CHAT_ID, message)
+        logging.info(f"Сообщение отправлено: {message}")
+    except Exception as e:
+        logging.error(f"Ошибка при отправке сообщения: {e}")
+
+# Настроим планировщик
+scheduler = AsyncIOScheduler()
+scheduler.add_job(
+    send_daily_message,
+    trigger='cron',  # Используем cron
+    hour=12,  # Час (9:00)
+    minute=41,  # Минуты
+    second=0  # Секунды
+)
+
+# Запуск планировщика
+scheduler.start()
+
 # Монтируем директорию для статических файлов
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
