@@ -41,7 +41,7 @@ async def on_startup():
             send_reminder,  # Задача для напоминания
             trigger='cron',  # Используем cron
             hour=13,  # Час 
-            minute=0,  # Минуты 
+            minute=15,  # Минуты 
             second=0  # Секунды 
         )
         # Запуск планировщика
