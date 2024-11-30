@@ -94,6 +94,16 @@ async def dno_handler(message: Message):
     except Exception as e:
         await message.answer(f"Ошибка при отправке видео: {e}")
         print(f"Ошибка при отправке видео: {e}")
+
+# Обработчик команды /hi
+@router.message(Command(commands=["hi"]))
+async def send_welcome(message: Message):
+    try:
+        # Отправляем WELCOME_TEXT с Markdown-разметкой
+        await message.answer(WELCOME_TEXT, parse_mode="Markdown")
+    except Exception as e:
+        # Логируем ошибку, если не удалось отправить сообщение
+        logging.error(f"Ошибка при отправке приветствия: {e}")
         
 # Обработчик команды /help
 @router.message(Command(commands=["help"]))  # Используем фильтр Command
