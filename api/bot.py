@@ -6,7 +6,6 @@ from datetime import datetime
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 app = FastAPI()
 
@@ -22,41 +21,12 @@ async def favicon():
 # Часовой пояс для Украины
 ukraine_tz = timezone("Europe/Kyiv")
 
-# Функция для отправки напоминания
-async def send_reminder():
-    try:
-        message = "Напоминание 🌟"
-        # Отправка сообщения в Telegram
-        await tgbot.bot.send_message(chat_id=-1002388880478, text=message)
-        logging.info(f"Сообщение отправлено: {message}")
-    except Exception as e:
-        logging.error(f"Ошибка при отправке сообщения: {e}")
-
 # Установка webhook при старте
 @app.on_event("startup")
 async def on_startup():
     try:
         print("Setting webhook...")
         await tgbot.set_webhook()
-
-      # Настраиваем планировщик
-        scheduler = AsyncIOScheduler(timezone=ukraine_tz)  # Указываем часовой пояс
-        scheduler.add_job(
-            send_reminder,
-            trigger='cron',
-            hour=15,  # Час для оповещения
-            minute=45  # Минуты
-        )
-        # Можно добавить дополнительные напоминания с разными временами
-        scheduler.add_job(
-            send_reminder,
-            trigger='cron',
-            hour=16,  # Еще одно время для напоминания
-            minute=0
-        )
-        
-        # Запуск планировщика
-        scheduler.start()
     except Exception as e:
         print(f"Error setting webhook: {e}")
 
