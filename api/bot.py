@@ -1,8 +1,10 @@
 import json
+import logging
 from tgbot import tgbot
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 app = FastAPI()
 
