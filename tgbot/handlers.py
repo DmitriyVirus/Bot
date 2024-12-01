@@ -2,7 +2,7 @@ import logging
 import asyncio
 from aiogram import Router
 from aiogram.filters import Command
-from aiogram.utils.exceptions import MessageToDeleteNotFound
+from aiogram.exceptions import MessageToDeleteNotFound, TelegramBadRequest
 from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
 from tgbot.triggers import TRIGGERS, WELCOME_TEXT, HELP_TEXT_HEADER, COMMANDS_LIST
 
@@ -18,12 +18,11 @@ async def greet_new_members(message: Message):
             continue
         logging.info(f"Формируется приветствие для {new_member.first_name} (ID: {new_member.id})")
         
-        # Используем текст из triggers.py и подставляем имя пользователя
         welcome_text = f"⚡⚡⚡Привет, *{new_member.first_name}*! Теперь ты часть команды.⚡⚡⚡ {WELCOME_TEXT}"
         try:
-            await message.answer(welcome_text, parse_mode="Markdown")  # Указываем режим Markdown
+            await message.answer(welcome_text, parse_mode="Markdown")
             logging.info(f"Отправлено приветствие для {new_member.first_name} (ID: {new_member.id})")
-        except Exception as e:
+        except TelegramBadRequest as e:
             logging.error(f"Ошибка при отправке приветствия {new_member.first_name}: {e}")
 
 # Прощание с пользователями
@@ -39,38 +38,33 @@ async def say_goodbye(message: Message):
     try:
         await message.answer(goodbye_text)
         logging.info(f"Отправлено прощание для {left_member.first_name} (ID: {left_member.id})")
-    except Exception as e:
+    except TelegramBadRequest as e:
         logging.error(f"Ошибка при отправке прощания для {left_member.first_name}: {e}")
-
 
 # Словарь для хранения пользователей, которые нажали кнопку "+"
 user_reactions = {}
 
 # Обработчик команды /fix
-@router.message(Command(commands=["fix"]))  # Используем фильтр Command
+@router.message(Command(commands=["fix"]))
 async def fix_handler(message: Message):
     try:
-        # Создаем клавиатуру с кнопкой "+"
         keyboard = InlineKeyboardMarkup(row_width=1)
         plus_button = InlineKeyboardButton("➕ Присоединиться", callback_data="join_plus")
         keyboard.add(plus_button)
-        # Отправляем сообщение "Тест" с кнопкой и сохраняем его
+
         sent_message = await message.answer("Тест", reply_markup=keyboard)
-        # Закрепляем это сообщение
         await sent_message.pin()
-        # Сбрасываем список пользователей, которые нажали "+"
         user_reactions.clear()
-        # Запускаем таймер на 20 минут
-        await asyncio.sleep(1200)  # 1200 секунд = 20 минут
-        # После 20 минут удаляем сообщение
+
+        await asyncio.sleep(1200)
         try:
             await sent_message.delete()
         except MessageToDeleteNotFound:
-            pass  # Если сообщение уже удалено, игнорируем ошибку
-        # Формируем список участников, кто успел присоединиться
-        joined_in_limit = list(user_reactions.values())[:5]  # Первые 5 участников
-        left_out = list(user_reactions.values())[5:]  # Все остальные, кто не успел
-        # Отправляем отчет о тех, кто в "фулке" и тех, кто не успел
+            logging.warning("Сообщение уже удалено.")
+        
+        joined_in_limit = list(user_reactions.values())[:5]
+        left_out = list(user_reactions.values())[5:]
+
         if joined_in_limit:
             await message.answer(f"В фулку вошли: {', '.join(joined_in_limit)}")
         if left_out:
@@ -78,6 +72,7 @@ async def fix_handler(message: Message):
     except Exception as e:
         logging.error(f"Ошибка при обработке команды /fix: {e}")
         await message.answer("Произошла ошибка. Попробуйте снова.")
+
 # Обработчик callback для кнопки "+"
 @router.callback_query(lambda callback: callback.data == "join_plus")
 async def handle_plus_reaction(callback):
@@ -85,17 +80,15 @@ async def handle_plus_reaction(callback):
     if user_id not in user_reactions:
         user_reactions[user_id] = callback.from_user.first_name
         await callback.answer("Вы присоединились!")
-        # Обновляем сообщение с количеством участников
         reaction_count = len(user_reactions)
-        # Сохраняем сообщение, которое мы будем обновлять
+
         sent_message = callback.message
         if reaction_count < 5:
             updated_text = f"Тест\n\nКоличество участников: {reaction_count}"
-            await sent_message.edit_text(updated_text)
+            await sent_message.edit_text(updated_text, reply_markup=sent_message.reply_markup)
         elif reaction_count == 5:
-            await sent_message.edit_text(f"Тест\n\nУже фулка! ({', '.join(user_reactions.values())})")
+            await sent_message.edit_text(f"Тест\n\nУже фулка! ({', '.join(user_reactions.values())})", reply_markup=None)
     else:
-        # Игнорируем повторные нажатия от одного пользователя
         await callback.answer("Вы уже присоединились!")
         
 # Обработчик команды /fu
