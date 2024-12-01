@@ -1,7 +1,9 @@
 import logging
+import asyncio
 from aiogram import Router
-from aiogram.types import Message
 from aiogram.filters import Command
+from aiogram.utils.exceptions import MessageToDeleteNotFound
+from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
 from tgbot.triggers import TRIGGERS, WELCOME_TEXT, HELP_TEXT_HEADER, COMMANDS_LIST
 
 router = Router()
@@ -40,6 +42,62 @@ async def say_goodbye(message: Message):
     except Exception as e:
         logging.error(f"Ошибка при отправке прощания для {left_member.first_name}: {e}")
 
+
+# Словарь для хранения пользователей, которые нажали кнопку "+"
+user_reactions = {}
+
+# Обработчик команды /fix
+@router.message(Command(commands=["fix"]))  # Используем фильтр Command
+async def fix_handler(message: Message):
+    try:
+        # Создаем клавиатуру с кнопкой "+"
+        keyboard = InlineKeyboardMarkup(row_width=1)
+        plus_button = InlineKeyboardButton("➕ Присоединиться", callback_data="join_plus")
+        keyboard.add(plus_button)
+        # Отправляем сообщение "Тест" с кнопкой и сохраняем его
+        sent_message = await message.answer("Тест", reply_markup=keyboard)
+        # Закрепляем это сообщение
+        await sent_message.pin()
+        # Сбрасываем список пользователей, которые нажали "+"
+        user_reactions.clear()
+        # Запускаем таймер на 20 минут
+        await asyncio.sleep(1200)  # 1200 секунд = 20 минут
+        # После 20 минут удаляем сообщение
+        try:
+            await sent_message.delete()
+        except MessageToDeleteNotFound:
+            pass  # Если сообщение уже удалено, игнорируем ошибку
+        # Формируем список участников, кто успел присоединиться
+        joined_in_limit = list(user_reactions.values())[:5]  # Первые 5 участников
+        left_out = list(user_reactions.values())[5:]  # Все остальные, кто не успел
+        # Отправляем отчет о тех, кто в "фулке" и тех, кто не успел
+        if joined_in_limit:
+            await message.answer(f"В фулку вошли: {', '.join(joined_in_limit)}")
+        if left_out:
+            await message.answer(f"Также плюсовали: {', '.join(left_out)}")
+    except Exception as e:
+        logging.error(f"Ошибка при обработке команды /fix: {e}")
+        await message.answer("Произошла ошибка. Попробуйте снова.")
+# Обработчик callback для кнопки "+"
+@router.callback_query(lambda callback: callback.data == "join_plus")
+async def handle_plus_reaction(callback):
+    user_id = callback.from_user.id
+    if user_id not in user_reactions:
+        user_reactions[user_id] = callback.from_user.first_name
+        await callback.answer("Вы присоединились!")
+        # Обновляем сообщение с количеством участников
+        reaction_count = len(user_reactions)
+        # Сохраняем сообщение, которое мы будем обновлять
+        sent_message = callback.message
+        if reaction_count < 5:
+            updated_text = f"Тест\n\nКоличество участников: {reaction_count}"
+            await sent_message.edit_text(updated_text)
+        elif reaction_count == 5:
+            await sent_message.edit_text(f"Тест\n\nУже фулка! ({', '.join(user_reactions.values())})")
+    else:
+        # Игнорируем повторные нажатия от одного пользователя
+        await callback.answer("Вы уже присоединились!")
+        
 # Обработчик команды /fu
 @router.message(Command(commands=["fu"]))  # Используем фильтр Command
 async def fu_handler(message: Message):
