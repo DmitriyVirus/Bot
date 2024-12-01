@@ -48,23 +48,24 @@ user_reactions = {}
 @router.message(Command(commands=["fix"]))
 async def fix_handler(message: Message):
     try:
-        keyboard = InlineKeyboardMarkup(row_width=1)
-        plus_button = InlineKeyboardButton("➕ Присоединиться", callback_data="join_plus")
-        keyboard.add(plus_button)
+        # Создаем кнопку
+        plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
+        # Добавляем кнопку в разметку
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[[plus_button]])
 
+        # Отправляем сообщение с кнопкой
         sent_message = await message.answer("Тест", reply_markup=keyboard)
         await sent_message.pin()
         user_reactions.clear()
 
+        # Ждем 1200 секунд перед удалением сообщения
         await asyncio.sleep(1200)
         try:
             await sent_message.delete()
-        except TelegramBadRequest as e:
-            if "message to delete not found" in str(e).lower():
-                logging.warning("Сообщение уже удалено.")
-            else:
-                logging.error(f"Ошибка при удалении сообщения: {e}")
+        except MessageToDeleteNotFound:
+            logging.warning("Сообщение уже удалено.")
         
+        # Обрабатываем пользователей
         joined_in_limit = list(user_reactions.values())[:5]
         left_out = list(user_reactions.values())[5:]
 
