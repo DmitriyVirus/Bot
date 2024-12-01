@@ -66,8 +66,8 @@ async def fix_handler(message: Message):
 
 async def manage_fix_message(sent_message: Message, command_message: Message):
     try:
-        # Ждем 1200 секунд перед удалением сообщения
-        await asyncio.sleep(1200)
+        # Ждем 60 секунд перед удалением сообщения
+        await asyncio.sleep(60)
         try:
             await sent_message.delete()
         except TelegramBadRequest:
