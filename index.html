@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Добро пожаловать на бот</title>
     <link rel="stylesheet" href="/static/styles.css">
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <link rel="shortcut icon" href="/static/favicon.ico">
 </head>
 <body>
     <div class="container">
@@ -14,9 +16,11 @@
         <p>Время в Украине: <span id="ukraine-time"></span></p>
     </div>
     <script>
+        // Получение времени
         const serverTime = new Date().toLocaleString('en-US', { timeZone: 'UTC' });
         const ukraineTime = new Date().toLocaleString('en-US', { timeZone: 'Europe/Kiev' });
 
+        // Отображение времени на странице
         document.getElementById("server-time").textContent = serverTime;
         document.getElementById("ukraine-time").textContent = ukraineTime;
     </script>
