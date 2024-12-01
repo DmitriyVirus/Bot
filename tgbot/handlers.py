@@ -2,7 +2,7 @@ import logging
 import asyncio
 from aiogram import Router
 from aiogram.filters import Command
-from aiogram.exceptions import MessageToDeleteNotFound, TelegramBadRequest
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
 from tgbot.triggers import TRIGGERS, WELCOME_TEXT, HELP_TEXT_HEADER, COMMANDS_LIST
 
@@ -59,8 +59,11 @@ async def fix_handler(message: Message):
         await asyncio.sleep(1200)
         try:
             await sent_message.delete()
-        except MessageToDeleteNotFound:
-            logging.warning("Сообщение уже удалено.")
+        except TelegramBadRequest as e:
+            if "message to delete not found" in str(e).lower():
+                logging.warning("Сообщение уже удалено.")
+            else:
+                logging.error(f"Ошибка при удалении сообщения: {e}")
         
         joined_in_limit = list(user_reactions.values())[:5]
         left_out = list(user_reactions.values())[5:]
