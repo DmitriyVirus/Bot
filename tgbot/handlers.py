@@ -58,24 +58,31 @@ async def fix_handler(message: Message):
         await sent_message.pin()
         user_reactions.clear()
 
+        # Запускаем фоновую задачу для обработки удаления сообщения и реакции
+        asyncio.create_task(manage_fix_message(sent_message, message))
+    except Exception as e:
+        logging.error(f"Ошибка при обработке команды /fix: {e}")
+        await message.answer("Произошла ошибка. Попробуйте снова.")
+
+async def manage_fix_message(sent_message: Message, command_message: Message):
+    try:
         # Ждем 1200 секунд перед удалением сообщения
         await asyncio.sleep(1200)
         try:
             await sent_message.delete()
-        except MessageToDeleteNotFound:
+        except TelegramBadRequest:
             logging.warning("Сообщение уже удалено.")
-        
+
         # Обрабатываем пользователей
         joined_in_limit = list(user_reactions.values())[:5]
         left_out = list(user_reactions.values())[5:]
 
         if joined_in_limit:
-            await message.answer(f"В фулку вошли: {', '.join(joined_in_limit)}")
+            await command_message.answer(f"В фулку вошли: {', '.join(joined_in_limit)}")
         if left_out:
-            await message.answer(f"Также плюсовали: {', '.join(left_out)}")
+            await command_message.answer(f"Также плюсовали: {', '.join(left_out)}")
     except Exception as e:
-        logging.error(f"Ошибка при обработке команды /fix: {e}")
-        await message.answer("Произошла ошибка. Попробуйте снова.")
+        logging.error(f"Ошибка при управлении сообщением: {e}")
 
 # Обработчик callback для кнопки "+"
 @router.callback_query(lambda callback: callback.data == "join_plus")
