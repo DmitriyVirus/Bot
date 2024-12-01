@@ -94,13 +94,20 @@ async def handle_plus_reaction(callback):
         reaction_count = len(user_reactions)
 
         sent_message = callback.message
-        if reaction_count < 5:
-            updated_text = f"Тест\n\nКоличество участников: {reaction_count}"
+        updated_text = f"Тест\n\nКоличество участников: {reaction_count}"
+
+        # Проверка, изменился ли текст перед обновлением
+        if sent_message.text != updated_text:
             await sent_message.edit_text(updated_text, reply_markup=sent_message.reply_markup)
-        elif reaction_count == 5:
-            await sent_message.edit_text(f"Тест\n\nУже фулка! ({', '.join(user_reactions.values())})", reply_markup=None)
+
+        if reaction_count == 5:
+            updated_text = f"Тест\n\nУже фулка! ({', '.join(user_reactions.values())})"
+            # Проверка, изменился ли текст перед обновлением
+            if sent_message.text != updated_text:
+                await sent_message.edit_text(updated_text, reply_markup=None)
     else:
         await callback.answer("Вы уже присоединились!")
+
         
 # Обработчик команды /fu
 @router.message(Command(commands=["fu"]))  # Используем фильтр Command
