@@ -1,8 +1,8 @@
 from celery import Celery
 from decouple import config  # Для работы с переменными окружения
 
-# Читаем URL Redis из переменной окружения
-redis_url = config("REDIS_URL")  # REDIS_URL должен быть задан в Environment Variables
+# Получаем URL Redis из .env
+redis_url = config("REDIS_URL")  # REDIS_URL из файла .env
 
 # Проверяем, что REDIS_URL корректно загружен
 if not redis_url:
