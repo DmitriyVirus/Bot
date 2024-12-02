@@ -1,5 +1,6 @@
 import os
 import json
+import redis
 from tgbot import tgbot
 from decouple import config
 from fastapi import FastAPI, Request
