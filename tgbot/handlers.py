@@ -1,5 +1,6 @@
 import logging
 import asyncio
+from selery.tasks import long_task
 from aiogram import Bot, Dispatcher, Router, types
 from aiogram.filters import Command
 from aiogram.exceptions import TelegramBadRequest
@@ -71,13 +72,21 @@ async def fix_handler(message: Message):
 async def manage_fix_message(sent_message: Message, command_message: Message):
     logging.info("Начало работы manage_fix_message")
     try:
-        # Логируем начало отсчёта
-        logging.info("Ожидание 60 секунд началось")
-        
-        await asyncio.sleep(60)  # Ожидание 60 секунд
+        # Отправляем задачу в Celery
+        duration = 60  # Продолжительность задачи
+        task_result = long_task.delay(duration)
+        logging.info(f"Задача отправлена в Celery с ID: {task_result.id}")
 
-        # Логируем завершение отсчёта
-        logging.info("60 секунд прошло, начинаем обработку...")
+        # Ожидание завершения задачи (опционально, для примера)
+        while not task_result.ready():
+            await asyncio.sleep(1)  # Проверяем статус каждую секунду
+            logging.info("Ожидаем завершения задачи...")
+
+        # Проверяем результат задачи
+        if task_result.successful():
+            logging.info(f"Результат задачи: {task_result.result}")
+        else:
+            logging.warning(f"Ошибка в задаче: {task_result.result}")
 
         # Удаление сообщения
         try:
@@ -99,6 +108,7 @@ async def manage_fix_message(sent_message: Message, command_message: Message):
 
     except Exception as e:
         logging.error(f"Ошибка при управлении сообщением: {e}")
+
 
 # Функция-обертка для запуска долгой задачи
 async def long_task_wrapper(func, *args):
