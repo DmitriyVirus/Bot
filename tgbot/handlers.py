@@ -1,3 +1,4 @@
+import redis
 import logging
 import asyncio
 from aiogram import Bot, Dispatcher, Router
@@ -5,6 +6,14 @@ from aiogram.filters import Command
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
 from tgbot.triggers import TRIGGERS, WELCOME_TEXT, HELP_TEXT_HEADER, COMMANDS_LIST
+
+# Подключение к Redis (Upstash)
+r = redis.Redis(
+    host="robust-boa-25173.upstash.io",  # Вставьте свой хост
+    port=6379,
+    password="AWJVAAIjcDE1NmZkZjZiMWM3N2Q0ZDQ1YTZjMTM0MWRjNTE4MzZjYXAxMA",  # Вставьте свой пароль
+    ssl=True
+)
 
 router = Router()
 
@@ -41,28 +50,43 @@ async def say_goodbye(message: Message):
     except TelegramBadRequest as e:
         logging.error(f"Ошибка при отправке прощания для {left_member.first_name}: {e}")
 
+
 # Инициализация логирования
 logging.basicConfig(level=logging.INFO)
 
-# Словарь для хранения пользователей
-user_reactions = {}
+# Функция для ожидания завершения задачи через Redis
+async def wait_for_task(task_id: str, message: Message):
+    logging.info(f"Ожидаем завершения задачи {task_id}...")
+    
+    # Ожидание завершения задачи (20 секунд)
+    await asyncio.sleep(20)
+    
+    task_status = r.get(task_id)
+    if task_status:
+        await message.answer("Все работает!")  # Ответ после 20 секунд
+    else:
+        await message.answer("Произошла ошибка с задачей.")  # В случае, если задача не завершена.
 
-## Основной хендлер, где вызывается фоновая задача
+# Обработчик команды /fix
 @router.message(Command(commands=["fix"]))
 async def fix_handler(message: Message):
     try:
-        # Создание кнопки и отправка сообщения
+        # Генерируем уникальный ID для задачи
+        task_id = f"task:{message.from_user.id}:{message.date}"
+
+        # Создаем задачу в Redis с 20-секундным TTL
+        r.setex(task_id, 20, "Task is done")
+        
+        # Кнопка для присоединения
         plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
         keyboard = InlineKeyboardMarkup(inline_keyboard=[[plus_button]])
-        sent_message = await message.answer("Тест", reply_markup=keyboard)
+
+        sent_message = await message.answer("Задержка 20 секунд...", reply_markup=keyboard)
         await sent_message.pin()
-        user_reactions.clear()
 
-        # Логирование перед запуском задачи
-        logging.info("Запускаем фоновую задачу")
+        # Запуск задачи с задержкой
+        asyncio.create_task(wait_for_task(task_id, message))  # Запускаем фоновую задачу
 
-        # Запуск фоновой задачи с дополнительным логированием
-        asyncio.create_task(long_task_wrapper(manage_fix_message, sent_message, message))
     except Exception as e:
         logging.error(f"Ошибка при обработке команды /fix: {e}")
         await message.answer("Произошла ошибка. Попробуйте снова.")
