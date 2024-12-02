@@ -7,6 +7,14 @@ from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
 from tgbot.triggers import TRIGGERS, WELCOME_TEXT, HELP_TEXT_HEADER, COMMANDS_LIST
 
+# Подключение к Redis (Upstash)
+r = redis.Redis(
+    host="robust-boa-25173.upstash.io",  # Вставьте свой хост
+    port=6379,
+    password="AWJVAAIjcDE1NmZkZjZiMWM3N2Q0ZDQ1YTZjMTM0MWRjNTE4MzZjYXAxMA",  # Вставьте свой пароль
+    ssl=True
+)
+
 router = Router()
 
 # Приветствие новых пользователей
