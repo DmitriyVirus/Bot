@@ -12,8 +12,6 @@ router = Router()
 # Хендлер для команды /fix
 @router.message(Command(commands=["fix"]))
 async def fix_handler(message: types.Message):
-    global sent_message
-
     try:
         # Создание кнопок "➕ Присоединиться" и "➖ Не участвовать"
         plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
@@ -22,6 +20,9 @@ async def fix_handler(message: types.Message):
 
         # Отправка сообщения с кнопками
         sent_message = await message.answer("Я жду...", reply_markup=keyboard)
+
+        # Добавляем список участников в метку сообщения
+        sent_message["participants"] = []
 
         # Закрепление сообщения
         await message.chat.pin_message(sent_message.message_id)
@@ -41,9 +42,8 @@ async def handle_plus_reaction(callback: types.CallbackQuery):
     # Получаем сообщение, в котором будет храниться список участников
     message = callback.message
 
-    # Парсим текущее сообщение, чтобы получить список участников
-    current_text = message.text
-    participants = re.findall(r'([A-Za-zА-Яа-яЁё]+)', current_text)
+    # Получаем список участников из метки сообщения
+    participants = message.get("participants", [])
 
     # Проверяем, присоединился ли пользователь
     if username not in participants:
@@ -58,8 +58,10 @@ async def handle_plus_reaction(callback: types.CallbackQuery):
 
     updated_text = f"Я жду...\n\nУчаствуют {participants_count} человек(а): {joined_users}"
 
-    # Обновление текста в закрепленном сообщении
+    # Обновляем текст и метку участников
     try:
+        # Сохраняем обновленный список участников в метке
+        message["participants"] = participants
         await message.edit_text(updated_text)  # Здесь обновляется текущее сообщение
         await callback.answer(action_message)
         logging.info(f"Сообщение обновлено: {updated_text}")
@@ -75,9 +77,8 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
     # Получаем сообщение, в котором будет храниться список участников
     message = callback.message
 
-    # Парсим текущее сообщение, чтобы получить список участников
-    current_text = message.text
-    participants = re.findall(r'([A-Za-zА-Яа-яЁё]+)', current_text)
+    # Получаем список участников из метки сообщения
+    participants = message.get("participants", [])
 
     # Проверяем, участвует ли пользователь
     if username in participants:
@@ -92,8 +93,10 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
 
     updated_text = f"Я жду...\n\nУчаствуют {participants_count} человек(а): {joined_users}"
 
-    # Обновление текста в закрепленном сообщении
+    # Обновляем текст и метку участников
     try:
+        # Сохраняем обновленный список участников в метке
+        message["participants"] = participants
         await message.edit_text(updated_text)  # Здесь обновляется текущее сообщение
         await callback.answer(action_message)
         logging.info(f"Сообщение обновлено: {updated_text}")
