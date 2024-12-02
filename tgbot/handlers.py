@@ -59,10 +59,11 @@ async def fix_handler(message: Message):
         user_reactions.clear()
 
         # Запускаем фоновую задачу для обработки удаления сообщения и реакции
-        asyncio.create_task(manage_fix_message(sent_message, message))
+        await asyncio.ensure_future(manage_fix_message(sent_message, message))
     except Exception as e:
         logging.error(f"Ошибка при обработке команды /fix: {e}")
         await message.answer("Произошла ошибка. Попробуйте снова.")
+
 
 async def manage_fix_message(sent_message: Message, command_message: Message):
     try:
