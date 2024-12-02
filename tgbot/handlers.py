@@ -18,11 +18,12 @@ async def fix_handler(message: types.Message):
     global sent_message
 
     try:
-        # Создание кнопки и отправка сообщения
+        # Создание кнопок "➕ Присоединиться" и "➖ Не участвовать"
         plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[[plus_button]])
+        minus_button = InlineKeyboardButton(text="➖ Не участвовать", callback_data="join_minus")
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[[plus_button, minus_button]])
 
-        # Отправка сообщения с кнопкой
+        # Отправка сообщения с кнопками
         sent_message = await message.answer("Я жду...", reply_markup=keyboard)
 
         # Закрепление сообщения
@@ -34,7 +35,8 @@ async def fix_handler(message: types.Message):
     except Exception as e:
         logging.error(f"Ошибка при обработке команды /fix: {e}")
         await message.answer("Произошла ошибка. Попробуйте снова.")
-        
+
+# Обработчик для нажатия на кнопку "➕ Присоединиться"
 @router.callback_query(lambda callback: callback.data == "join_plus")
 async def handle_plus_reaction(callback: types.CallbackQuery):
     global sent_message
@@ -56,15 +58,50 @@ async def handle_plus_reaction(callback: types.CallbackQuery):
     updated_text = f"Я жду...\n\nУчаствуют {participants_count} человек(а): {joined_users}"
 
     try:
-        # Создание новой клавиатуры
+        # Создание новой клавиатуры с обеими кнопками
         plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[[plus_button]])
+        minus_button = InlineKeyboardButton(text="➖ Не участвовать", callback_data="join_minus")
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[[plus_button, minus_button]])
 
         # Обновление текста и клавиатуры в сообщении
         await sent_message.edit_text(updated_text, reply_markup=keyboard)
         logging.info(f"Сообщение обновлено с участниками: {updated_text}")
     except Exception as e:
         logging.error(f"Ошибка при обновлении сообщения: {e}")
+
+# Обработчик для нажатия на кнопку "➖ Не участвовать"
+@router.callback_query(lambda callback: callback.data == "join_minus")
+async def handle_minus_reaction(callback: types.CallbackQuery):
+    global sent_message
+
+    user_id = callback.from_user.id
+
+    # Удаление пользователя из списка, если он присутствует
+    if user_id in user_reactions:
+        del user_reactions[user_id]
+        await callback.answer("Вы больше не участвуете.")
+    else:
+        await callback.answer("Вы не участвовали!")
+
+    # Формирование текста с именами участников
+    joined_users = ", ".join(user_reactions.values())
+    participants_count = len(user_reactions)
+
+    # Обновление текста в сообщении
+    updated_text = f"Я жду...\n\nУчаствуют {participants_count} человек(а): {joined_users}"
+
+    try:
+        # Создание новой клавиатуры с обеими кнопками
+        plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
+        minus_button = InlineKeyboardButton(text="➖ Не участвовать", callback_data="join_minus")
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[[plus_button, minus_button]])
+
+        # Обновление текста и клавиатуры в сообщении
+        await sent_message.edit_text(updated_text, reply_markup=keyboard)
+        logging.info(f"Сообщение обновлено с участниками: {updated_text}")
+    except Exception as e:
+        logging.error(f"Ошибка при обновлении сообщения: {e}")
+
         
 # Приветствие новых пользователей
 @router.message(lambda message: hasattr(message, 'new_chat_members') and message.new_chat_members)
