@@ -50,7 +50,7 @@ async def handle_plus_reaction(callback: types.CallbackQuery):
     else:
         action_message = f"Вы уже участвуете, {username}!"
     
-    # Формируем новый текст сообщения
+    # Формируем новый текст сообщения (только для списка участников)
     joined_users = ", ".join(participants)
     participants_count = len(participants)
 
@@ -89,7 +89,7 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
     else:
         action_message = f"Вы не участвовали."
 
-    # Формируем новый текст сообщения
+    # Формируем новый текст сообщения (только для списка участников)
     joined_users = ", ".join(participants)
     participants_count = len(participants)
 
