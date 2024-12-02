@@ -12,6 +12,14 @@ router = Router()
 sent_message = None
 user_reactions = {}
 
+from aiogram import types
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+import logging
+
+# Глобальная переменная для хранения id закрепленного сообщения и списка участников
+sent_message = None
+user_reactions = {}
+
 # Хендлер для команды /fix
 @router.message(Command(commands=["fix"]))
 async def fix_handler(message: types.Message):
@@ -26,7 +34,7 @@ async def fix_handler(message: types.Message):
         sent_message = await message.answer("Я жду...", reply_markup=keyboard)
 
         # Закрепление сообщения
-        await message.bot.pin_message(chat_id=message.chat.id, message_id=sent_message.message_id)
+        await message.chat.pin_message(sent_message.message_id)
 
         # Логирование
         logging.info(f"Сообщение отправлено и закреплено с id: {sent_message.message_id}")
