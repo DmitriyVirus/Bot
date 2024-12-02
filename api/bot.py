@@ -7,6 +7,14 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from api.reminder import send_reminder, send_reminder1  # Импортируем обе функции
 
+# Подключение к Redis (Upstash)
+r = redis.Redis(
+    host="robust-boa-25173.upstash.io",  # Вставьте свой хост
+    port=6379,
+    password="AWJVAAIjcDE1NmZkZjZiMWM3N2Q0ZDQ1YTZjMTM0MWRjNTE4MzZjYXAxMA",  # Вставьте свой пароль
+    ssl=True
+)
+
 app = FastAPI()
 
 # Монтируем директорию для статических файлов
