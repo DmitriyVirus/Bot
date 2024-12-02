@@ -30,6 +30,19 @@ async def fix_handler(message: types.Message):
         logging.error(f"Ошибка при обработке команды /fix: {e}")
         await message.answer("Произошла ошибка. Попробуйте снова.")
 
+# Функция для парсинга текста и получения списка участников
+def parse_participants(text: str):
+    # Исключаем предложение "Я жду..." и подобные фразы
+    text = re.sub(r'Я жду\.\.\n\nУчаствуют \d+ человек\(а\):', '', text)
+    
+    # Используем регулярное выражение для поиска имен участников в сообщении
+    participants = re.findall(r'([A-Za-zА-Яа-яЁё]+)', text)
+    
+    # Убираем слово "Я" (если оно присутствует в начале текста)
+    participants = [name for name in participants if name != "Я"]
+    
+    return participants
+
 # Обработчик для нажатия на кнопку "➕ Присоединиться"
 @router.callback_query(lambda callback: callback.data == "join_plus")
 async def handle_plus_reaction(callback: types.CallbackQuery):
@@ -39,9 +52,8 @@ async def handle_plus_reaction(callback: types.CallbackQuery):
     # Получаем сообщение
     message = callback.message
 
-    # Парсим текущее сообщение, чтобы получить список участников
-    current_text = message.text
-    participants = re.findall(r'([A-Za-zА-Яа-яЁё]+)', current_text)
+    # Извлекаем список участников из текста сообщения
+    participants = parse_participants(message.text)
 
     # Проверяем, присоединился ли пользователь
     if username not in participants:
@@ -50,7 +62,7 @@ async def handle_plus_reaction(callback: types.CallbackQuery):
     else:
         action_message = f"Вы уже участвуете, {username}!"
     
-    # Формируем новый текст сообщения (только для списка участников)
+    # Формируем новый текст сообщения
     joined_users = ", ".join(participants)
     participants_count = len(participants)
 
@@ -78,9 +90,8 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
     # Получаем сообщение
     message = callback.message
 
-    # Парсим текущее сообщение, чтобы получить список участников
-    current_text = message.text
-    participants = re.findall(r'([A-Za-zА-Яа-яЁё]+)', current_text)
+    # Извлекаем список участников из текста сообщения
+    participants = parse_participants(message.text)
 
     # Проверяем, участвует ли пользователь
     if username in participants:
@@ -89,7 +100,7 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
     else:
         action_message = f"Вы не участвовали."
 
-    # Формируем новый текст сообщения (только для списка участников)
+    # Формируем новый текст сообщения
     joined_users = ", ".join(participants)
     participants_count = len(participants)
 
