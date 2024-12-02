@@ -32,8 +32,8 @@ async def fix_handler(message: types.Message):
 
 # Функция для парсинга текста и получения списка участников
 def parse_participants(text: str):
-    # Исключаем предложение "Я жду..." и подобные фразы
-    text = re.sub(r'Я жду\.\.\n\nУчаствуют \d+ человек\(а\):', '', text)
+    # Исключаем фразу "Я жду...\n\nУчаствуют {participants_count} человек(а): {joined_users}"
+    text = re.sub(r'Я жду\.\.\n\nУчаствуют \d+ человек\(а\):\s*', '', text)
     
     # Используем регулярное выражение для поиска имен участников в сообщении
     participants = re.findall(r'([A-Za-zА-Яа-яЁё]+)', text)
