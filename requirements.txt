@@ -3,3 +3,5 @@ uvicorn
 aiogram
 python-decouple
 pytz 
+celery
+upstash-redis
