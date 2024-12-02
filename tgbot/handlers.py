@@ -3,7 +3,7 @@ import asyncio
 from aiogram import Router
 from aiogram.filters import Command
 from aiogram.exceptions import TelegramBadRequest
-from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
 from tgbot.triggers import TRIGGERS, WELCOME_TEXT, HELP_TEXT_HEADER, COMMANDS_LIST
 
 router = Router()
@@ -44,10 +44,14 @@ async def say_goodbye(message: Message):
 # Словарь для хранения пользователей, которые нажали кнопку "+"
 user_reactions = {}
 
+# Установим уровень логирования на DEBUG
+logging.basicConfig(level=logging.DEBUG)
+
 # Обработчик команды /fix
 @router.message(Command(commands=["fix"]))
 async def fix_handler(message: Message):
     try:
+        logging.debug("Начало выполнения fix_handler")
         # Создаем кнопку
         plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
         # Добавляем кнопку в разметку
@@ -55,31 +59,36 @@ async def fix_handler(message: Message):
 
         # Отправляем сообщение с кнопкой
         sent_message = await message.answer("Тест", reply_markup=keyboard)
+        logging.info(f"Сообщение отправлено: message_id={sent_message.message_id}")
         await sent_message.pin()
+        logging.info(f"Сообщение закреплено: message_id={sent_message.message_id}")
+
         user_reactions.clear()
+        logging.debug("Словарь user_reactions очищен")
 
-        # Безопасный запуск фоновой задачи
+        # Запускаем фоновую задачу для обработки удаления сообщения и реакции
         asyncio.create_task(manage_fix_message(sent_message, message))
+        logging.info("Задача manage_fix_message запущена")
     except Exception as e:
-        logging.error(f"Ошибка при обработке команды /fix: {e}")
+        logging.exception(f"Ошибка при обработке команды /fix: {e}")
         await message.answer("Произошла ошибка. Попробуйте снова.")
-
-
 
 async def manage_fix_message(sent_message: Message, command_message: Message):
     logging.info("Начало работы manage_fix_message")
     try:
         # Ждем 60 секунд перед удалением сообщения
+        logging.debug("Ожидание 60 секунд началось")
         await asyncio.sleep(60)
-        logging.info("60 секунд прошло, удаляем сообщение")
+        logging.info("Ожидание 60 секунд завершено")
+
         try:
             await sent_message.delete()
-            logging.info("Сообщение успешно удалено")
+            logging.info(f"Сообщение успешно удалено: message_id={sent_message.message_id}")
         except TelegramBadRequest as e:
             logging.warning(f"Сообщение уже удалено или ошибка при удалении: {e}")
 
         # Обрабатываем пользователей
-        logging.info(f"Список участников перед обработкой: {user_reactions}")
+        logging.debug(f"Список участников перед обработкой: {user_reactions}")
         joined_in_limit = list(user_reactions.values())[:5]
         left_out = list(user_reactions.values())[5:]
 
@@ -90,32 +99,40 @@ async def manage_fix_message(sent_message: Message, command_message: Message):
             logging.info(f"Также плюсовали: {left_out}")
             await command_message.answer(f"Также плюсовали: {', '.join(left_out)}")
     except Exception as e:
-        logging.error(f"Ошибка при управлении сообщением: {e}")
+        logging.exception(f"Ошибка при управлении сообщением: {e}")
 
 # Обработчик callback для кнопки "+"
 @router.callback_query(lambda callback: callback.data == "join_plus")
-async def handle_plus_reaction(callback):
-    user_id = callback.from_user.id
-    if user_id not in user_reactions:
-        user_reactions[user_id] = callback.from_user.first_name
-        await callback.answer("Вы присоединились!")
-        reaction_count = len(user_reactions)
+async def handle_plus_reaction(callback: CallbackQuery):
+    try:
+        logging.debug(f"Получен callback: {callback.data}")
+        user_id = callback.from_user.id
+        if user_id not in user_reactions:
+            user_reactions[user_id] = callback.from_user.first_name
+            logging.info(f"Пользователь добавлен: {callback.from_user.first_name} (ID: {user_id})")
+            await callback.answer("Вы присоединились!")
+            reaction_count = len(user_reactions)
+            logging.debug(f"Текущее количество участников: {reaction_count}")
 
-        sent_message = callback.message
-        updated_text = f"Тест\n\nКоличество участников: {reaction_count}"
+            sent_message = callback.message
+            updated_text = f"Тест\n\nКоличество участников: {reaction_count}"
 
-        # Проверка, изменился ли текст перед обновлением
-        if sent_message.text != updated_text:
-            await sent_message.edit_text(updated_text, reply_markup=sent_message.reply_markup)
-
-        if reaction_count == 5:
-            updated_text = f"Тест\n\nУже фулка! ({', '.join(user_reactions.values())})"
             # Проверка, изменился ли текст перед обновлением
             if sent_message.text != updated_text:
-                await sent_message.edit_text(updated_text, reply_markup=None)
-    else:
-        await callback.answer("Вы уже присоединились!")
+                logging.debug(f"Обновление текста сообщения: {updated_text}")
+                await sent_message.edit_text(updated_text, reply_markup=sent_message.reply_markup)
 
+            if reaction_count == 5:
+                updated_text = f"Тест\n\nУже фулка! ({', '.join(user_reactions.values())})"
+                # Проверка, изменился ли текст перед обновлением
+                if sent_message.text != updated_text:
+                    logging.debug(f"Обновление текста сообщения при фулке: {updated_text}")
+                    await sent_message.edit_text(updated_text, reply_markup=None)
+        else:
+            logging.info(f"Пользователь {callback.from_user.first_name} (ID: {user_id}) уже присоединился")
+            await callback.answer("Вы уже присоединились!")
+    except Exception as e:
+        logging.exception(f"Ошибка при обработке callback: {e}")
         
 # Обработчик команды /fu
 @router.message(Command(commands=["fu"]))  # Используем фильтр Command
