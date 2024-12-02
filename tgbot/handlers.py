@@ -8,6 +8,15 @@ from tgbot.triggers import TRIGGERS, WELCOME_TEXT, HELP_TEXT_HEADER, COMMANDS_LI
 
 router = Router()
 
+async def test_event_loop():
+    logging.info("Тест event loop начался")
+    await asyncio.sleep(5)
+    logging.info("Тест event loop завершился")
+
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(test_event_loop())
+
 # Приветствие новых пользователей
 @router.message(lambda message: hasattr(message, 'new_chat_members') and message.new_chat_members)
 async def greet_new_members(message: Message):
