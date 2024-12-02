@@ -1,6 +1,6 @@
 import logging
 import asyncio
-from aiogram import Bot, Dispatcher, Router, types
+from aiogram import Bot, Dispatcher, Router
 from aiogram.filters import Command
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
@@ -113,7 +113,7 @@ async def long_task_wrapper(func, *args):
 
 # Обработчик callback для кнопки "+"
 @router.callback_query(lambda callback: callback.data == "join_plus")
-async def handle_plus_reaction(callback: types.CallbackQuery):
+async def handle_plus_reaction(callback: CallbackQuery):
     user_id = callback.from_user.id
     if user_id not in user_reactions:
         user_reactions[user_id] = callback.from_user.first_name
