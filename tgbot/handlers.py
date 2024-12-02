@@ -6,6 +6,7 @@ from aiogram.filters import Command
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
 from tgbot.triggers import TRIGGERS, WELCOME_TEXT, HELP_TEXT_HEADER, COMMANDS_LIST
+from aiogram.dispatcher.filters import Command
 
 router = Router()
 
@@ -19,10 +20,7 @@ async def fix_handler(message: types.Message):
         keyboard = InlineKeyboardMarkup(inline_keyboard=[[plus_button, minus_button]])
 
         # Отправка сообщения с кнопками
-        sent_message = await message.answer("Я жду...", reply_markup=keyboard)
-
-        # Добавляем список участников в метку сообщения
-        sent_message["participants"] = []
+        sent_message = await message.answer("Я жду...\n\nУчаствуют 0 человек(а):", reply_markup=keyboard)
 
         # Закрепление сообщения
         await message.chat.pin_message(sent_message.message_id)
@@ -39,11 +37,12 @@ async def handle_plus_reaction(callback: types.CallbackQuery):
     user_id = callback.from_user.id
     username = callback.from_user.first_name
 
-    # Получаем сообщение, в котором будет храниться список участников
+    # Получаем сообщение
     message = callback.message
 
-    # Получаем список участников из метки сообщения
-    participants = message.get("participants", [])
+    # Парсим текущее сообщение, чтобы получить список участников
+    current_text = message.text
+    participants = re.findall(r'([A-Za-zА-Яа-яЁё]+)', current_text)
 
     # Проверяем, присоединился ли пользователь
     if username not in participants:
@@ -58,10 +57,8 @@ async def handle_plus_reaction(callback: types.CallbackQuery):
 
     updated_text = f"Я жду...\n\nУчаствуют {participants_count} человек(а): {joined_users}"
 
-    # Обновляем текст и метку участников
+    # Обновление текста в закрепленном сообщении
     try:
-        # Сохраняем обновленный список участников в метке
-        message["participants"] = participants
         await message.edit_text(updated_text)  # Здесь обновляется текущее сообщение
         await callback.answer(action_message)
         logging.info(f"Сообщение обновлено: {updated_text}")
@@ -74,11 +71,12 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
     user_id = callback.from_user.id
     username = callback.from_user.first_name
 
-    # Получаем сообщение, в котором будет храниться список участников
+    # Получаем сообщение
     message = callback.message
 
-    # Получаем список участников из метки сообщения
-    participants = message.get("participants", [])
+    # Парсим текущее сообщение, чтобы получить список участников
+    current_text = message.text
+    participants = re.findall(r'([A-Za-zА-Яа-яЁё]+)', current_text)
 
     # Проверяем, участвует ли пользователь
     if username in participants:
@@ -93,16 +91,13 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
 
     updated_text = f"Я жду...\n\nУчаствуют {participants_count} человек(а): {joined_users}"
 
-    # Обновляем текст и метку участников
+    # Обновление текста в закрепленном сообщении
     try:
-        # Сохраняем обновленный список участников в метке
-        message["participants"] = participants
         await message.edit_text(updated_text)  # Здесь обновляется текущее сообщение
         await callback.answer(action_message)
         logging.info(f"Сообщение обновлено: {updated_text}")
     except Exception as e:
         logging.error(f"Ошибка при обновлении сообщения: {e}")
-
         
 # Приветствие новых пользователей
 @router.message(lambda message: hasattr(message, 'new_chat_members') and message.new_chat_members)
