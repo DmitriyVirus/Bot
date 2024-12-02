@@ -14,7 +14,7 @@ user_reactions = {}
 
 # Хендлер для команды /fix
 @router.message(Command(commands=["fix"]))
-async def fix_handler(message: Message):
+async def fix_handler(message: types.Message):
     global sent_message
 
     try:
@@ -34,7 +34,7 @@ async def fix_handler(message: Message):
     except Exception as e:
         logging.error(f"Ошибка при обработке команды /fix: {e}")
         await message.answer("Произошла ошибка. Попробуйте снова.")
-
+        
 @router.callback_query(lambda callback: callback.data == "join_plus")
 async def handle_plus_reaction(callback: types.CallbackQuery):
     global sent_message
