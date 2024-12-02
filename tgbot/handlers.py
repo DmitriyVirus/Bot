@@ -1,4 +1,3 @@
-import redis
 import logging
 import asyncio
 from aiogram import Bot, Dispatcher, Router
@@ -6,19 +5,6 @@ from aiogram.filters import Command
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
 from tgbot.triggers import TRIGGERS, WELCOME_TEXT, HELP_TEXT_HEADER, COMMANDS_LIST
-
-try:
-    r = redis.Redis(
-        host="robust-boa-25173.upstash.io",
-        port=6379,
-        password="AWJVAAIjcDE1NmZkZjZiMWM3N2Q0ZDQ1YTZjMTM0MWRjNTE4MzZjYXAxMA",
-        ssl=True
-    )
-    r.ping()  # Проверка подключения
-    logging.info("Подключение к Redis успешно!")
-except Exception as e:
-    logging.error(f"Ошибка подключения к Redis: {e}")
-
 
 router = Router()
 
@@ -54,115 +40,6 @@ async def say_goodbye(message: Message):
         logging.info(f"Отправлено прощание для {left_member.first_name} (ID: {left_member.id})")
     except TelegramBadRequest as e:
         logging.error(f"Ошибка при отправке прощания для {left_member.first_name}: {e}")
-
-
-# Инициализация логирования
-logging.basicConfig(level=logging.INFO)
-
-# Функция для ожидания завершения задачи через Redis
-async def wait_for_task(task_id: str, message: Message):
-    logging.info(f"Ожидаем завершения задачи {task_id}...")
-    
-    # Ожидание завершения задачи (20 секунд)
-    await asyncio.sleep(20)
-    
-    task_status = r.get(task_id)
-    if task_status:
-        await message.answer("Все работает!")  # Ответ после 20 секунд
-    else:
-        await message.answer("Произошла ошибка с задачей.")  # В случае, если задача не завершена.
-
-# Обработчик команды /fix
-@router.message(Command(commands=["fix"]))
-async def fix_handler(message: Message):
-    try:
-        # Генерируем уникальный ID для задачи
-        task_id = f"task:{message.from_user.id}:{message.date}"
-
-        # Создаем задачу в Redis с 20-секундным TTL
-        r.setex(task_id, 20, "Task is done")
-        
-        # Кнопка для присоединения
-        plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[[plus_button]])
-
-        sent_message = await message.answer("Задержка 20 секунд...", reply_markup=keyboard)
-        await sent_message.pin()
-
-        # Запуск задачи с задержкой
-        asyncio.create_task(wait_for_task(task_id, message))  # Запускаем фоновую задачу
-
-    except Exception as e:
-        logging.error(f"Ошибка при обработке команды /fix: {e}")
-        await message.answer("Произошла ошибка. Попробуйте снова.")
-
-# Функция, которая будет ожидать 60 секунд
-async def manage_fix_message(sent_message: Message, command_message: Message):
-    logging.info("Начало работы manage_fix_message")
-    try:
-        # Ожидание завершения задачи (опционально, для примера)
-        while not task_result.ready():
-            logging.info("Ожидаем завершения задачи...")
-
-        # Проверяем результат задачи
-        if task_result.successful():
-            logging.info(f"Результат задачи: {task_result.result}")
-        else:
-            logging.warning(f"Ошибка в задаче: {task_result.result}")
-
-        # Удаление сообщения
-        try:
-            await sent_message.delete()
-            logging.info("Сообщение успешно удалено")
-        except TelegramBadRequest as e:
-            logging.warning(f"Ошибка при удалении сообщения: {e}")
-
-        # Обработка участников
-        joined_in_limit = list(user_reactions.values())[:5]
-        left_out = list(user_reactions.values())[5:]
-
-        if joined_in_limit:
-            logging.info(f"В фулку вошли: {joined_in_limit}")
-            await command_message.answer(f"В фулку вошли: {', '.join(joined_in_limit)}")
-        if left_out:
-            logging.info(f"Также плюсовали: {left_out}")
-            await command_message.answer(f"Также плюсовали: {', '.join(left_out)}")
-
-    except Exception as e:
-        logging.error(f"Ошибка при управлении сообщением: {e}")
-
-
-# Функция-обертка для запуска долгой задачи
-async def long_task_wrapper(func, *args):
-    try:
-        logging.info("Запуск долгой задачи")
-        await func(*args)
-    except Exception as e:
-        logging.error(f"Ошибка при выполнении долгой задачи: {e}")
-
-# Обработчик callback для кнопки "+"
-@router.callback_query(lambda callback: callback.data == "join_plus")
-async def handle_plus_reaction(callback: CallbackQuery):
-    user_id = callback.from_user.id
-    if user_id not in user_reactions:
-        user_reactions[user_id] = callback.from_user.first_name
-        await callback.answer("Вы присоединились!")
-        reaction_count = len(user_reactions)
-
-        sent_message = callback.message
-        updated_text = f"Тест\n\nКоличество участников: {reaction_count}"
-
-        # Проверка, изменился ли текст перед обновлением
-        if sent_message.text != updated_text:
-            await sent_message.edit_text(updated_text, reply_markup=sent_message.reply_markup)
-
-        if reaction_count == 5:
-            updated_text = f"Тест\n\nУже фулка! ({', '.join(user_reactions.values())})"
-            # Проверка, изменился ли текст перед обновлением
-            if sent_message.text != updated_text:
-                await sent_message.edit_text(updated_text, reply_markup=None)
-    else:
-        await callback.answer("Вы уже присоединились!")
         
 # Обработчик команды /fu
 @router.message(Command(commands=["fu"]))  # Используем фильтр Command
