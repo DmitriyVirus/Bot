@@ -67,28 +67,28 @@ async def fix_handler(message: Message):
 
 
 async def manage_fix_message(sent_message: Message, command_message: Message):
+    logging.info("Начало работы manage_fix_message")
     try:
-        logging.info("Начало работы manage_fix_message")
         # Ждем 60 секунд перед удалением сообщения
         await asyncio.sleep(60)
-        logging.info("Таймер завершен, удаляем сообщение")
-
+        logging.info("60 секунд прошло, удаляем сообщение")
         try:
             await sent_message.delete()
             logging.info("Сообщение успешно удалено")
-        except TelegramBadRequest:
-            logging.warning("Не удалось удалить сообщение (возможно, оно уже удалено)")
+        except TelegramBadRequest as e:
+            logging.warning(f"Сообщение уже удалено или ошибка при удалении: {e}")
 
         # Обрабатываем пользователей
+        logging.info(f"Список участников перед обработкой: {user_reactions}")
         joined_in_limit = list(user_reactions.values())[:5]
         left_out = list(user_reactions.values())[5:]
 
         if joined_in_limit:
+            logging.info(f"В фулку вошли: {joined_in_limit}")
             await command_message.answer(f"В фулку вошли: {', '.join(joined_in_limit)}")
-            logging.info(f"Сообщено о пользователях в фулке: {', '.join(joined_in_limit)}")
         if left_out:
+            logging.info(f"Также плюсовали: {left_out}")
             await command_message.answer(f"Также плюсовали: {', '.join(left_out)}")
-            logging.info(f"Сообщено о пользователях вне фулки: {', '.join(left_out)}")
     except Exception as e:
         logging.error(f"Ошибка при управлении сообщением: {e}")
 
