@@ -56,9 +56,14 @@ async def handle_plus_reaction(callback: types.CallbackQuery):
 
     updated_text = f"Я жду...\n\nУчаствуют {participants_count} человек(а): {joined_users}"
 
-    # Обновление текста в закрепленном сообщении
+    # Создание новой клавиатуры
+    plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
+    minus_button = InlineKeyboardButton(text="➖ Не участвовать", callback_data="join_minus")
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[[plus_button, minus_button]])
+
+    # Обновление текста и клавиатуры в закрепленном сообщении
     try:
-        await message.edit_text(updated_text)  # Здесь обновляется текущее сообщение
+        await message.edit_text(updated_text, reply_markup=keyboard)  # Обновление текста и клавиатуры
         await callback.answer(action_message)
         logging.info(f"Сообщение обновлено: {updated_text}")
     except Exception as e:
@@ -90,9 +95,14 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
 
     updated_text = f"Я жду...\n\nУчаствуют {participants_count} человек(а): {joined_users}"
 
-    # Обновление текста в закрепленном сообщении
+    # Создание новой клавиатуры
+    plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
+    minus_button = InlineKeyboardButton(text="➖ Не участвовать", callback_data="join_minus")
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[[plus_button, minus_button]])
+
+    # Обновление текста и клавиатуры в закрепленном сообщении
     try:
-        await message.edit_text(updated_text)  # Здесь обновляется текущее сообщение
+        await message.edit_text(updated_text, reply_markup=keyboard)  # Обновление текста и клавиатуры
         await callback.answer(action_message)
         logging.info(f"Сообщение обновлено: {updated_text}")
     except Exception as e:
