@@ -12,14 +12,6 @@ router = Router()
 sent_message = None
 user_reactions = {}
 
-from aiogram import types
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-import logging
-
-# Глобальная переменная для хранения id закрепленного сообщения и списка участников
-sent_message = None
-user_reactions = {}
-
 # Хендлер для команды /fix
 @router.message(Command(commands=["fix"]))
 async def fix_handler(message: types.Message):
@@ -64,8 +56,12 @@ async def handle_plus_reaction(callback: types.CallbackQuery):
     updated_text = f"Я жду...\n\nУчаствуют {participants_count} человек(а): {joined_users}"
 
     try:
-        # Обновление закрепленного сообщения с новым текстом
-        await sent_message.edit_text(updated_text)
+        # Создание новой клавиатуры
+        plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[[plus_button]])
+
+        # Обновление текста и клавиатуры в сообщении
+        await sent_message.edit_text(updated_text, reply_markup=keyboard)
         logging.info(f"Сообщение обновлено с участниками: {updated_text}")
     except Exception as e:
         logging.error(f"Ошибка при обновлении сообщения: {e}")
