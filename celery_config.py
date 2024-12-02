@@ -1,16 +1,21 @@
 from celery import Celery
-from decouple import config
+from decouple import config  # Для работы с переменными окружения
 
-# Получаем Redis URL из переменных окружения
-redis_url = config('REDIS_URL')  # URL Redis на Render
+# Читаем URL Redis из переменной окружения
+redis_url = config("REDIS_URL")  # REDIS_URL должен быть задан в Environment Variables
 
-# Настройка Celery с использованием Redis
+# Проверяем, что REDIS_URL корректно загружен
+if not redis_url:
+    raise ValueError("Переменная окружения REDIS_URL не задана или пустая.")
+
+# Создаем экземпляр Celery с Redis в качестве брокера и backend
 celery_app = Celery(
-    "tgbot",  # Имя приложения
+    "tgbot",
     broker=redis_url,
     backend=redis_url,
 )
 
+# Настройка Celery
 celery_app.conf.update(
-    result_expires=3600,  # Время хранения результатов задач
+    result_expires=3600,  # Результаты задач хранятся 1 час
 )
