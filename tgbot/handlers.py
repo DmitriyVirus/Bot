@@ -1,3 +1,4 @@
+import re
 import logging
 import asyncio
 from aiogram import Bot, Dispatcher, Router, types
@@ -8,16 +9,11 @@ from tgbot.triggers import TRIGGERS, WELCOME_TEXT, HELP_TEXT_HEADER, COMMANDS_LI
 
 router = Router()
 
-from aiogram import types
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-import logging
-
-# Словарь для хранения пользователей, которые присоединились
-user_reactions = {}
-
 # Хендлер для команды /fix
 @router.message(Command(commands=["fix"]))
 async def fix_handler(message: types.Message):
+    global sent_message
+
     try:
         # Создание кнопок "➕ Присоединиться" и "➖ Не участвовать"
         plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
@@ -45,23 +41,26 @@ async def handle_plus_reaction(callback: types.CallbackQuery):
     # Получаем сообщение, в котором будет храниться список участников
     message = callback.message
 
+    # Парсим текущее сообщение, чтобы получить список участников
+    current_text = message.text
+    participants = re.findall(r'([A-Za-zА-Яа-яЁё]+)', current_text)
+
     # Проверяем, присоединился ли пользователь
-    if user_id not in user_reactions:
-        user_reactions[user_id] = username
+    if username not in participants:
+        participants.append(username)
         action_message = f"Вы присоединились, {username}!"
     else:
         action_message = f"Вы уже участвуете, {username}!"
     
     # Формируем новый текст сообщения
-    current_text = message.text
-    joined_users = ", ".join(user_reactions.values())
-    participants_count = len(user_reactions)
+    joined_users = ", ".join(participants)
+    participants_count = len(participants)
 
     updated_text = f"Я жду...\n\nУчаствуют {participants_count} человек(а): {joined_users}"
 
-    # Обновление текста в сообщении
+    # Обновление текста в закрепленном сообщении
     try:
-        await message.edit_text(updated_text)
+        await message.edit_text(updated_text)  # Здесь обновляется текущее сообщение
         await callback.answer(action_message)
         logging.info(f"Сообщение обновлено: {updated_text}")
     except Exception as e:
@@ -76,26 +75,31 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
     # Получаем сообщение, в котором будет храниться список участников
     message = callback.message
 
-    # Проверяем, участвует ли пользователь, если да — удаляем его
-    if user_id in user_reactions:
-        del user_reactions[user_id]
+    # Парсим текущее сообщение, чтобы получить список участников
+    current_text = message.text
+    participants = re.findall(r'([A-Za-zА-Яа-яЁё]+)', current_text)
+
+    # Проверяем, участвует ли пользователь
+    if username in participants:
+        participants.remove(username)
         action_message = f"Вы больше не участвуете, {username}."
     else:
         action_message = f"Вы не участвовали."
 
     # Формируем новый текст сообщения
-    joined_users = ", ".join(user_reactions.values())
-    participants_count = len(user_reactions)
+    joined_users = ", ".join(participants)
+    participants_count = len(participants)
 
     updated_text = f"Я жду...\n\nУчаствуют {participants_count} человек(а): {joined_users}"
 
-    # Обновление текста в сообщении
+    # Обновление текста в закрепленном сообщении
     try:
-        await message.edit_text(updated_text)
+        await message.edit_text(updated_text)  # Здесь обновляется текущее сообщение
         await callback.answer(action_message)
         logging.info(f"Сообщение обновлено: {updated_text}")
     except Exception as e:
         logging.error(f"Ошибка при обновлении сообщения: {e}")
+
         
 # Приветствие новых пользователей
 @router.message(lambda message: hasattr(message, 'new_chat_members') and message.new_chat_members)
