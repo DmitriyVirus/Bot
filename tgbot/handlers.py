@@ -8,72 +8,59 @@ from tgbot.triggers import TRIGGERS, WELCOME_TEXT, HELP_TEXT_HEADER, COMMANDS_LI
 
 router = Router()
 
-# Создание списка для отслеживания пользователей, которые нажали на кнопку
+# Глобальная переменная для хранения id закрепленного сообщения и списка участников
+sent_message = None
 user_reactions = {}
 
 # Хендлер для команды /fix
 @router.message(Command(commands=["fix"]))
 async def fix_handler(message: Message):
+    global sent_message
+
     try:
         # Создание кнопки и отправка сообщения
         plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
         keyboard = InlineKeyboardMarkup(inline_keyboard=[[plus_button]])
-        sent_message = await message.answer("Я жду 20 секунд...", reply_markup=keyboard)
 
-        # Логирование перед запуском задачи
-        logging.info("Запускаем фоновую задачу")
+        # Отправка сообщения с кнопкой
+        sent_message = await message.answer("Я жду...", reply_markup=keyboard)
 
-        # Запуск фоновой задачи с дополнительным логированием
-        asyncio.create_task(long_task_wrapper(manage_fix_message, sent_message, message))
+        # Закрепление сообщения
+        await message.bot.pin_message(chat_id=message.chat.id, message_id=sent_message.message_id)
+
+        # Логирование
+        logging.info(f"Сообщение отправлено и закреплено с id: {sent_message.message_id}")
+    
     except Exception as e:
         logging.error(f"Ошибка при обработке команды /fix: {e}")
         await message.answer("Произошла ошибка. Попробуйте снова.")
 
-# Функция для отслеживания реакции и отправки сообщения по истечении 20 секунд
-async def manage_fix_message(sent_message: Message, command_message: Message):
-    logging.info("Начало работы manage_fix_message")
-    try:
-        # Логируем начало отсчёта
-        logging.info("Ожидание 20 секунд началось")
-        
-        await asyncio.sleep(20)  # Ожидание 20 секунд
-
-        # Логируем завершение отсчёта
-        logging.info("20 секунд прошло, начинаем обработку...")
-
-        # Удаление сообщения
-        try:
-            await sent_message.delete()
-            logging.info("Сообщение успешно удалено")
-        except TelegramBadRequest as e:
-            logging.warning(f"Ошибка при удалении сообщения: {e}")
-
-        # Обработка участников
-        if user_reactions:
-            joined = ", ".join(user_reactions.values())
-            await command_message.answer(f"Время вышло, на кнопку нажали: {joined}")
-        else:
-            await command_message.answer("Время вышло, никто не нажал на кнопку.")
-    except Exception as e:
-        logging.error(f"Ошибка при управлении сообщением: {e}")
-
-# Функция-обертка для запуска долгой задачи
-async def long_task_wrapper(func, *args):
-    try:
-        logging.info("Запуск долгой задачи")
-        await func(*args)
-    except Exception as e:
-        logging.error(f"Ошибка при выполнении долгой задачи: {e}")
-
-# Обработчик callback для кнопки "+"
 @router.callback_query(lambda callback: callback.data == "join_plus")
 async def handle_plus_reaction(callback: types.CallbackQuery):
+    global sent_message
+
     user_id = callback.from_user.id
+
+    # Добавление пользователя в список, если он еще не присоединился
     if user_id not in user_reactions:
         user_reactions[user_id] = callback.from_user.first_name
         await callback.answer("Вы присоединились!")
     else:
         await callback.answer("Вы уже присоединились!")
+
+    # Формирование текста с именами участников
+    joined_users = ", ".join(user_reactions.values())
+    participants_count = len(user_reactions)
+
+    # Обновление текста в сообщении
+    updated_text = f"Я жду...\n\nУчаствуют {participants_count} человек(а): {joined_users}"
+
+    try:
+        # Обновление закрепленного сообщения с новым текстом
+        await sent_message.edit_text(updated_text)
+        logging.info(f"Сообщение обновлено с участниками: {updated_text}")
+    except Exception as e:
+        logging.error(f"Ошибка при обновлении сообщения: {e}")
         
 # Приветствие новых пользователей
 @router.message(lambda message: hasattr(message, 'new_chat_members') and message.new_chat_members)
