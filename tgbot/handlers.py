@@ -44,56 +44,49 @@ async def say_goodbye(message: Message):
 # Инициализация логирования
 logging.basicConfig(level=logging.INFO)
 
-# Роутер
-router = Router()
-
 # Словарь для хранения пользователей
 user_reactions = {}
 
-# Обёртка для безопасного запуска фоновой задачи
-async def long_task_wrapper(func, *args, **kwargs):
-    try:
-        logging.info(f"Запуск фоновой задачи {func.__name__}")
-        await func(*args, **kwargs)
-    except Exception as e:
-        logging.error(f"Ошибка в фоновой задаче {func.__name__}: {e}")
-
-# Обработчик команды /fix
+## Основной хендлер, где вызывается фоновая задача
 @router.message(Command(commands=["fix"]))
-async def fix_handler(message: types.Message):
+async def fix_handler(message: Message):
     try:
-        # Создаём кнопку
+        # Создание кнопки и отправка сообщения
         plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
         keyboard = InlineKeyboardMarkup(inline_keyboard=[[plus_button]])
-
-        # Отправляем сообщение с кнопкой
         sent_message = await message.answer("Тест", reply_markup=keyboard)
         await sent_message.pin()
         user_reactions.clear()
 
-        # Запуск фоновой задачи через обёртку
+        # Логирование перед запуском задачи
+        logging.info("Запускаем фоновую задачу")
+
+        # Запуск фоновой задачи с дополнительным логированием
         asyncio.create_task(long_task_wrapper(manage_fix_message, sent_message, message))
     except Exception as e:
         logging.error(f"Ошибка при обработке команды /fix: {e}")
         await message.answer("Произошла ошибка. Попробуйте снова.")
 
-# Долгая задача для обработки
-async def manage_fix_message(sent_message: types.Message, command_message: types.Message):
-    logging.info("Ожидание 60 секунд началось")
+# Функция, которая будет ожидать 60 секунд
+async def manage_fix_message(sent_message: Message, command_message: Message):
+    logging.info("Начало работы manage_fix_message")
     try:
-        # Ждём 60 секунд
-        await asyncio.sleep(60)
-        logging.info("60 секунд прошло, удаляем сообщение")
+        # Логируем начало отсчёта
+        logging.info("Ожидание 60 секунд началось")
         
-        # Удаляем сообщение
+        await asyncio.sleep(60)  # Ожидание 60 секунд
+
+        # Логируем завершение отсчёта
+        logging.info("60 секунд прошло, начинаем обработку...")
+
+        # Удаление сообщения
         try:
             await sent_message.delete()
             logging.info("Сообщение успешно удалено")
         except TelegramBadRequest as e:
             logging.warning(f"Ошибка при удалении сообщения: {e}")
 
-        # Обрабатываем реакции пользователей
-        logging.info(f"Список участников перед обработкой: {user_reactions}")
+        # Обработка участников
         joined_in_limit = list(user_reactions.values())[:5]
         left_out = list(user_reactions.values())[5:]
 
@@ -103,8 +96,17 @@ async def manage_fix_message(sent_message: types.Message, command_message: types
         if left_out:
             logging.info(f"Также плюсовали: {left_out}")
             await command_message.answer(f"Также плюсовали: {', '.join(left_out)}")
+
     except Exception as e:
-        logging.error(f"Ошибка в manage_fix_message: {e}")
+        logging.error(f"Ошибка при управлении сообщением: {e}")
+
+# Функция-обертка для запуска долгой задачи
+async def long_task_wrapper(func, *args):
+    try:
+        logging.info("Запуск долгой задачи")
+        await func(*args)
+    except Exception as e:
+        logging.error(f"Ошибка при выполнении долгой задачи: {e}")
 
 # Обработчик callback для кнопки "+"
 @router.callback_query(lambda callback: callback.data == "join_plus")
