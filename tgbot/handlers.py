@@ -8,6 +8,73 @@ from tgbot.triggers import TRIGGERS, WELCOME_TEXT, HELP_TEXT_HEADER, COMMANDS_LI
 
 router = Router()
 
+# Создание списка для отслеживания пользователей, которые нажали на кнопку
+user_reactions = {}
+
+# Хендлер для команды /fix
+@router.message(Command(commands=["fix"]))
+async def fix_handler(message: Message):
+    try:
+        # Создание кнопки и отправка сообщения
+        plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[[plus_button]])
+        sent_message = await message.answer("Я жду 20 секунд...", reply_markup=keyboard)
+
+        # Логирование перед запуском задачи
+        logging.info("Запускаем фоновую задачу")
+
+        # Запуск фоновой задачи с дополнительным логированием
+        asyncio.create_task(long_task_wrapper(manage_fix_message, sent_message, message))
+    except Exception as e:
+        logging.error(f"Ошибка при обработке команды /fix: {e}")
+        await message.answer("Произошла ошибка. Попробуйте снова.")
+
+# Функция для отслеживания реакции и отправки сообщения по истечении 20 секунд
+async def manage_fix_message(sent_message: Message, command_message: Message):
+    logging.info("Начало работы manage_fix_message")
+    try:
+        # Логируем начало отсчёта
+        logging.info("Ожидание 20 секунд началось")
+        
+        await asyncio.sleep(20)  # Ожидание 20 секунд
+
+        # Логируем завершение отсчёта
+        logging.info("20 секунд прошло, начинаем обработку...")
+
+        # Удаление сообщения
+        try:
+            await sent_message.delete()
+            logging.info("Сообщение успешно удалено")
+        except TelegramBadRequest as e:
+            logging.warning(f"Ошибка при удалении сообщения: {e}")
+
+        # Обработка участников
+        if user_reactions:
+            joined = ", ".join(user_reactions.values())
+            await command_message.answer(f"Время вышло, на кнопку нажали: {joined}")
+        else:
+            await command_message.answer("Время вышло, никто не нажал на кнопку.")
+    except Exception as e:
+        logging.error(f"Ошибка при управлении сообщением: {e}")
+
+# Функция-обертка для запуска долгой задачи
+async def long_task_wrapper(func, *args):
+    try:
+        logging.info("Запуск долгой задачи")
+        await func(*args)
+    except Exception as e:
+        logging.error(f"Ошибка при выполнении долгой задачи: {e}")
+
+# Обработчик callback для кнопки "+"
+@router.callback_query(lambda callback: callback.data == "join_plus")
+async def handle_plus_reaction(callback: types.CallbackQuery):
+    user_id = callback.from_user.id
+    if user_id not in user_reactions:
+        user_reactions[user_id] = callback.from_user.first_name
+        await callback.answer("Вы присоединились!")
+    else:
+        await callback.answer("Вы уже присоединились!")
+        
 # Приветствие новых пользователей
 @router.message(lambda message: hasattr(message, 'new_chat_members') and message.new_chat_members)
 async def greet_new_members(message: Message):
