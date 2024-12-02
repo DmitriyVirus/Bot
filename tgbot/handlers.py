@@ -8,15 +8,16 @@ from tgbot.triggers import TRIGGERS, WELCOME_TEXT, HELP_TEXT_HEADER, COMMANDS_LI
 
 router = Router()
 
-# Глобальная переменная для хранения id закрепленного сообщения и списка участников
-sent_message = None
+from aiogram import types
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+import logging
+
+# Словарь для хранения пользователей, которые присоединились
 user_reactions = {}
 
 # Хендлер для команды /fix
 @router.message(Command(commands=["fix"]))
 async def fix_handler(message: types.Message):
-    global sent_message
-
     try:
         # Создание кнопок "➕ Присоединиться" и "➖ Не участвовать"
         plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
@@ -29,7 +30,6 @@ async def fix_handler(message: types.Message):
         # Закрепление сообщения
         await message.chat.pin_message(sent_message.message_id)
 
-        # Логирование
         logging.info(f"Сообщение отправлено и закреплено с id: {sent_message.message_id}")
     
     except Exception as e:
@@ -39,69 +39,63 @@ async def fix_handler(message: types.Message):
 # Обработчик для нажатия на кнопку "➕ Присоединиться"
 @router.callback_query(lambda callback: callback.data == "join_plus")
 async def handle_plus_reaction(callback: types.CallbackQuery):
-    global sent_message
-
     user_id = callback.from_user.id
+    username = callback.from_user.first_name
 
-    # Добавление пользователя в список, если он еще не присоединился
+    # Получаем сообщение, в котором будет храниться список участников
+    message = callback.message
+
+    # Проверяем, присоединился ли пользователь
     if user_id not in user_reactions:
-        user_reactions[user_id] = callback.from_user.first_name
-        await callback.answer("Вы присоединились!")
+        user_reactions[user_id] = username
+        action_message = f"Вы присоединились, {username}!"
     else:
-        await callback.answer("Вы уже присоединились!")
-
-    # Формирование текста с именами участников
+        action_message = f"Вы уже участвуете, {username}!"
+    
+    # Формируем новый текст сообщения
+    current_text = message.text
     joined_users = ", ".join(user_reactions.values())
     participants_count = len(user_reactions)
 
-    # Обновление текста в сообщении
     updated_text = f"Я жду...\n\nУчаствуют {participants_count} человек(а): {joined_users}"
 
+    # Обновление текста в сообщении
     try:
-        # Создание новой клавиатуры с обеими кнопками
-        plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
-        minus_button = InlineKeyboardButton(text="➖ Не участвовать", callback_data="join_minus")
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[[plus_button, minus_button]])
-
-        # Обновление текста и клавиатуры в сообщении
-        await sent_message.edit_text(updated_text, reply_markup=keyboard)
-        logging.info(f"Сообщение обновлено с участниками: {updated_text}")
+        await message.edit_text(updated_text)
+        await callback.answer(action_message)
+        logging.info(f"Сообщение обновлено: {updated_text}")
     except Exception as e:
         logging.error(f"Ошибка при обновлении сообщения: {e}")
 
 # Обработчик для нажатия на кнопку "➖ Не участвовать"
 @router.callback_query(lambda callback: callback.data == "join_minus")
 async def handle_minus_reaction(callback: types.CallbackQuery):
-    global sent_message
-
     user_id = callback.from_user.id
+    username = callback.from_user.first_name
 
-    # Удаление пользователя из списка, если он присутствует
+    # Получаем сообщение, в котором будет храниться список участников
+    message = callback.message
+
+    # Проверяем, участвует ли пользователь, если да — удаляем его
     if user_id in user_reactions:
         del user_reactions[user_id]
-        await callback.answer("Вы больше не участвуете.")
+        action_message = f"Вы больше не участвуете, {username}."
     else:
-        await callback.answer("Вы не участвовали!")
+        action_message = f"Вы не участвовали."
 
-    # Формирование текста с именами участников
+    # Формируем новый текст сообщения
     joined_users = ", ".join(user_reactions.values())
     participants_count = len(user_reactions)
 
-    # Обновление текста в сообщении
     updated_text = f"Я жду...\n\nУчаствуют {participants_count} человек(а): {joined_users}"
 
+    # Обновление текста в сообщении
     try:
-        # Создание новой клавиатуры с обеими кнопками
-        plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
-        minus_button = InlineKeyboardButton(text="➖ Не участвовать", callback_data="join_minus")
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[[plus_button, minus_button]])
-
-        # Обновление текста и клавиатуры в сообщении
-        await sent_message.edit_text(updated_text, reply_markup=keyboard)
-        logging.info(f"Сообщение обновлено с участниками: {updated_text}")
+        await message.edit_text(updated_text)
+        await callback.answer(action_message)
+        logging.info(f"Сообщение обновлено: {updated_text}")
     except Exception as e:
         logging.error(f"Ошибка при обновлении сообщения: {e}")
-
         
 # Приветствие новых пользователей
 @router.message(lambda message: hasattr(message, 'new_chat_members') and message.new_chat_members)
