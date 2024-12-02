@@ -8,14 +8,6 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from api.reminder import send_reminder, send_reminder1  # Импортируем обе функции
 
-# Подключение к Redis (Upstash)
-r = redis.Redis(
-    host="robust-boa-25173.upstash.io",  # Вставьте свой хост
-    port=6379,
-    password="AWJVAAIjcDE1NmZkZjZiMWM3N2Q0ZDQ1YTZjMTM0MWRjNTE4MzZjYXAxMA",  # Вставьте свой пароль
-    ssl=True
-)
-
 app = FastAPI()
 
 # Монтируем директорию для статических файлов
@@ -48,12 +40,6 @@ async def tgbot_webhook_route(request: Request):
         update_dict = await request.json()
         print("Received update:", json.dumps(update_dict, indent=4))  # Логирование обновления
         await tgbot.update_bot(update_dict)
-        
-        # После того, как запрос от Telegram получен, выполняем функцию с задержкой
-        # можно добавить в очередь задачу на выполнение
-        task_id = f"task:{update_dict['message']['from']['id']}:{update_dict['message']['date']}"
-        r.setex(task_id, 20, "Task is done")  # Создаем задачу с 20 секундами
-        
         return ''
     except Exception as e:
         print(f"Error processing update: {e}")
