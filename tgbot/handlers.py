@@ -31,16 +31,20 @@ async def fix_handler(message: types.Message):
         await message.answer("Произошла ошибка. Попробуйте снова.")
 
 # Функция для парсинга текста и получения списка участников
-def parse_participants(text: str):
-    # Исключаем фразу "Я жду...\n\nУчаствуют {participants_count} человек(а): {joined_users}"
-    text = re.sub(r'Я жду\.\.\n\nУчаствуют \d+ человек\(а\):\s*', '', text)
-    
-    # Используем регулярное выражение для поиска имен участников в сообщении
-    participants = re.findall(r'([A-Za-zА-Яа-яЁё]+)', text)
-    
-    # Убираем слово "Я" (если оно присутствует в начале текста)
-    participants = [name for name in participants if name != "Я"]
-    
+def filter_participants(text: str):
+    # Регулярное выражение для извлечения слов из строки "Я жду... Участвуют {число} человек(а):"
+    excluded_text = r'Я жду\.\.\.\s*Участвуют \d+ человек\(а\):\s*'
+
+    # Удаляем строку "Я жду... Участвуют {число} человек(а):" из текста
+    text = re.sub(excluded_text, '', text)
+
+    # Разделяем оставшийся текст на слова (участников)
+    participants = re.findall(r'[A-Za-zА-Яа-яЁё]+', text)
+
+    # Фильтруем список, исключая слова, найденные в исключаемой строке
+    excluded_words = re.findall(r'[A-Za-zА-Яа-яЁё]+', 'Я жду... Участвуют')
+    participants = [name for name in participants if name not in excluded_words]
+
     return participants
 
 # Обработчик для нажатия на кнопку "➕ Присоединиться"
@@ -53,7 +57,7 @@ async def handle_plus_reaction(callback: types.CallbackQuery):
     message = callback.message
 
     # Извлекаем список участников из текста сообщения
-    participants = parse_participants(message.text)
+    participants = filter_participants(message.text)
 
     # Проверяем, присоединился ли пользователь
     if username not in participants:
@@ -91,7 +95,7 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
     message = callback.message
 
     # Извлекаем список участников из текста сообщения
-    participants = parse_participants(message.text)
+    participants = filter_participants(message.text)
 
     # Проверяем, участвует ли пользователь
     if username in participants:
