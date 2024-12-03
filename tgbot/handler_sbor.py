@@ -1,7 +1,9 @@
 from aiogram import types, Router
 from aiogram.filters import Command
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from aiogram.filters import Text  # В 3.x это теперь работает по-другому
+from aiogram.fsm.context import FSMContext
+import re
+import logging
 
 router = Router()
 
@@ -79,7 +81,7 @@ async def update_caption(photo_message: types.Message, participants: list, callb
         await callback.answer("Не удалось обновить подпись. Попробуйте снова.")
 
 # Обработчик для нажатия на кнопку "➕ Присоединиться"
-@router.callback_query(Text(startswith="join_"))
+@router.callback_query(Text(lambda query: query.data.startswith("join_")))
 async def handle_join_reaction(callback: types.CallbackQuery):
     username = callback.from_user.first_name
     message = callback.message
@@ -112,3 +114,4 @@ async def handle_join_reaction(callback: types.CallbackQuery):
         await update_caption(photo_message, participants, callback, action_message, time)
     else:
         await callback.answer("Сообщение с фото не найдено.")
+
