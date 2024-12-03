@@ -6,17 +6,12 @@ from aiogram.filters import Command
 
 router = Router()
 
-# Хендлер для команды /fix с учетом времени
+# Хендлер для команды /fix
 @router.message(Command(commands=["fix"]))
 async def fix_handler(message: types.Message):
     try:
-        # Извлекаем время из текста команды
-        time_pattern = r"(\d{1,2}:\d{2})"  # Паттерн для времени (например, 19:30)
-        match = re.search(time_pattern, message.text)
-        time = match.group(1) if match else "не указано"  # Если время указано, берем его, иначе ставим "не указано"
-
         keyboard = create_keyboard()
-        sent_message = await message.answer(f"Я жду {time}...\n\nУчаствуют 0 человек(а):", reply_markup=keyboard)
+        sent_message = await message.answer("Я жду...\n\nУчаствуют 0 человек(а):", reply_markup=keyboard)
         await message.chat.pin_message(sent_message.message_id)
         logging.info(f"Сообщение отправлено и закреплено с id: {sent_message.message_id}")
     except Exception as e:
@@ -39,7 +34,7 @@ def filter_participants(text: str):
 async def update_message(message: types.Message, participants: list, callback: types.CallbackQuery, action_message: str):
     participants_count = len(participants)
     joined_users = ", ".join(participants)
-    updated_text = f"Я жду {message.text.split()[2]}...\n\nУчаствуют {participants_count} человек(а): {joined_users}".strip()
+    updated_text = f"Я жду...\n\nУчаствуют {participants_count} человек(а): {joined_users}".strip()
 
     current_text = message.text.strip() if message.text else ""
     if current_text == updated_text:
@@ -83,7 +78,4 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
     else:
         action_message = f"Вы не участвовали."
 
-    await update_message(message, participants, callback, action_message)
-    # Получаем время из текста
-    time = message.text.split()[2] if len(message.text.split()) > 2 else "когда соберемся"
-    await update_message(message, participants, callback, action_message, time)
+    await update_message(message, participants, callback, action_message) 
