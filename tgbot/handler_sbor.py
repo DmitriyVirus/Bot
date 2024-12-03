@@ -84,6 +84,9 @@ async def handle_plus_reaction(callback: types.CallbackQuery):
     message = callback.message
     participants = filter_participants(message.caption)
 
+    # Выводим отладочную информацию о текущем списке участников
+    logging.debug(f"Текущий список участников перед добавлением: {participants}")
+
     # Проверка, что имя пользователя еще не в списке
     if username not in participants:
         participants.append(username)
@@ -95,6 +98,9 @@ async def handle_plus_reaction(callback: types.CallbackQuery):
     keyboard = create_keyboard()  # Создание клавиатуры
     await update_caption(message, participants, callback, action_message, time, keyboard)
 
+    # Выводим отладочную информацию после добавления
+    logging.debug(f"Обновленный список участников после добавления: {participants}")
+
 # Обработчик для нажатия на кнопку "➖ Не участвовать"
 @router.callback_query(lambda callback: callback.data == "join_minus")
 async def handle_minus_reaction(callback: types.CallbackQuery):
@@ -102,6 +108,9 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
     message = callback.message
     participants = filter_participants(message.caption)
 
+    # Выводим отладочную информацию о текущем списке участников
+    logging.debug(f"Текущий список участников перед удалением: {participants}")
+    
     # Проверка, что имя пользователя есть в списке участников
     if username in participants:
         participants.remove(username)
@@ -112,6 +121,9 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
     time = extract_time_from_caption(message.caption)
     keyboard = create_keyboard()  # Создание клавиатуры
     await update_caption(message, participants, callback, action_message, time, keyboard)
+    
+    # Выводим отладочную информацию после удаления
+    logging.debug(f"Обновленный список участников после удаления: {participants}")
 
 # Функция для создания клавиатуры
 def create_keyboard():
