@@ -69,13 +69,13 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
 
 # Функция для парсинга текста и получения списка участников
 def filter_participants(text: str):
-    excluded_text = (
-        r"Идем в инсты\s*(\d{1,2}:\d{2}|когда соберемся)?\.\s*Как обычно идут Дмитрий\(МакароноВирус\), Леонид\(ТуманныйТор\).*?\s*"
-        r"Нажимайте \+ в сообщении\.\s*Желающие \d+ человек\(а\):\s*"
-    )
-    participants_text = re.sub(excluded_text, "", text, flags=re.DOTALL)
-    return [name.strip() for name in participants_text.split(",") if name.strip()]
-
+    # Регулярное выражение для извлечения списка участников
+    match = re.search(r"Желающие \(\d+ человек\(а\)\): (.*)", text, flags=re.DOTALL)
+    if match:
+        participants_text = match.group(1)
+        return [name.strip() for name in participants_text.split(",") if name.strip()]
+    return []  # Если участников нет, возвращаем пустой список
+    
 # Функция для извлечения времени из подписи
 def extract_time_from_caption(caption: str):
     time_match = re.search(r"Идем в инсты\s*(\d{1,2}:\d{2}|когда соберемся)", caption)
@@ -84,7 +84,7 @@ def extract_time_from_caption(caption: str):
 # Функция для обновления подписи к фото
 async def update_caption(photo_message: types.Message, participants: list, callback: types.CallbackQuery, action_message: str, time: str):
     participants_count = len(participants)
-    joined_users = ", ".join(participants)
+    joined_users = ", ".join(participants) if participants else "никто"
 
     updated_text = (
         f"Идем в инсты {time}. Как обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. "
