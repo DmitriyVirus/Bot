@@ -71,6 +71,11 @@ async def handle_plus_reaction(callback: types.CallbackQuery):
     participants_count = len(participants)
 
     updated_text = f"Я жду...\n\nУчаствуют {participants_count} человек(а): {joined_users}"
+    
+    # Если текст не изменился, не обновляем сообщение
+    if message.text == updated_text:
+        await callback.answer(action_message)
+        return
 
     # Создание новой клавиатуры
     plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
@@ -110,6 +115,11 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
 
     updated_text = f"Я жду...\n\nУчаствуют {participants_count} человек(а): {joined_users}"
 
+       # Если текст не изменился, не обновляем сообщение
+    if message.text == updated_text:
+        await callback.answer(action_message)
+        return
+        
     # Создание новой клавиатуры
     plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
     minus_button = InlineKeyboardButton(text="➖ Не участвовать", callback_data="join_minus")
