@@ -1,8 +1,7 @@
-import logging
-import re
 from aiogram import types, Router
+from aiogram.filters import Command
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from aiogram.filters import Command, Text
+from aiogram.filters import Text  # В 3.x это теперь работает по-другому
 
 router = Router()
 
@@ -43,13 +42,6 @@ def create_keyboard():
     plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
     minus_button = InlineKeyboardButton(text="➖ Не участвовать", callback_data="join_minus")
     return InlineKeyboardMarkup(inline_keyboard=[[plus_button, minus_button]])
-
-# Функция для парсинга текста и получения списка участников
-def filter_participants(text: str):
-    # Извлекаем часть с участниками, оставляя время
-    excluded_text = r'Идем в инсты\s*(\d{1,2}:\d{2}|когда соберемся)?\.\s*Как обычно идут Дмитрий\(МакароноВирус\), Леонид\(ТуманныйТор\)(?:, .+)?\s*Нажимайте \+ в сообщении\.\s*Желающие \d+ человек\(а\):\s*'
-    text = re.sub(excluded_text, '', text)
-    return [name.strip() for name in text.split(",") if name.strip()]
 
 # Функция для обновления подписи к фото
 async def update_caption(photo_message: types.Message, participants: list, callback: types.CallbackQuery, action_message: str, time: str):
