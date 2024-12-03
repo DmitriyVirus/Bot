@@ -91,8 +91,12 @@ async def update_caption(photo_message: types.Message, participants: list, callb
         f"Нажимайте + в сообщении.\n\nЖелающие ({participants_count} человек(а)): {joined_users}"
     ).strip()
 
+    # Создаем клавиатуру заново
+    keyboard = create_keyboard()
+
     try:
-        await photo_message.edit_caption(updated_text)
+        # Указываем клавиатуру при обновлении подписи
+        await photo_message.edit_caption(caption=updated_text, reply_markup=keyboard)
         await callback.answer(action_message)
     except Exception as e:
         logging.error(f"Ошибка при обновлении подписи: {e}")
