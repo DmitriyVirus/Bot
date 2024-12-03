@@ -1,6 +1,5 @@
 import os
 import json
-import redis
 from tgbot import tgbot
 from decouple import config
 from fastapi import FastAPI, Request
@@ -54,3 +53,4 @@ async def send_reminder_route():
 @app.get('/send_reminder1', include_in_schema=False)
 async def send_reminder1_route():
     return await send_reminder1()  # Используем новую функцию из reminder.py
+
