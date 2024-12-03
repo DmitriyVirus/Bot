@@ -14,7 +14,7 @@ async def fix_handler(message: types.Message):
         # Извлекаем время из текста команды
         time_pattern = r"(\d{1,2}:\d{2})"  # Паттерн для времени (например, 19:30)
         match = re.search(time_pattern, message.text)
-        time = match.group(1) if match else "не указано"  # Если время указано, берем его, иначе ставим "не указано"
+        time = match.group(1) if match else "когда соберемся"  # Если время указано, берем его, иначе ставим "не указано"
 
         keyboard = create_keyboard()
         sent_message = await message.answer(f"Я жду {time}...\n\nУчаствуют 0 человек(а):", reply_markup=keyboard)
@@ -32,7 +32,7 @@ def create_keyboard():
 
 # Функция для парсинга текста и получения списка участников
 def filter_participants(text: str):
-    excluded_text = r'Я жду\.\.\.\s*Участвуют \d+ человек\(а\):\s*'
+     excluded_text = r'Я жду\.\.\.\s*Участвуют \d+ человек\(а\):\s*|Когда|соберемся|\d+'
     text = re.sub(excluded_text, '', text)
     return [name.strip() for name in text.split(",") if name.strip()]
 
@@ -42,7 +42,7 @@ async def update_message(message: types.Message, participants: list, callback: t
     joined_users = ", ".join(participants)
     
     # Делаем проверку на правильность формата времени
-    time = message.text.split()[2] if len(message.text.split()) > 2 else "не указано"
+    time = message.text.split()[2] if len(message.text.split()) > 2 else "когда соберемся"
     updated_text = f"Я жду {time}...\n\nУчаствуют {participants_count} человек(а): {joined_users}".strip()
 
     current_text = message.text.strip() if message.text else ""
