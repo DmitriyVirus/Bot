@@ -39,7 +39,7 @@ async def fix_handler(message: types.Message):
 def filter_participants(caption: str):
     logging.debug(f"Подпись для анализа: {caption}")
     # Регулярное выражение для извлечения списка участников без звёздочек
-    match = re.search(r"Желающие \d+ человек: (.+)", caption, flags=re.DOTALL)
+    match = re.search(r"Идут \d+ человек: (.+)", caption, flags=re.DOTALL)
     if match:
         participants_text = match.group(1)
         logging.debug(f"Найден текст участников: {participants_text}")
@@ -60,7 +60,7 @@ async def update_caption(photo_message: types.Message, participants: list, callb
     if participants:
         updated_text = (
             f"*Идем в инсты {time}*. Как обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. "
-            f"*Нажмите ➕ в сообщении для участия*.\n\nЖелающие {participants_count} человек: *{joined_users}*"
+            f"*Нажмите ➕ в сообщении для участия*.\n\nИдут {participants_count} человек: *{joined_users}*"
         )
     else:
         updated_text = (
