@@ -62,8 +62,9 @@ async def update_caption(photo_message: types.Message, participants: list, callb
     else:
         updated_text = (
             f"*Идем в инсты {time}*. Как обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. "
-            f"*Нажмите ➕ в сообщени для участия*."
+            f"*Нажмите ➕ в сообщении для участия*."
         )
+    
     # Создаем клавиатуру заново
     keyboard = create_keyboard()
     try:
@@ -80,11 +81,14 @@ async def handle_plus_reaction(callback: types.CallbackQuery):
     username = callback.from_user.first_name
     message = callback.message
     participants = filter_participants(message.caption)
+
+    # Добавляем участника в список, если его там нет
     if username not in participants:
         participants.append(username)
         action_message = f"Вы присоединились, {username}!"
     else:
         action_message = f"Вы уже участвуете, {username}!"
+    
     time = extract_time_from_caption(message.caption)
     await update_caption(message, participants, callback, action_message, time)
 
@@ -94,11 +98,14 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
     username = callback.from_user.first_name
     message = callback.message
     participants = filter_participants(message.caption)
+
+    # Убираем участника из списка, если он там есть
     if username in participants:
         participants.remove(username)
         action_message = f"Вы больше не участвуете, {username}."
     else:
         action_message = f"Вы не участвовали."
+    
     time = extract_time_from_caption(message.caption)
     await update_caption(message, participants, callback, action_message, time)
 
