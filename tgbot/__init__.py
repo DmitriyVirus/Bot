@@ -1,12 +1,13 @@
 import asyncio
 from aiogram import Bot, Dispatcher, Router
-from tgbot.handlers import router as handlers_router # Убедитесь, что импортируете router из handlers
+from tgbot.handlers import router as handlers_router
 from tgbot.handler_sbor import router as handler_sbor_router
-from config import config  # Используем конфигурацию для токена
+from config import config  # Токен бота
 
 router = Router()
-router.include_router(handlers_router)  # Подключаем хендлеры
-router.include_router(handler_sbor_router)
+router.include_router(handlers_router)  # Включаем обработчики из tgbot/handlers.py
+router.include_router(handler_sbor_router)  # Включаем обработчики из tgbot/handler_sbor.py
+
 class TGBot:
     def __init__(self, router: Router) -> None:
         token = config('TOKEN')
