@@ -36,9 +36,9 @@ async def fix_handler(message: types.Message):
         await message.answer("Произошла ошибка. Попробуйте снова.")
 
 # Функция для парсинга текста и получения списка участников
-def filter_participants(text: str):
+def filter_participants(caption: str):
     # Регулярное выражение для извлечения списка участников
-    match = re.search(r"Желающие \(\d+ человек\(а\)\): (.*)", text, flags=re.DOTALL)
+    match = re.search(r"Желающие \(\d+ человек\(а\)\): (.*)", caption, flags=re.DOTALL)
     if match:
         participants_text = match.group(1)
         return [name.strip() for name in participants_text.split(",") if name.strip()]
@@ -50,7 +50,7 @@ def extract_time_from_caption(caption: str):
     return time_match.group(1) if time_match else "когда соберемся"
 
 # Функция для обновления подписи к фото
-async def update_caption(photo_message: types.Message, participants: list, callback: types.CallbackQuery, action_message: str, time: str):
+async def update_caption(photo_message: types.Message, participants: list, callback: types.CallbackQuery, action_message: str, time: str, keyboard: InlineKeyboardMarkup):
     participants_count = len(participants)
     joined_users = ", ".join(participants) if participants else ""
 
@@ -64,13 +64,18 @@ async def update_caption(photo_message: types.Message, participants: list, callb
             f"*Идем в инсты {time}*. Как обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. "
             f"*Нажмите ➕ в сообщении для участия*.\n\nЖелающие {participants_count} человек"
         )
-    try:
-        # Указываем формат Markdown при обновлении подписи
-        await photo_message.edit_caption(caption=updated_text, parse_mode="Markdown", reply_markup=keyboard)
-        await callback.answer(action_message)
-    except Exception as e:
-        logging.error(f"Ошибка при обновлении подписи: {e}")
-        await callback.answer("Не удалось обновить подпись. Попробуйте снова.")
+
+    # Проверка, изменился ли текст
+    if updated_text != photo_message.caption:
+        try:
+            # Указываем формат Markdown при обновлении подписи
+            await photo_message.edit_caption(caption=updated_text, parse_mode="Markdown", reply_markup=keyboard)
+            await callback.answer(action_message)
+        except Exception as e:
+            logging.error(f"Ошибка при обновлении подписи: {e}")
+            await callback.answer("Не удалось обновить подпись. Попробуйте снова.")
+    else:
+        await callback.answer("Подпись не изменилась.")
 
 # Обработчик для нажатия на кнопку "➕ Присоединиться"
 @router.callback_query(lambda callback: callback.data == "join_plus")
@@ -78,13 +83,16 @@ async def handle_plus_reaction(callback: types.CallbackQuery):
     username = callback.from_user.first_name
     message = callback.message
     participants = filter_participants(message.caption)
+
     if username not in participants:
         participants.append(username)
         action_message = f"Вы присоединились, {username}!"
     else:
         action_message = f"Вы уже участвуете, {username}!"
+
     time = extract_time_from_caption(message.caption)
-    await update_caption(message, participants, callback, action_message, time)
+    keyboard = create_keyboard()  # Создание клавиатуры
+    await update_caption(message, participants, callback, action_message, time, keyboard)
 
 # Обработчик для нажатия на кнопку "➖ Не участвовать"
 @router.callback_query(lambda callback: callback.data == "join_minus")
@@ -92,13 +100,16 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
     username = callback.from_user.first_name
     message = callback.message
     participants = filter_participants(message.caption)
+
     if username in participants:
         participants.remove(username)
         action_message = f"Вы больше не участвуете, {username}."
     else:
         action_message = f"Вы не участвовали."
+
     time = extract_time_from_caption(message.caption)
-    await update_caption(message, participants, callback, action_message, time)
+    keyboard = create_keyboard()  # Создание клавиатуры
+    await update_caption(message, participants, callback, action_message, time, keyboard)
 
 # Функция для создания клавиатуры
 def create_keyboard():
