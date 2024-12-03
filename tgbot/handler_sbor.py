@@ -83,8 +83,8 @@ async def handle_plus_reaction(callback: types.CallbackQuery):
     else:
         action_message = f"Вы уже участвуете, {username}!"
 
-    # Получаем фото сообщение для обновления подписи
-    photo_message = await message.bot.get_message(chat_id=message.chat.id, message_id=callback.message.message_id)
+    # Используем callback.message.message_id для получения сообщения с фото
+    photo_message = await callback.message.bot.get_message(chat_id=callback.message.chat.id, message_id=callback.message.message_id)
 
     time_match = re.search(r'Идем в инсты\s*(\d{1,2}:\d{2}|когда соберемся)', photo_message.caption)
     if time_match:
@@ -107,8 +107,8 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
     else:
         action_message = f"Вы не участвовали."
 
-    # Получаем фото сообщение для обновления подписи
-    photo_message = await message.bot.get_message(chat_id=message.chat.id, message_id=callback.message.message_id)
+    # Используем callback.message.message_id для получения сообщения с фото
+    photo_message = await callback.message.bot.get_message(chat_id=callback.message.chat.id, message_id=callback.message.message_id)
 
     time_match = re.search(r'Идем в инсты\s*(\d{1,2}:\d{2}|когда соберемся)', photo_message.caption)
     if time_match:
@@ -117,3 +117,4 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
         time = "когда соберемся"
 
     await update_caption(photo_message, participants, callback, action_message, time)
+
