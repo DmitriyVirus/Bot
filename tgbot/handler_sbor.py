@@ -32,7 +32,7 @@ def create_keyboard():
 
 # Функция для парсинга текста и получения списка участников
 def filter_participants(text: str):
-     excluded_text = r'Я жду\.\.\.\s*Участвуют \d+ человек\(а\):\s*|Когда|соберемся|\d+'
+    excluded_text = r'Я жду\.\.\.\s*Участвуют \d+ человек\(а\):\s*|Когда|соберемся|\d+'
     text = re.sub(excluded_text, '', text)
     return [name.strip() for name in text.split(",") if name.strip()]
 
