@@ -3,7 +3,9 @@ import random
 import logging
 import datetime
 from tgbot import tgbot
+from aiogram import types
 from decouple import config
+from tgbot.handler_sbor import fix_handler
 
 async def send_reminder():
     try:
@@ -45,20 +47,21 @@ async def send_reminder1():
     try:
         # Получаем текущий день недели (0 - понедельник, 1 - вторник, ..., 6 - воскресенье)
         day_of_week = datetime.datetime.now().weekday()
-        
         # Проверяем, что день недели - понедельник (0), вторник (1), среда (2) или четверг (3)
         if day_of_week in [0, 1, 2, 3, 4]:
-            text = """Значится идем на инсты как обычно в 19:30.
-Иду Я, Тор и еще кто-то.
-Ставим + в ответ на мое сообщение, чтобы я видел кто будет участвовать.
-Если не вижу, то пните меня."""
-            photo_url = "https://battleclub.space/uploads/monthly_2022_07/baylor.jpg.02e0df864753bf47b1ef76303b993a1d.jpg"
-            # Отправка текста и фото
-            await tgbot.bot.send_photo(chat_id=config('CHAT_ID'), photo=photo_url, caption=text)
+            # Создание объекта Message
+            message = types.Message(
+                message_id=1234,  # Поставьте подходящий id
+                from_user=types.User(id=12345, is_bot=False, first_name="Bot", last_name="Botov", username="botov_user"),  # Создание пользователя
+                chat=types.Chat(id=67890, type='private'),  # Здесь нужно указать ID чата, в котором будет происходить отправка сообщения
+                date=datetime.datetime.now(),
+                text="/inst 19:30"  # Текст с командой, которую нужно передать в хендлер
+            )
+            # Вызов хендлера для команды /inst
+            await fix_handler(message)
             return {"status": "success", "message": "Reminder sent"}
         else:
             return {"status": "skipped", "message": "Not a reminder day"}
-
     except Exception as e:
         logging.error(f"Ошибка при отправке напоминания: {e}")
         return {"status": "error", "message": str(e)}
