@@ -44,11 +44,12 @@ async def update_message(message: types.Message, participants: list, callback: t
     # Формируем текст сообщения
     participants_count = len(participants)
     joined_users = ", ".join(participants)
-    updated_text = f"Я жду...\n\nУчаствуют {participants_count} человек(а): {joined_users}"
+    updated_text = f"Я жду...\n\nУчаствуют {participants_count} человек(а): {joined_users}".strip()
 
     # Проверяем, нужно ли обновлять сообщение
-    if message.text == updated_text:
-        await callback.answer(action_message)
+    current_text = message.text.strip() if message.text else ""
+    if current_text == updated_text:
+        await callback.answer(action_message)  # Отправляем ответ без изменения сообщения
         return
 
     # Обновляем сообщение
@@ -60,6 +61,7 @@ async def update_message(message: types.Message, participants: list, callback: t
     except Exception as e:
         logging.error(f"Ошибка при обновлении сообщения: {e}")
         await callback.answer("Не удалось обновить сообщение. Попробуйте снова.")
+
 
 # Обработчик для нажатия на кнопку "➕ Присоединиться"
 @router.callback_query(lambda callback: callback.data == "join_plus")
