@@ -2,7 +2,7 @@ import logging
 import re
 from aiogram import types, Router
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from aiogram.filters import Command
+from aiogram.filters import Command, Text
 
 router = Router()
 
@@ -87,46 +87,25 @@ async def update_caption(photo_message: types.Message, participants: list, callb
         await callback.answer("Не удалось обновить подпись. Попробуйте снова.")
 
 # Обработчик для нажатия на кнопку "➕ Присоединиться"
-@router.callback_query(lambda callback: callback.data == "join_plus")
-async def handle_plus_reaction(callback: types.CallbackQuery):
+@router.callback_query(Text(startswith="join_"))
+async def handle_join_reaction(callback: types.CallbackQuery):
     username = callback.from_user.first_name
     message = callback.message
 
     # Получаем участников из подписи
     participants = filter_participants(message.caption)
-    if username not in participants:
-        participants.append(username)
-        action_message = f"Вы присоединились, {username}!"
-    else:
-        action_message = f"Вы уже участвуете, {username}!"
-
-    # Получаем последнее сообщение с фото
-    photo_message = callback.message
-
-    if photo_message:
-        # Извлекаем время из подписи
-        time_match = re.search(r'Идем в инсты\s*(\d{1,2}:\d{2}|когда соберемся)', photo_message.caption)
-        if time_match:
-            time = time_match.group(1)
+    if callback.data == "join_plus":
+        if username not in participants:
+            participants.append(username)
+            action_message = f"Вы присоединились, {username}!"
         else:
-            time = "когда соберемся"
-        await update_caption(photo_message, participants, callback, action_message, time)
-    else:
-        await callback.answer("Сообщение с фото не найдено.")
-
-# Обработчик для нажатия на кнопку "➖ Не участвовать"
-@router.callback_query(lambda callback: callback.data == "join_minus")
-async def handle_minus_reaction(callback: types.CallbackQuery):
-    username = callback.from_user.first_name
-    message = callback.message
-
-    # Получаем участников из подписи
-    participants = filter_participants(message.caption)
-    if username in participants:
-        participants.remove(username)
-        action_message = f"Вы больше не участвуете, {username}."
-    else:
-        action_message = f"Вы не участвовали."
+            action_message = f"Вы уже участвуете, {username}!"
+    elif callback.data == "join_minus":
+        if username in participants:
+            participants.remove(username)
+            action_message = f"Вы больше не участвуете, {username}."
+        else:
+            action_message = f"Вы не участвовали."
 
     # Получаем последнее сообщение с фото
     photo_message = callback.message
