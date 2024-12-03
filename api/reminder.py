@@ -53,7 +53,7 @@ async def send_reminder1():
             message = types.Message(
                 message_id=1234,  # Поставьте подходящий id
                 from_user=types.User(id=12345, is_bot=False, first_name="Bot", last_name="Botov", username="botov_user"),  # Создание пользователя
-                chat=types.Chat(id=67890, type='private'),  # Здесь нужно указать ID чата, в котором будет происходить отправка сообщения
+                chat=types.Chat(id=config('CHAT_ID'), type='private'),  # Здесь нужно указать ID чата, в котором будет происходить отправка сообщения
                 date=datetime.datetime.now(),
                 text="/inst 19:30"  # Текст с командой, которую нужно передать в хендлер
             )
