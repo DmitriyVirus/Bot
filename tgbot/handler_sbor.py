@@ -88,8 +88,10 @@ async def handle_plus_reaction(callback: types.CallbackQuery):
     # Проверка, что имя пользователя еще не в списке
     if username not in participants:
         participants.append(username)
+        logging.debug(f"{username} ещё не в списке. Добавляем.")
         action_message = f"Вы присоединились, {username}!"
     else:
+        logging.debug(f"{username} уже в списке.")
         action_message = f"Вы уже участвуете, {username}!"
 
     time = extract_time_from_caption(message.caption)
@@ -111,9 +113,11 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
     
     # Проверка, что имя пользователя есть в списке участников
     if username in participants:
+        logging.debug(f"{username} найден в списке. Удаляем.")
         participants.remove(username)
         action_message = f"Вы больше не участвуете, {username}."
     else:
+        logging.debug(f"{username} не найден в списке.")
         action_message = f"Вы не участвуете."
 
     time = extract_time_from_caption(message.caption)
