@@ -68,10 +68,10 @@ async def update_caption(photo_message: types.Message, participants: list, callb
             f"*Нажмите ➕ в сообщении для участия*.\n\nЖелающие {participants_count} человек"
         )
 
-    if updated_text == message.caption:
-    logging.debug("Подпись не изменилась, обновление не требуется.")
-    await callback.answer(action_message)
-    return
+    if  updated_text == message.caption:
+        logging.debug("Подпись не изменилась, обновление не требуется.")
+        await callback.answer(action_message)
+        return
 
     try:
         await photo_message.edit_caption(caption=updated_text, parse_mode="Markdown", reply_markup=keyboard)
