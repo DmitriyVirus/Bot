@@ -4,8 +4,6 @@ from aiogram import types, Router
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.filters import Command
 
-router = Router()
-
 # Хендлер для команды /fix с учетом времени
 @router.message(Command(commands=["fix"]))
 async def fix_handler(message: types.Message):
