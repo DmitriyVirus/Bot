@@ -23,7 +23,7 @@ async def fix_handler(message: types.Message):
             photo=photo_url,
             caption=(
                 f"*Идем в инсты {time}*. Как обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. "
-                f"*Нажмите ➕ в сообщении для участия.*"
+                f"*Нажмите ➕ в сообщении для участия*"
             ),
             parse_mode="Markdown",
             reply_markup=keyboard
@@ -36,14 +36,14 @@ async def fix_handler(message: types.Message):
         await message.answer("Произошла ошибка. Попробуйте снова.")
 
 # Функция для парсинга текста и получения списка участников
-def filter_participants(caption: str):
+def filter_participants(text: str):
     # Регулярное выражение для извлечения списка участников
-    match = re.search(r"Желающие \d+ человек: \*(.*)\*", caption, flags=re.DOTALL)
+    match = re.search(r"Желающие \(\d+ человек\(а\)\): (.*)", text, flags=re.DOTALL)
     if match:
         participants_text = match.group(1)
         return [name.strip() for name in participants_text.split(",") if name.strip()]
     return []  # Если участников нет, возвращаем пустой список
-
+    
 # Функция для извлечения времени из подписи
 def extract_time_from_caption(caption: str):
     time_match = re.search(r"Идем в инсты\s*(\d{1,2}:\d{2}|когда соберемся)", caption)
@@ -54,35 +54,23 @@ async def update_caption(photo_message: types.Message, participants: list, callb
     participants_count = len(participants)
     joined_users = ", ".join(participants) if participants else ""
 
-    # Формируем новый текст подписи
     if participants:
         updated_text = (
             f"*Идем в инсты {time}*. Как обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. "
-            f"*Нажимайте ➕ в сообщении*.\n\nЖелающие {participants_count} человек: *{joined_users}*"
+            f"*Нажмите ➕ в сообщении для участия*.\n\nЖелающие {participants_count} человек: *{joined_users}*"
         )
     else:
         updated_text = (
             f"*Идем в инсты {time}*. Как обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. "
-            f"*Нажмите ➕ в сообщении для участия*."
+            f"*Нажмите ➕ в сообщении для участия*.\n\nЖелающие {participants_count} человек"
         )
-
-    # Получаем текущий текст подписи
-    current_caption = photo_message.caption or ""
-
-    # Проверяем, изменился ли текст
-    if updated_text != current_caption:
-        # Создаем клавиатуру заново
-        keyboard = create_keyboard()
-        try:
-            # Указываем формат Markdown при обновлении подписи
-            await photo_message.edit_caption(caption=updated_text, parse_mode="Markdown", reply_markup=keyboard)
-            await callback.answer(action_message)
-        except Exception as e:
-            logging.error(f"Ошибка при обновлении подписи: {e}")
-            await callback.answer("Не удалось обновить подпись. Попробуйте снова.")
-    else:
-        # Если текст не изменился, не обновляем сообщение
+    try:
+        # Указываем формат Markdown при обновлении подписи
+        await photo_message.edit_caption(caption=updated_text, parse_mode="Markdown", reply_markup=keyboard)
         await callback.answer(action_message)
+    except Exception as e:
+        logging.error(f"Ошибка при обновлении подписи: {e}")
+        await callback.answer("Не удалось обновить подпись. Попробуйте снова.")
 
 # Обработчик для нажатия на кнопку "➕ Присоединиться"
 @router.callback_query(lambda callback: callback.data == "join_plus")
@@ -90,14 +78,11 @@ async def handle_plus_reaction(callback: types.CallbackQuery):
     username = callback.from_user.first_name
     message = callback.message
     participants = filter_participants(message.caption)
-
-    # Добавляем участника в список, если его там нет
     if username not in participants:
         participants.append(username)
         action_message = f"Вы присоединились, {username}!"
     else:
         action_message = f"Вы уже участвуете, {username}!"
-    
     time = extract_time_from_caption(message.caption)
     await update_caption(message, participants, callback, action_message, time)
 
@@ -107,14 +92,11 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
     username = callback.from_user.first_name
     message = callback.message
     participants = filter_participants(message.caption)
-
-    # Убираем участника из списка, если он там есть
     if username in participants:
         participants.remove(username)
         action_message = f"Вы больше не участвуете, {username}."
     else:
         action_message = f"Вы не участвовали."
-    
     time = extract_time_from_caption(message.caption)
     await update_caption(message, participants, callback, action_message, time)
 
