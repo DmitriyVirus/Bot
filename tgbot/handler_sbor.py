@@ -4,6 +4,9 @@ from aiogram import types, Router
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.filters import Command
 
+# Создаем объект Router
+router = Router()
+
 # Хендлер для команды /fix с учетом времени
 @router.message(Command(commands=["fix"]))
 async def fix_handler(message: types.Message):
@@ -37,7 +40,10 @@ def filter_participants(text: str):
 async def update_message(message: types.Message, participants: list, callback: types.CallbackQuery, action_message: str):
     participants_count = len(participants)
     joined_users = ", ".join(participants)
-    updated_text = f"Я жду {message.text.split()[2]}...\n\nУчаствуют {participants_count} человек(а): {joined_users}".strip()
+    
+    # Делаем проверку на правильность формата времени
+    time = message.text.split()[2] if len(message.text.split()) > 2 else "не указано"
+    updated_text = f"Я жду {time}...\n\nУчаствуют {participants_count} человек(а): {joined_users}".strip()
 
     current_text = message.text.strip() if message.text else ""
     if current_text == updated_text:
@@ -82,3 +88,4 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
         action_message = f"Вы не участвовали."
 
     await update_message(message, participants, callback, action_message)
+
