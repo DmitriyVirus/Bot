@@ -23,12 +23,16 @@ async def fix_handler(message: types.Message):
         # Создание клавиатуры
         keyboard = create_keyboard()
 
-        # Отправка текста для привязки к фото
-        sent_message = await message.answer(f"Идем в инсты {time}. Как обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. Нажимайте + в сообщении.\n\nЖелающие 0 человек(а):", reply_markup=keyboard)
-        photo_message = await message.bot.send_photo(chat_id=message.chat.id, photo=photo_url, caption=sent_message.text)
+        # Отправка фото с текстом и клавишами
+        sent_message = await message.bot.send_photo(
+            chat_id=message.chat.id,
+            photo=photo_url,
+            caption=f"Идем в инсты {time}. Как обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. Нажимайте + в сообщении.\n\nЖелающие 0 человек(а):",
+            reply_markup=keyboard
+        )
 
         # Закрепляем сообщение с фото
-        await message.chat.pin_message(photo_message.message_id)
+        await message.chat.pin_message(sent_message.message_id)
         logging.info(f"Сообщение отправлено и закреплено с id: {sent_message.message_id}")
     except Exception as e:
         logging.error(f"Ошибка при обработке команды /fix: {e}")
@@ -63,7 +67,13 @@ async def update_caption(photo_message: types.Message, participants: list, callb
         return
 
     try:
+        # Обновляем подпись к фото
         await photo_message.edit_caption(updated_text)
+
+        # Обновляем клавиатуру
+        keyboard = create_keyboard()
+        await photo_message.edit_reply_markup(reply_markup=keyboard)
+
         await callback.answer(action_message)
         logging.info(f"Подпись обновлена: {updated_text}")
     except Exception as e:
@@ -83,16 +93,19 @@ async def handle_plus_reaction(callback: types.CallbackQuery):
     else:
         action_message = f"Вы уже участвуете, {username}!"
 
-    # Используем callback.message.message_id для получения сообщения с фото
-    photo_message = await callback.message.bot.get_message(chat_id=callback.message.chat.id, message_id=callback.message.message_id)
+    # Получаем последнее сообщение с фото
+    photo_message = callback.message.reply_to_message
 
-    time_match = re.search(r'Идем в инсты\s*(\d{1,2}:\d{2}|когда соберемся)', photo_message.caption)
-    if time_match:
-        time = time_match.group(1)
+    if photo_message:
+        # Извлекаем время из подписи
+        time_match = re.search(r'Идем в инсты\s*(\d{1,2}:\d{2}|когда соберемся)', photo_message.caption)
+        if time_match:
+            time = time_match.group(1)
+        else:
+            time = "когда соберемся"
+        await update_caption(photo_message, participants, callback, action_message, time)
     else:
-        time = "когда соберемся"
-
-    await update_caption(photo_message, participants, callback, action_message, time)
+        await callback.answer("Сообщение с фото не найдено.")
 
 # Обработчик для нажатия на кнопку "➖ Не участвовать"
 @router.callback_query(lambda callback: callback.data == "join_minus")
@@ -107,14 +120,16 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
     else:
         action_message = f"Вы не участвовали."
 
-    # Используем callback.message.message_id для получения сообщения с фото
-    photo_message = await callback.message.bot.get_message(chat_id=callback.message.chat.id, message_id=callback.message.message_id)
+    # Получаем последнее сообщение с фото
+    photo_message = callback.message.reply_to_message
 
-    time_match = re.search(r'Идем в инсты\s*(\d{1,2}:\d{2}|когда соберемся)', photo_message.caption)
-    if time_match:
-        time = time_match.group(1)
+    if photo_message:
+        # Извлекаем время из подписи
+        time_match = re.search(r'Идем в инсты\s*(\d{1,2}:\d{2}|когда соберемся)', photo_message.caption)
+        if time_match:
+            time = time_match.group(1)
+        else:
+            time = "когда соберемся"
+        await update_caption(photo_message, participants, callback, action_message, time)
     else:
-        time = "когда соберемся"
-
-    await update_caption(photo_message, participants, callback, action_message, time)
-
+        await callback.answer("Сообщение с фото не найдено.")
