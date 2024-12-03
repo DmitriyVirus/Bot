@@ -2,7 +2,7 @@ import logging
 import re
 from aiogram import types, Router
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from aiogram.dispatcher.filters import Command
+from aiogram.filters import Command
 
 router = Router()
 
