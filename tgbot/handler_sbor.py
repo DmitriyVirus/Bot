@@ -38,7 +38,8 @@ async def fix_handler(message: types.Message):
 # Функция для парсинга текста и получения списка участников
 def filter_participants(caption: str):
     logging.debug(f"Подпись для анализа: {caption}")
-    match = re.search(r"Желающие \d+ человек: \*(.*)\*", caption, flags=re.DOTALL)
+    # Регулярное выражение для извлечения списка участников без звёздочек
+    match = re.search(r"Желающие \d+ человек: (.+)", caption, flags=re.DOTALL)
     if match:
         participants_text = match.group(1)
         logging.debug(f"Найден текст участников: {participants_text}")
@@ -67,17 +68,12 @@ async def update_caption(photo_message: types.Message, participants: list, callb
             f"*Нажмите ➕ в сообщении для участия*.\n\nЖелающие {participants_count} человек"
         )
 
-    # Проверка, изменился ли текст подписи
-    if updated_text != photo_message.caption:
-        try:
-            # Указываем формат Markdown при обновлении подписи
-            await photo_message.edit_caption(caption=updated_text, parse_mode="Markdown", reply_markup=keyboard)
-            await callback.answer(action_message)
-        except Exception as e:
-            logging.error(f"Ошибка при обновлении подписи: {e}")
-            await callback.answer("Не удалось обновить подпись. Попробуйте снова.")
-    else:
-        await callback.answer("Подпись не изменилась.")
+    try:
+        await photo_message.edit_caption(caption=updated_text, parse_mode="Markdown", reply_markup=keyboard)
+        await callback.answer(action_message)
+    except Exception as e:
+        logging.error(f"Ошибка при обновлении подписи: {e}")
+        await callback.answer("Не удалось обновить подпись. Попробуйте снова.")
 
 # Обработчик для нажатия на кнопку "➕ Присоединиться"
 @router.callback_query(lambda callback: callback.data == "join_plus")
