@@ -36,18 +36,28 @@ def create_keyboard():
 
 # Функция для парсинга текста и получения списка участников
 def filter_participants(text: str):
-    # Извлекаем все, что идет после "Я жду {time}...\n\nУчаствуют"
+    # Извлекаем часть с участниками, оставляя время
     excluded_text = r'Я жду\s*(\d{1,2}:\d{2}|сколько угодно)?\.\.\.\s*Участвуют \d+ человек\(а\):\s*'
     text = re.sub(excluded_text, '', text)
-    # Возвращаем список участников
     return [name.strip() for name in text.split(",") if name.strip()]
 
 # Функция для обновления сообщения
 async def update_message(message: types.Message, participants: list, callback: types.CallbackQuery, action_message: str):
+    # Извлекаем время из текущего текста сообщения
+    time_match = re.search(r'Я жду\s*(\d{1,2}:\d{2}|сколько угодно)', message.text)
+    if time_match:
+        time = time_match.group(1)
+    else:
+        time = "сколько угодно"  # Если времени нет
+
+    # Считаем количество участников и составляем список
     participants_count = len(participants)
     joined_users = ", ".join(participants)
-    updated_text = f"Я жду...\n\nУчаствуют {participants_count} человек(а): {joined_users}".strip()
 
+    # Формируем новый текст для сообщения с учетом времени
+    updated_text = f"Я жду {time}...\n\nУчаствуют {participants_count} человек(а): {joined_users}".strip()
+
+    # Если текущий текст и новый совпадают, не обновляем
     current_text = message.text.strip() if message.text else ""
     if current_text == updated_text:
         await callback.answer(action_message)
