@@ -10,10 +10,10 @@ router = Router()
 @router.message(Command(commands=["inst"]))
 async def fix_handler(message: types.Message):
     try:
-        # Попытка извлечь время из текста после команды /inst
+        # Попытка извлечь время из текста
         time_match = re.search(r"(\d{1,2}:\d{2})", message.text)
         time = time_match.group(1) if time_match else "когда соберемся"
-        # Фото для отправки (замените на свой путь к фото или URL)
+        # Фото для отправки
         photo_url = "https://battleclub.space/uploads/monthly_2022_07/baylor.jpg.02e0df864753bf47b1ef76303b993a1d.jpg"
         # Создание клавиатуры
         keyboard = create_keyboard()
@@ -38,7 +38,7 @@ async def fix_handler(message: types.Message):
 # Функция для парсинга текста и получения списка участников
 def filter_participants(caption: str):
     logging.debug(f"Подпись для анализа: {caption}")
-    # Регулярное выражение для извлечения списка участников без звёздочек
+    # Регулярное выражение для извлечения списка участников
     match = re.search(r"Идут \d+ человек: (.+)", caption, flags=re.DOTALL)
     if match:
         participants_text = match.group(1)
