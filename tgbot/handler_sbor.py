@@ -114,7 +114,7 @@ async def inst_handler(message: types.Message):
             time = "сколько угодно"  # Если время не указано
 
         # Фото для отправки (замените на свой путь к фото или URL)
-        photo_url = "https://example.com/your-photo.jpg"  # Замените на URL или путь к вашему фото
+        photo_url = "https://battleclub.space/uploads/monthly_2022_07/baylor.jpg.02e0df864753bf47b1ef76303b993a1d.jpg"  # Замените на URL или путь к вашему фото
 
         # Создание клавиатуры
         keyboard = create_keyboard()
