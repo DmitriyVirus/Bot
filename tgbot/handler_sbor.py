@@ -54,6 +54,7 @@ async def update_caption(photo_message: types.Message, participants: list, callb
     participants_count = len(participants)
     joined_users = ", ".join(participants) if participants else ""
 
+    # Формируем новый текст подписи
     if participants:
         updated_text = (
             f"*Идем в инсты {time}*. Как обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. "
@@ -64,16 +65,20 @@ async def update_caption(photo_message: types.Message, participants: list, callb
             f"*Идем в инсты {time}*. Как обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. "
             f"*Нажмите ➕ в сообщении для участия*."
         )
-    
-    # Создаем клавиатуру заново
-    keyboard = create_keyboard()
-    try:
-        # Указываем формат Markdown при обновлении подписи
-        await photo_message.edit_caption(caption=updated_text, parse_mode="Markdown", reply_markup=keyboard)
+
+    # Проверяем, изменился ли текст подписи
+    if photo_message.caption != updated_text:
+        # Если текст изменился, обновляем подпись
+        keyboard = create_keyboard()
+        try:
+            await photo_message.edit_caption(caption=updated_text, parse_mode="Markdown", reply_markup=keyboard)
+            await callback.answer(action_message)
+        except Exception as e:
+            logging.error(f"Ошибка при обновлении подписи: {e}")
+            await callback.answer("Не удалось обновить подпись. Попробуйте снова.")
+    else:
+        # Если текст не изменился, не обновляем
         await callback.answer(action_message)
-    except Exception as e:
-        logging.error(f"Ошибка при обновлении подписи: {e}")
-        await callback.answer("Не удалось обновить подпись. Попробуйте снова.")
 
 # Обработчик для нажатия на кнопку "➕ Присоединиться"
 @router.callback_query(lambda callback: callback.data == "join_plus")
