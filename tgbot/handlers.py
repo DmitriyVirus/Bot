@@ -1,14 +1,11 @@
-import re
 import logging
-import asyncio
-from aiogram import Bot, Dispatcher, Router, types
+from aiogram import Router
+from aiogram.types import Message
 from aiogram.filters import Command
-from aiogram.exceptions import TelegramBadRequest
-from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
 from tgbot.triggers import TRIGGERS, WELCOME_TEXT, HELP_TEXT_HEADER, COMMANDS_LIST
 
 router = Router()
-        
+
 # Приветствие новых пользователей
 @router.message(lambda message: hasattr(message, 'new_chat_members') and message.new_chat_members)
 async def greet_new_members(message: Message):
@@ -19,11 +16,12 @@ async def greet_new_members(message: Message):
             continue
         logging.info(f"Формируется приветствие для {new_member.first_name} (ID: {new_member.id})")
         
+        # Используем текст из triggers.py и подставляем имя пользователя
         welcome_text = f"⚡⚡⚡Привет, *{new_member.first_name}*! Теперь ты часть команды.⚡⚡⚡ {WELCOME_TEXT}"
         try:
-            await message.answer(welcome_text, parse_mode="Markdown")
+            await message.answer(welcome_text, parse_mode="Markdown")  # Указываем режим Markdown
             logging.info(f"Отправлено приветствие для {new_member.first_name} (ID: {new_member.id})")
-        except TelegramBadRequest as e:
+        except Exception as e:
             logging.error(f"Ошибка при отправке приветствия {new_member.first_name}: {e}")
 
 # Прощание с пользователями
@@ -39,9 +37,9 @@ async def say_goodbye(message: Message):
     try:
         await message.answer(goodbye_text)
         logging.info(f"Отправлено прощание для {left_member.first_name} (ID: {left_member.id})")
-    except TelegramBadRequest as e:
+    except Exception as e:
         logging.error(f"Ошибка при отправке прощания для {left_member.first_name}: {e}")
-        
+
 # Обработчик команды /fu
 @router.message(Command(commands=["fu"]))  # Используем фильтр Command
 async def fu_handler(message: Message):
