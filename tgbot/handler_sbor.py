@@ -37,12 +37,14 @@ async def fix_handler(message: types.Message):
 
 # Функция для парсинга текста и получения списка участников
 def filter_participants(caption: str):
-    # Регулярное выражение для извлечения списка участников
-    match = re.search(r"Желающие \(\d+ человек\(а\)\): (.*)", caption, flags=re.DOTALL)
+    logging.debug(f"Подпись для анализа: {caption}")
+    match = re.search(r"Желающие \d+ человек: \*(.*)\*", caption, flags=re.DOTALL)
     if match:
         participants_text = match.group(1)
+        logging.debug(f"Найден текст участников: {participants_text}")
         return [name.strip() for name in participants_text.split(",") if name.strip()]
-    return []  # Если участников нет, возвращаем пустой список
+    logging.debug("Не удалось найти участников в подписи.")
+    return []
     
 # Функция для извлечения времени из подписи
 def extract_time_from_caption(caption: str):
