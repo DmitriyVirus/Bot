@@ -4,7 +4,6 @@ from aiogram import types, Router
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.filters import Command
 
-# Создаем объект Router
 router = Router()
 
 # Хендлер для команды /fix с учетом времени
@@ -14,7 +13,7 @@ async def fix_handler(message: types.Message):
         # Извлекаем время из текста команды
         time_pattern = r"(\d{1,2}:\d{2})"  # Паттерн для времени (например, 19:30)
         match = re.search(time_pattern, message.text)
-        time = match.group(1) if match else "когда соберемся"  # Если время указано, берем его, иначе ставим "не указано"
+        time = match.group(1) if match else "не указано"  # Если время указано, берем его, иначе ставим "не указано"
 
         keyboard = create_keyboard()
         sent_message = await message.answer(f"Я жду {time}...\n\nУчаствуют 0 человек(а):", reply_markup=keyboard)
@@ -32,19 +31,15 @@ def create_keyboard():
 
 # Функция для парсинга текста и получения списка участников
 def filter_participants(text: str):
-    # Обновленное регулярное выражение для удаления всех ненужных слов и символов
-    excluded_text = r'\b(Я|жду|когда|соберемся|Участвуют|человек|а)\b|\.+|\(|\)|:|\d+\s*|\s*,\s*'
+    excluded_text = r'Я жду\.\.\.\s*Участвуют \d+ человек\(а\):\s*'
     text = re.sub(excluded_text, '', text)
-
-    # Разбиваем на участников и убираем лишние пробелы
     return [name.strip() for name in text.split(",") if name.strip()]
-    
+
 # Функция для обновления сообщения
-async def update_message(message: types.Message, participants: list, callback: types.CallbackQuery, action_message: str, time: str):
+async def update_message(message: types.Message, participants: list, callback: types.CallbackQuery, action_message: str):
     participants_count = len(participants)
     joined_users = ", ".join(participants)
-    
-    updated_text = f"Я жду {time}...\n\nУчаствуют {participants_count} человек(а): {joined_users}".strip()
+    updated_text = f"Я жду {message.text.split()[2]}...\n\nУчаствуют {participants_count} человек(а): {joined_users}".strip()
 
     current_text = message.text.strip() if message.text else ""
     if current_text == updated_text:
@@ -73,9 +68,7 @@ async def handle_plus_reaction(callback: types.CallbackQuery):
     else:
         action_message = f"Вы уже участвуете, {username}!"
 
-    # Получаем время из текста
-    time = message.text.split()[2] if len(message.text.split()) > 2 else "когда соберемся"
-    await update_message(message, participants, callback, action_message, time)
+    await update_message(message, participants, callback, action_message)
 
 # Обработчик для нажатия на кнопку "➖ Не участвовать"
 @router.callback_query(lambda callback: callback.data == "join_minus")
@@ -90,6 +83,7 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
     else:
         action_message = f"Вы не участвовали."
 
+    await update_message(message, participants, callback, action_message)
     # Получаем время из текста
     time = message.text.split()[2] if len(message.text.split()) > 2 else "когда соберемся"
     await update_message(message, participants, callback, action_message, time)
