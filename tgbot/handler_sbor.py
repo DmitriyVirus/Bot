@@ -23,7 +23,7 @@ async def fix_handler(message: types.Message):
             photo=photo_url,
             caption=(
                 f"*Идем в инсты {time}*. Как обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. "
-                f"*Нажимайте ➕ в сообщении*.\n\nЖелающие 0 человек"
+                f"*Нажмите ➕ в сообщении для участия.*"
             ),
             parse_mode="Markdown",
             reply_markup=keyboard
@@ -62,7 +62,7 @@ async def update_caption(photo_message: types.Message, participants: list, callb
     else:
         updated_text = (
             f"*Идем в инсты {time}*. Как обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. "
-            f"*Нажимайте ➕ в сообщени для участия*."
+            f"*Нажмите ➕ в сообщени для участия*."
         )
     # Создаем клавиатуру заново
     keyboard = create_keyboard()
