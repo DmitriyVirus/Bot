@@ -10,8 +10,18 @@ router = Router()
 @router.message(Command(commands=["fix"]))
 async def fix_handler(message: types.Message):
     try:
+        # Попытка извлечь время из текста после команды /fix
+        time_match = re.search(r"(\d{1,2}:\d{2})", message.text)
+        if time_match:
+            time = time_match.group(1)
+        else:
+            time = "сколько угодно"  # Если время не указано
+
+        # Создание клавиатуры
         keyboard = create_keyboard()
-        sent_message = await message.answer("Я жду...\n\nУчаствуют 0 человек(а):", reply_markup=keyboard)
+        
+        # Сообщение с указанием времени
+        sent_message = await message.answer(f"Я жду {time}...\n\nУчаствуют 0 человек(а):", reply_markup=keyboard)
         await message.chat.pin_message(sent_message.message_id)
         logging.info(f"Сообщение отправлено и закреплено с id: {sent_message.message_id}")
     except Exception as e:
@@ -78,4 +88,4 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
     else:
         action_message = f"Вы не участвовали."
 
-    await update_message(message, participants, callback, action_message) 
+    await update_message(message, participants, callback, action_message)
