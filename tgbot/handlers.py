@@ -13,10 +13,8 @@ router = Router()
 @router.message(Command(commands=["fix"]))
 async def fix_handler(message: types.Message):
     try:
-        # Создание кнопок "➕ Присоединиться" и "➖ Не участвовать"
-        plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
-        minus_button = InlineKeyboardButton(text="➖ Не участвовать", callback_data="join_minus")
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[[plus_button, minus_button]])
+        # Создание кнопок и клавиатуры
+        keyboard = create_keyboard()
 
         # Отправка сообщения с кнопками
         sent_message = await message.answer("Я жду...\n\nУчаствуют 0 человек(а):", reply_markup=keyboard)
@@ -25,113 +23,73 @@ async def fix_handler(message: types.Message):
         await message.chat.pin_message(sent_message.message_id)
 
         logging.info(f"Сообщение отправлено и закреплено с id: {sent_message.message_id}")
-    
     except Exception as e:
         logging.error(f"Ошибка при обработке команды /fix: {e}")
         await message.answer("Произошла ошибка. Попробуйте снова.")
 
+# Функция для создания клавиатуры
+def create_keyboard():
+    plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
+    minus_button = InlineKeyboardButton(text="➖ Не участвовать", callback_data="join_minus")
+    return InlineKeyboardMarkup(inline_keyboard=[[plus_button, minus_button]])
+
 # Функция для парсинга текста и получения списка участников
 def filter_participants(text: str):
-    # Регулярное выражение для извлечения слов из строки "Я жду... Участвуют {число} человек(а):"
     excluded_text = r'Я жду\.\.\.\s*Участвуют \d+ человек\(а\):\s*'
+    text = re.sub(excluded_text, '', text)  # Удаляем заголовок
+    return [name.strip() for name in text.split(",") if name.strip()]  # Разбиваем на имена
 
-    # Удаляем строку "Я жду... Участвуют {число} человек(а):" из текста
-    text = re.sub(excluded_text, '', text)
+# Функция для обновления сообщения
+async def update_message(message: types.Message, participants: list, callback: types.CallbackQuery, action_message: str):
+    # Формируем текст сообщения
+    participants_count = len(participants)
+    joined_users = ", ".join(participants)
+    updated_text = f"Я жду...\n\nУчаствуют {participants_count} человек(а): {joined_users}"
 
-    # Разделяем оставшийся текст на слова (участников)
-    participants = re.findall(r'[A-Za-zА-Яа-яЁё]+', text)
+    # Проверяем, нужно ли обновлять сообщение
+    if message.text == updated_text:
+        await callback.answer(action_message)
+        return
 
-    # Фильтруем список, исключая слова, найденные в исключаемой строке
-    excluded_words = re.findall(r'[A-Za-zА-Яа-яЁё]+', 'Я жду... Участвуют')
-    participants = [name for name in participants if name not in excluded_words]
-
-    return participants
+    # Обновляем сообщение
+    try:
+        keyboard = create_keyboard()
+        await message.edit_text(updated_text, reply_markup=keyboard)
+        await callback.answer(action_message)
+        logging.info(f"Сообщение обновлено: {updated_text}")
+    except Exception as e:
+        logging.error(f"Ошибка при обновлении сообщения: {e}")
+        await callback.answer("Не удалось обновить сообщение. Попробуйте снова.")
 
 # Обработчик для нажатия на кнопку "➕ Присоединиться"
 @router.callback_query(lambda callback: callback.data == "join_plus")
 async def handle_plus_reaction(callback: types.CallbackQuery):
-    user_id = callback.from_user.id
     username = callback.from_user.first_name
-
-    # Получаем сообщение
     message = callback.message
 
-    # Извлекаем список участников из текста сообщения
     participants = filter_participants(message.text)
-
-    # Проверяем, присоединился ли пользователь
     if username not in participants:
         participants.append(username)
         action_message = f"Вы присоединились, {username}!"
     else:
         action_message = f"Вы уже участвуете, {username}!"
-    
-    # Формируем новый текст сообщения
-    joined_users = ", ".join(participants)
-    participants_count = len(participants)
 
-    updated_text = f"Я жду...\n\nУчаствуют {participants_count} человек(а): {joined_users}"
-    
-    # Если текст не изменился, не обновляем сообщение
-    if message.text == updated_text:
-        await callback.answer(action_message)
-        return
-
-    # Создание новой клавиатуры
-    plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
-    minus_button = InlineKeyboardButton(text="➖ Не участвовать", callback_data="join_minus")
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[[plus_button, minus_button]])
-
-    # Обновление текста и клавиатуры в закрепленном сообщении
-    try:
-        await message.edit_text(updated_text, reply_markup=keyboard)  # Обновление текста и клавиатуры
-        await callback.answer(action_message)
-        logging.info(f"Сообщение обновлено: {updated_text}")
-    except Exception as e:
-        logging.error(f"Ошибка при обновлении сообщения: {e}")
+    await update_message(message, participants, callback, action_message)
 
 # Обработчик для нажатия на кнопку "➖ Не участвовать"
 @router.callback_query(lambda callback: callback.data == "join_minus")
 async def handle_minus_reaction(callback: types.CallbackQuery):
-    user_id = callback.from_user.id
     username = callback.from_user.first_name
-
-    # Получаем сообщение
     message = callback.message
 
-    # Извлекаем список участников из текста сообщения
     participants = filter_participants(message.text)
-
-    # Проверяем, участвует ли пользователь
     if username in participants:
         participants.remove(username)
         action_message = f"Вы больше не участвуете, {username}."
     else:
         action_message = f"Вы не участвовали."
 
-    # Формируем новый текст сообщения
-    joined_users = ", ".join(participants)
-    participants_count = len(participants)
-
-    updated_text = f"Я жду...\n\nУчаствуют {participants_count} человек(а): {joined_users}"
-
-       # Если текст не изменился, не обновляем сообщение
-    if message.text == updated_text:
-        await callback.answer(action_message)
-        return
-        
-    # Создание новой клавиатуры
-    plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
-    minus_button = InlineKeyboardButton(text="➖ Не участвовать", callback_data="join_minus")
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[[plus_button, minus_button]])
-
-    # Обновление текста и клавиатуры в закрепленном сообщении
-    try:
-        await message.edit_text(updated_text, reply_markup=keyboard)  # Обновление текста и клавиатуры
-        await callback.answer(action_message)
-        logging.info(f"Сообщение обновлено: {updated_text}")
-    except Exception as e:
-        logging.error(f"Ошибка при обновлении сообщения: {e}")
+    await update_message(message, participants, callback, action_message)
         
 # Приветствие новых пользователей
 @router.message(lambda message: hasattr(message, 'new_chat_members') and message.new_chat_members)
