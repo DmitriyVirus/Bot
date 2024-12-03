@@ -53,6 +53,12 @@ def filter_participants(text: str):
 
 # Функция для обновления подписи к фото
 async def update_caption(photo_message: types.Message, participants: list, callback: types.CallbackQuery, action_message: str, time: str):
+    # Проверка наличия подписи
+    if not photo_message.caption:
+        logging.error("Ошибка: подпись к фото отсутствует")
+        await callback.answer("Подпись к фото отсутствует.")
+        return
+
     # Считаем количество участников и составляем список
     participants_count = len(participants)
     joined_users = ", ".join(participants)
@@ -86,6 +92,7 @@ async def handle_plus_reaction(callback: types.CallbackQuery):
     username = callback.from_user.first_name
     message = callback.message
 
+    # Получаем участников из подписи
     participants = filter_participants(message.text)
     if username not in participants:
         participants.append(username)
@@ -113,6 +120,7 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
     username = callback.from_user.first_name
     message = callback.message
 
+    # Получаем участников из подписи
     participants = filter_participants(message.text)
     if username in participants:
         participants.remove(username)
