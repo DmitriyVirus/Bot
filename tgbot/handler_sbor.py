@@ -36,8 +36,10 @@ def create_keyboard():
 
 # Функция для парсинга текста и получения списка участников
 def filter_participants(text: str):
-    excluded_text = r'Я жду\.\.\.\s*Участвуют \d+ человек\(а\):\s*'
+    # Извлекаем все, что идет после "Я жду {time}...\n\nУчаствуют"
+    excluded_text = r'Я жду\s*(\d{1,2}:\d{2}|сколько угодно)?\.\.\.\s*Участвуют \d+ человек\(а\):\s*'
     text = re.sub(excluded_text, '', text)
+    # Возвращаем список участников
     return [name.strip() for name in text.split(",") if name.strip()]
 
 # Функция для обновления сообщения
