@@ -53,6 +53,12 @@ def filter_participants(text: str):
 
 # Функция для обновления подписи к фото
 async def update_caption(photo_message: types.Message, participants: list, callback: types.CallbackQuery, action_message: str, time: str):
+    # Проверка наличия подписи
+    if not photo_message.caption:
+        logging.error("Ошибка: подпись к фото отсутствует")
+        await callback.answer("Подпись к фото отсутствует.")
+        return
+
     # Считаем количество участников и составляем список
     participants_count = len(participants)
     joined_users = ", ".join(participants)
@@ -68,11 +74,11 @@ async def update_caption(photo_message: types.Message, participants: list, callb
 
     try:
         # Обновляем подпись к фото
-        await photo_message.edit_message_caption(caption=updated_text)
+        await photo_message.edit_caption(updated_text)
 
         # Обновляем клавиатуру
         keyboard = create_keyboard()
-        await photo_message.edit_message_reply_markup(reply_markup=keyboard)
+        await photo_message.edit_reply_markup(reply_markup=keyboard)
 
         await callback.answer(action_message)
         logging.info(f"Подпись обновлена: {updated_text}")
@@ -86,7 +92,8 @@ async def handle_plus_reaction(callback: types.CallbackQuery):
     username = callback.from_user.first_name
     message = callback.message
 
-    participants = filter_participants(message.text)
+    # Получаем участников из подписи
+    participants = filter_participants(message.caption)
     if username not in participants:
         participants.append(username)
         action_message = f"Вы присоединились, {username}!"
@@ -94,7 +101,7 @@ async def handle_plus_reaction(callback: types.CallbackQuery):
         action_message = f"Вы уже участвуете, {username}!"
 
     # Получаем последнее сообщение с фото
-    photo_message = callback.message.reply_to_message
+    photo_message = callback.message
 
     if photo_message:
         # Извлекаем время из подписи
@@ -113,7 +120,8 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
     username = callback.from_user.first_name
     message = callback.message
 
-    participants = filter_participants(message.text)
+    # Получаем участников из подписи
+    participants = filter_participants(message.caption)
     if username in participants:
         participants.remove(username)
         action_message = f"Вы больше не участвуете, {username}."
@@ -121,7 +129,7 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
         action_message = f"Вы не участвовали."
 
     # Получаем последнее сообщение с фото
-    photo_message = callback.message.reply_to_message
+    photo_message = callback.message
 
     if photo_message:
         # Извлекаем время из подписи
