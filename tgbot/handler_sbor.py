@@ -101,3 +101,29 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
         action_message = f"Вы не участвовали."
 
     await update_message(message, participants, callback, action_message)
+
+# Хендлер для команды /inst
+@router.message(Command(commands=["inst"]))
+async def inst_handler(message: types.Message):
+    try:
+        # Извлекаем время, если оно указано
+        time_match = re.search(r"(\d{1,2}:\d{2})", message.text)
+        if time_match:
+            time = time_match.group(1)
+        else:
+            time = "сколько угодно"  # Если время не указано
+
+        # Фото для отправки (замените на свой путь к фото или URL)
+        photo_url = "https://example.com/your-photo.jpg"  # Замените на URL или путь к вашему фото
+
+        # Создание клавиатуры
+        keyboard = create_keyboard()
+
+        # Отправляем фото с подписью
+        sent_message = await message.answer_photo(photo=photo_url, caption=f"Я жду {time}...\n\nУчаствуют 0 человек(а):", reply_markup=keyboard)
+        await message.chat.pin_message(sent_message.message_id)
+        logging.info(f"Фото отправлено и закреплено с id: {sent_message.message_id}")
+    except Exception as e:
+        logging.error(f"Ошибка при обработке команды /inst: {e}")
+        await message.answer("Произошла ошибка. Попробуйте снова.")
+
