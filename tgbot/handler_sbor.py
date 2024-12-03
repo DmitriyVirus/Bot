@@ -55,17 +55,31 @@ def extract_time_from_caption(caption: str):
 # Функция для обновления подписи к фото
 async def update_caption(photo_message: types.Message, participants: list, callback: types.CallbackQuery, action_message: str, time: str, keyboard: InlineKeyboardMarkup):
     participants_count = len(participants)
-    joined_users = ", ".join(participants) if participants else ""
+    
+    # Разделяем список участников на основные (до 5) и "желающих"
+    main_participants = participants[:5]  # Первые 5 участников
+    extra_participants = participants[5:]  # Остальные участники
 
-    if participants:
+    # Формируем текст для основных участников (до 5)
+    if participants_count == 0:  # Если нет участников
+        updated_text = (
+            f"*Идем в инсты {time}*. Как обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. "
+            f"*Нажмите ➕ в сообщении для участия*."
+        )
+    elif participants_count <= 5:  # Если участников до 5
+        joined_users = ", ".join(main_participants)
         updated_text = (
             f"*Идем в инсты {time}*. Как обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. "
             f"*Нажмите ➕ в сообщении для участия*.\n\nИдут {participants_count} человек: *{joined_users}*"
         )
-    else:
+    else:  # Если участников больше 5
+        main_text = ", ".join(main_participants)
+        extra_text = f"Желающие {len(extra_participants)}: " + ", ".join(extra_participants)
         updated_text = (
             f"*Идем в инсты {time}*. Как обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. "
-            f"*Нажмите ➕ в сообщении для участия*."
+            f"*Нажмите ➕ в сообщении для участия*.\n\n"
+            f"Идут {participants_count} человек: *{main_text}*\n"
+            f"{extra_text}" if extra_participants else ""
         )
 
     try:
