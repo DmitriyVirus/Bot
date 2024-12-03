@@ -36,14 +36,14 @@ async def fix_handler(message: types.Message):
         await message.answer("Произошла ошибка. Попробуйте снова.")
 
 # Функция для парсинга текста и получения списка участников
-def filter_participants(text: str):
+def filter_participants(caption: str):
     # Регулярное выражение для извлечения списка участников
-    match = re.search(r"Желающие \d+ человек: \*(.*)\*", text, flags=re.DOTALL)
+    match = re.search(r"Желающие \d+ человек: \*(.*)\*", caption, flags=re.DOTALL)
     if match:
         participants_text = match.group(1)
         return [name.strip() for name in participants_text.split(",") if name.strip()]
     return []  # Если участников нет, возвращаем пустой список
-    
+
 # Функция для извлечения времени из подписи
 def extract_time_from_caption(caption: str):
     time_match = re.search(r"Идем в инсты\s*(\d{1,2}:\d{2}|когда соберемся)", caption)
