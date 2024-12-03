@@ -65,7 +65,7 @@ async def update_caption(photo_message: types.Message, participants: list, callb
             f"*Нажмите ➕ в сообщении для участия*.\n\nЖелающие {participants_count} человек"
         )
 
-    # Проверка, изменился ли текст
+    # Проверка, изменился ли текст подписи
     if updated_text != photo_message.caption:
         try:
             # Указываем формат Markdown при обновлении подписи
@@ -84,6 +84,7 @@ async def handle_plus_reaction(callback: types.CallbackQuery):
     message = callback.message
     participants = filter_participants(message.caption)
 
+    # Проверка, что имя пользователя еще не в списке
     if username not in participants:
         participants.append(username)
         action_message = f"Вы присоединились, {username}!"
@@ -101,11 +102,12 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
     message = callback.message
     participants = filter_participants(message.caption)
 
+    # Проверка, что имя пользователя есть в списке участников
     if username in participants:
         participants.remove(username)
         action_message = f"Вы больше не участвуете, {username}."
     else:
-        action_message = f"Вы не участвовали."
+        action_message = f"Вы не участвуете."
 
     time = extract_time_from_caption(message.caption)
     keyboard = create_keyboard()  # Создание клавиатуры
