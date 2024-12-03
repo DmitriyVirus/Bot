@@ -87,24 +87,19 @@ async def handle_plus_reaction(callback: types.CallbackQuery):
     message = callback.message
     participants = filter_participants(message.caption)
 
-    # Выводим отладочную информацию о текущем списке участников
-    logging.debug(f"Текущий список участников перед добавлением: {participants}")
+    # Проверка на наличие пользователя в списке
+    if username in participants:
+        await callback.answer(f"Вы уже участвуете, {username}!")
+        logging.debug(f"Пользователь {username} уже в списке участников: {participants}")
+        return
 
-    # Проверка, что имя пользователя еще не в списке
-    if username not in participants:
-        participants.append(username)
-        logging.debug(f"{username} ещё не в списке. Добавляем.")
-        action_message = f"Вы присоединились, {username}!"
-    else:
-        logging.debug(f"{username} уже в списке.")
-        action_message = f"Вы уже участвуете, {username}!"
+    # Добавляем пользователя в список участников
+    participants.append(username)
+    logging.debug(f"Пользователь {username} добавлен. Новый список участников: {participants}")
 
     time = extract_time_from_caption(message.caption)
     keyboard = create_keyboard()  # Создание клавиатуры
-    await update_caption(message, participants, callback, action_message, time, keyboard)
-
-    # Выводим отладочную информацию после добавления
-    logging.debug(f"Обновленный список участников после добавления: {participants}")
+    await update_caption(message, participants, callback, f"Вы присоединились, {username}!", time, keyboard)
 
 # Обработчик для нажатия на кнопку "➖ Не участвовать"
 @router.callback_query(lambda callback: callback.data == "join_minus")
@@ -113,24 +108,19 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
     message = callback.message
     participants = filter_participants(message.caption)
 
-    # Выводим отладочную информацию о текущем списке участников
-    logging.debug(f"Текущий список участников перед удалением: {participants}")
-    
-    # Проверка, что имя пользователя есть в списке участников
-    if username in participants:
-        logging.debug(f"{username} найден в списке. Удаляем.")
-        participants.remove(username)
-        action_message = f"Вы больше не участвуете, {username}."
-    else:
-        logging.debug(f"{username} не найден в списке.")
-        action_message = f"Вы не участвуете."
+    # Проверка на отсутствие пользователя в списке
+    if username not in participants:
+        await callback.answer("Вы не участвуете.")
+        logging.debug(f"Пользователь {username} не найден в списке участников: {participants}")
+        return
+
+    # Удаляем пользователя из списка участников
+    participants.remove(username)
+    logging.debug(f"Пользователь {username} удалён. Новый список участников: {participants}")
 
     time = extract_time_from_caption(message.caption)
     keyboard = create_keyboard()  # Создание клавиатуры
-    await update_caption(message, participants, callback, action_message, time, keyboard)
-    
-    # Выводим отладочную информацию после удаления
-    logging.debug(f"Обновленный список участников после удаления: {participants}")
+    await update_caption(message, participants, callback, f"Вы больше не участвуете, {username}.", time, keyboard)
 
 # Функция для создания клавиатуры
 def create_keyboard():
