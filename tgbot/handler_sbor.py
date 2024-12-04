@@ -73,7 +73,7 @@ async def update_caption(photo_message: types.Message, participants: list, callb
         updated_text = (
             f"*Идем в инсты {time}*. Как обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. "
             f"*Нажмите ➕ в сообщении для участия*.\n\n"
-            f"Идут {len(main_participants)} человек: {main_text}"
+            f"Идут {len(main_participants)} человек: {main_text}."
         )
         if extra_participants:
             updated_text += f"\nЖелающие: {extra_text}"
