@@ -21,7 +21,7 @@ async def fix_handler(message: types.Message):
             chat_id=message.chat.id,
             photo=photo_url,
             caption=(
-                f"*Идем в инсты {time}*. Как обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. "
+                f"*Идем в инсты {time}*. Как обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. Есть 5 мест. "
                 f"*Нажмите ➕ в сообщении для участия*"
             ),
             parse_mode="Markdown",
@@ -70,7 +70,7 @@ async def update_caption(photo_message: types.Message, participants: list, callb
     if not participants:
         # Если список участников пуст
         updated_text = (
-            f"*Идем в инсты {time}*. Как обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. "
+            f"*Идем в инсты {time}*. Как обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. Есть 5 мест "
             f"*Нажмите ➕ в сообщении для участия*."
         )
     else:
@@ -78,7 +78,7 @@ async def update_caption(photo_message: types.Message, participants: list, callb
         main_text = ", ".join(main_participants)
         extra_text = ", ".join(extra_participants)
         updated_text = (
-            f"*Идем в инсты {time}*. Как обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. "
+            f"*Идем в инсты {time}*. Как обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. Есть 5 мест. "
             f"*Нажмите ➕ в сообщении для участия*.\n\n"
             f"Идут {len(main_participants)} человек: {main_text}"
         )
