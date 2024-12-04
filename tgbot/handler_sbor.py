@@ -32,21 +32,23 @@ async def fix_handler(message: types.Message):
         await message.chat.pin_message(sent_message.message_id)
         logging.info(f"Сообщение отправлено и закреплено с id: {sent_message.message_id}")
     except Exception as e:
-        logging.error(f"Ошибка при обработке команды /fix: {e}")
+        logging.error(f"Ошибка при обработке команды /inst: {e}")
         await message.answer("Произошла ошибка. Попробуйте снова.")
 
 # Функция для парсинга текста и получения списка участников
 def filter_participants(caption: str):
-    logging.debug(f"Подпись для анализа: {caption}")
-    # Регулярное выражение для извлечения списка участников
     match = re.search(r"Идут \d+ человек: (.+)", caption, flags=re.DOTALL)
     if match:
-        participants_text = match.group(1)
-        logging.debug(f"Найден текст участников: {participants_text}")
-        return [name.strip() for name in participants_text.split(",") if name.strip()]
-    logging.debug("Не удалось найти участников в подписи.")
+        return [name.strip() for name in match.group(1).split(",") if name.strip()]
     return []
-    
+
+# Функция для извлечения списка "Желающих"
+def filter_extra_participants(caption: str):
+    match = re.search(r"Желающие \d+: (.+)", caption, flags=re.DOTALL)
+    if match:
+        return [name.strip() for name in match.group(1).split(",") if name.strip()]
+    return []
+
 # Функция для извлечения времени из подписи
 def extract_time_from_caption(caption: str):
     time_match = re.search(r"Идем в инсты\s*(\d{1,2}:\d{2}|когда соберемся)", caption)
@@ -54,31 +56,28 @@ def extract_time_from_caption(caption: str):
 
 # Функция для обновления подписи к фото
 async def update_caption(photo_message: types.Message, participants: list, callback: types.CallbackQuery, action_message: str, time: str, keyboard: InlineKeyboardMarkup):
+    main_participants = participants[:5]
+    extra_participants = participants[5:]
     participants_count = len(participants)
-    
-    # Разделяем список участников на основные (до 5) и "желающих"
-    main_participants = participants[:5]  # Первые 5 участников
-    extra_participants = participants[5:]  # Остальные участники
 
-    # Формируем текст для основных участников (до 5)
-    if participants_count == 0:  # Если нет участников
+    if participants_count == 0:
         updated_text = (
             f"*Идем в инсты {time}*. Как обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. "
             f"*Нажмите ➕ в сообщении для участия*."
         )
-    elif participants_count <= 5:  # Если участников до 5
+    elif participants_count <= 5:
         joined_users = ", ".join(main_participants)
         updated_text = (
             f"*Идем в инсты {time}*. Как обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. "
             f"*Нажмите ➕ в сообщении для участия*.\n\nИдут {participants_count} человек: *{joined_users}*"
         )
-    else:  # Если участников больше 5
+    else:
         main_text = ", ".join(main_participants)
         extra_text = f"Желающие {len(extra_participants)}: " + ", ".join(extra_participants)
         updated_text = (
             f"*Идем в инсты {time}*. Как обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. "
             f"*Нажмите ➕ в сообщении для участия*.\n\n"
-            f"Идут {participants_count} человек: *{main_text}*\n"
+            f"Идут {len(main_participants)} человек: *{main_text}*\n"
             f"{extra_text}" if extra_participants else ""
         )
 
@@ -94,42 +93,43 @@ async def update_caption(photo_message: types.Message, participants: list, callb
 async def handle_plus_reaction(callback: types.CallbackQuery):
     username = callback.from_user.first_name
     message = callback.message
-    participants = filter_participants(message.caption)
 
-    # Проверка на наличие пользователя в списке
-    if username in participants:
+    main_participants = filter_participants(message.caption)
+    extra_participants = filter_extra_participants(message.caption)
+
+    if username in main_participants or username in extra_participants:
         await callback.answer(f"Вы уже участвуете, {username}!")
-        logging.debug(f"Пользователь {username} уже в списке участников: {participants}")
         return
 
-    # Добавляем пользователя в список участников
-    participants.append(username)
-    logging.debug(f"Пользователь {username} добавлен. Новый список участников: {participants}")
+    if len(main_participants) < 5:
+        main_participants.append(username)
+    else:
+        extra_participants.append(username)
 
     time = extract_time_from_caption(message.caption)
-    keyboard = create_keyboard()  # Создание клавиатуры
-    await update_caption(message, participants, callback, f"Вы присоединились, {username}!", time, keyboard)
+    keyboard = create_keyboard()
+    await update_caption(message, main_participants + extra_participants, callback, f"Вы присоединились, {username}!", time, keyboard)
 
 # Обработчик для нажатия на кнопку "➖ Не участвовать"
 @router.callback_query(lambda callback: callback.data == "join_minus")
 async def handle_minus_reaction(callback: types.CallbackQuery):
     username = callback.from_user.first_name
     message = callback.message
-    participants = filter_participants(message.caption)
 
-    # Проверка на отсутствие пользователя в списке
-    if username not in participants:
+    main_participants = filter_participants(message.caption)
+    extra_participants = filter_extra_participants(message.caption)
+
+    if username in main_participants:
+        main_participants.remove(username)
+    elif username in extra_participants:
+        extra_participants.remove(username)
+    else:
         await callback.answer("Вы не участвуете.")
-        logging.debug(f"Пользователь {username} не найден в списке участников: {participants}")
         return
 
-    # Удаляем пользователя из списка участников
-    participants.remove(username)
-    logging.debug(f"Пользователь {username} удалён. Новый список участников: {participants}")
-
     time = extract_time_from_caption(message.caption)
-    keyboard = create_keyboard()  # Создание клавиатуры
-    await update_caption(message, participants, callback, f"Вы больше не участвуете, {username}.", time, keyboard)
+    keyboard = create_keyboard()
+    await update_caption(message, main_participants + extra_participants, callback, f"Вы больше не участвуете, {username}.", time, keyboard)
 
 # Функция для создания клавиатуры
 def create_keyboard():
