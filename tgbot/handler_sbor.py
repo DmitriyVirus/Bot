@@ -67,8 +67,8 @@ async def update_caption(photo_message: types.Message, participants: list, callb
             f"*Идем в инсты {time}*. Как обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. "
             f"*Нажмите ➕ в сообщении для участия*."
         )
-    elif participants_count <= 5:
-        # Если в списке Идут до 5 человек (включая)
+    elif 1 <= participants_count <= 5 and not extra_participants:
+        # Если в списке "Идут" от 1 до 5 человек и список "Желающие" пуст
         joined_users = ", ".join(main_participants)
         updated_text = (
             f"*Идем в инсты {time}*. Как обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. "
@@ -76,7 +76,7 @@ async def update_caption(photo_message: types.Message, participants: list, callb
             f"Идут {participants_count} человек: *{joined_users}*"
         )
     else:
-        # Если в списке Идут больше 5 человек
+        # В остальных случаях (больше 5 человек в списке "Идут" или есть желающие)
         main_text = ", ".join(main_participants)
         extra_text = ", ".join(extra_participants)
         updated_text = (
@@ -85,7 +85,7 @@ async def update_caption(photo_message: types.Message, participants: list, callb
             f"Идут {participants_count} человек: *{main_text}*\n"
             f"Желающие: {extra_text}"
         )
-
+        
     # Проверяем, нужно ли обновлять сообщение
     if photo_message.caption != updated_text or photo_message.reply_markup != keyboard:
         try:
