@@ -37,9 +37,16 @@ async def fix_handler(message: types.Message):
 def parse_participants(caption: str):
     # Удаляем слово "Желающие:" из текста
     cleaned_caption = re.sub(r"\bЖелающие:\b", "", caption)
-    # Ищем имена, разделённые запятыми
-    names = re.findall(r"[^\s,][^\n,]+", cleaned_caption)
-    return [name.strip() for name in names if name.strip()]
+    
+    # Находим строку с участниками
+    match = re.search(r"Идут \d+ человек: (.+)", cleaned_caption, flags=re.DOTALL)
+    
+    if match:
+        # Разбиваем список участников по запятым и очищаем
+        participants = [name.strip() for name in match.group(1).split(",") if name.strip()]
+        return participants
+
+    return []
     
 # Функция для извлечения времени из подписи
 def extract_time_from_caption(caption: str):
