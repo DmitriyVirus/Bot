@@ -40,12 +40,15 @@ def filter_participants(caption: str):
         return [name.strip() for name in match.group(1).split(",") if name.strip()]
     return []
 
-# Функция для извлечения списка "Желающих"
 def filter_extra_participants(caption: str):
     match = re.search(r"Желающие: (.+)", caption, flags=re.DOTALL)
     if match:
-        return [name.strip() for name in match.group(1).split(",") if name.strip()]
+        # Разделяем строку по разделителям (например, запятая или пробел)
+        participants = match.group(1).strip()
+        # Если имена разделены запятой, разбиваем по запятой и убираем лишние пробелы
+        return [name.strip() for name in participants.split(",") if name.strip()]
     return []
+
 
 # Функция для извлечения времени из подписи
 def extract_time_from_caption(caption: str):
