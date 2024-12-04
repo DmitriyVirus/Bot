@@ -4,20 +4,19 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 import re
 import logging
 
+# Настройка логирования
+logging.basicConfig(level=logging.DEBUG)
+
 router = Router()
 
 # Хендлер для команды /inst
 @router.message(Command(commands=["inst"]))
 async def fix_handler(message: types.Message):
     try:
-        # Попытка извлечь время из текста
         time_match = re.search(r"(\d{1,2}:\d{2})", message.text)
         time = time_match.group(1) if time_match else "когда соберемся"
-        # Фото для отправки
         photo_url = "https://battleclub.space/uploads/monthly_2022_07/baylor.jpg.02e0df864753bf47b1ef76303b993a1d.jpg"
-        # Создание клавиатуры
         keyboard = create_keyboard()
-        # Отправка фото с текстом и клавишами
         sent_message = await message.bot.send_photo(
             chat_id=message.chat.id,
             photo=photo_url,
@@ -28,7 +27,6 @@ async def fix_handler(message: types.Message):
             parse_mode="Markdown",
             reply_markup=keyboard
         )
-        # Закрепляем сообщение с фото
         await message.chat.pin_message(sent_message.message_id)
         logging.info(f"Сообщение отправлено и закреплено с id: {sent_message.message_id}")
     except Exception as e:
@@ -58,7 +56,7 @@ def extract_time_from_caption(caption: str):
 async def update_caption(photo_message: types.Message, participants: list, callback: types.CallbackQuery, action_message: str, time: str, keyboard: InlineKeyboardMarkup):
     main_participants = participants[:5]
     extra_participants = participants[5:]
-    participants_count = len(participants)
+    participants_count = len(main_participants)
 
     if participants_count == 0:
         updated_text = (
@@ -77,7 +75,7 @@ async def update_caption(photo_message: types.Message, participants: list, callb
         updated_text = (
             f"*Идем в инсты {time}*. Как обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. "
             f"*Нажмите ➕ в сообщении для участия*.\n\n"
-            f"Идут {len(main_participants)} человек: *{main_text}*\n"
+            f"Идут {participants_count} человек: *{main_text}*\n"
             f"{extra_text}" if extra_participants else ""
         )
 
@@ -97,6 +95,8 @@ async def handle_plus_reaction(callback: types.CallbackQuery):
     main_participants = filter_participants(message.caption)
     extra_participants = filter_extra_participants(message.caption)
 
+    logging.debug(f"[До добавления] Основные участники: {main_participants}, Желающие: {extra_participants}")
+
     if username in main_participants or username in extra_participants:
         await callback.answer(f"Вы уже участвуете, {username}!")
         return
@@ -105,6 +105,8 @@ async def handle_plus_reaction(callback: types.CallbackQuery):
         main_participants.append(username)
     else:
         extra_participants.append(username)
+
+    logging.debug(f"[После добавления] Основные участники: {main_participants}, Желающие: {extra_participants}")
 
     time = extract_time_from_caption(message.caption)
     keyboard = create_keyboard()
@@ -119,16 +121,19 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
     main_participants = filter_participants(message.caption)
     extra_participants = filter_extra_participants(message.caption)
 
+    logging.debug(f"[До удаления] Основные участники: {main_participants}, Желающие: {extra_participants}")
+
     if username in main_participants:
         main_participants.remove(username)
         if extra_participants:
-            # Перемещаем первого из "Желающих" в "Идут"
             main_participants.append(extra_participants.pop(0))
     elif username in extra_participants:
         extra_participants.remove(username)
     else:
         await callback.answer("Вы не участвуете.")
         return
+
+    logging.debug(f"[После удаления] Основные участники: {main_participants}, Желающие: {extra_participants}")
 
     time = extract_time_from_caption(message.caption)
     keyboard = create_keyboard()
