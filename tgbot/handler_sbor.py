@@ -121,6 +121,9 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
 
     if username in main_participants:
         main_participants.remove(username)
+        if extra_participants:
+            # Перемещаем первого из "Желающих" в "Идут"
+            main_participants.append(extra_participants.pop(0))
     elif username in extra_participants:
         extra_participants.remove(username)
     else:
