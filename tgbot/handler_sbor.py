@@ -61,12 +61,14 @@ async def update_caption(photo_message: types.Message, participants: list, callb
     # Логируем количество участников
     logging.debug(f"Идут: {len(main_participants)} человек, Желающие: {len(extra_participants)} человек")
 
-    if participants_count == 0:
+    if not main_participants and not extra_participants:
+        # Если оба списка пусты
         updated_text = (
             f"*Идем в инсты {time}*. Как обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. "
             f"*Нажмите ➕ в сообщении для участия*."
         )
     elif participants_count <= 5:
+        # Если в списке Идут до 5 человек (включая)
         joined_users = ", ".join(main_participants)
         updated_text = (
             f"*Идем в инсты {time}*. Как обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. "
@@ -74,6 +76,7 @@ async def update_caption(photo_message: types.Message, participants: list, callb
             f"Идут {participants_count} человек: *{joined_users}*"
         )
     else:
+        # Если в списке Идут больше 5 человек
         main_text = ", ".join(main_participants)
         extra_text = ", ".join(extra_participants)
         updated_text = (
