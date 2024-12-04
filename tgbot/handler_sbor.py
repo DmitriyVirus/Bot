@@ -58,6 +58,9 @@ async def update_caption(photo_message: types.Message, participants: list, callb
     extra_participants = participants[5:]
     participants_count = len(main_participants)
 
+    # Логируем количество участников
+    logging.debug(f"Идут: {len(main_participants)} человек, Желающие: {len(extra_participants)} человек")
+
     if participants_count == 0:
         updated_text = (
             f"*Идем в инсты {time}*. Как обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. "
@@ -80,17 +83,17 @@ async def update_caption(photo_message: types.Message, participants: list, callb
             f"Желающие: {extra_text}"
         )
 
-    try:
-        # Проверяем, нужно ли обновлять сообщение
-        if photo_message.caption != updated_text or photo_message.reply_markup != keyboard:
+    # Проверяем, нужно ли обновлять сообщение
+    if photo_message.caption != updated_text or photo_message.reply_markup != keyboard:
+        try:
             await photo_message.edit_caption(caption=updated_text, parse_mode="Markdown", reply_markup=keyboard)
-        else:
-            logging.debug("Изменений в сообщении нет, обновление пропущено.")
-
+            await callback.answer(action_message)
+        except Exception as e:
+            logging.error(f"Ошибка при обновлении подписи: {e}")
+            await callback.answer("Не удалось обновить подпись. Попробуйте снова.")
+    else:
+        logging.debug("Изменений в сообщении нет, обновление пропущено.")
         await callback.answer(action_message)
-    except Exception as e:
-        logging.error(f"Ошибка при обновлении подписи: {e}")
-        await callback.answer("Не удалось обновить подпись. Попробуйте снова.")
 
 # Обработчик для нажатия на кнопку "➕ Присоединиться"
 @router.callback_query(lambda callback: callback.data == "join_plus")
