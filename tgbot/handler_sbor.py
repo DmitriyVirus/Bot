@@ -35,7 +35,7 @@ async def fix_handler(message: types.Message):
 
 def parse_participants(caption: str):
     # Убираем все строки с "Желающие:" и выделяем всех участников
-    cleaned_caption = re.sub(r"Желающие:", "", caption)  # Убираем слово "Желающие:" из текста
+    cleaned_caption = re.sub(r"\n?Желающие:", "", caption)  # Убираем слово "Желающие:" из текста
 
     # Находим строку с участниками "Идут X человек"
     match = re.search(r"Идут \d+ человек: (.+)", cleaned_caption, flags=re.DOTALL)
