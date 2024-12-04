@@ -42,7 +42,7 @@ def filter_participants(caption: str):
 
 # Функция для извлечения списка "Желающих"
 def filter_extra_participants(caption: str):
-    match = re.search(r"Желающие \d+: (.+)", caption, flags=re.DOTALL)
+    match = re.search(r"Желающие: (.+)", caption, flags=re.DOTALL)
     if match:
         return [name.strip() for name in match.group(1).split(",") if name.strip()]
     return []
@@ -67,20 +67,26 @@ async def update_caption(photo_message: types.Message, participants: list, callb
         joined_users = ", ".join(main_participants)
         updated_text = (
             f"*Идем в инсты {time}*. Как обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. "
-            f"*Нажмите ➕ в сообщении для участия*.\n\nИдут {participants_count} человек: *{joined_users}*"
+            f"*Нажмите ➕ в сообщении для участия*.\n\n"
+            f"Идут {participants_count} человек: *{joined_users}*"
         )
     else:
         main_text = ", ".join(main_participants)
-        extra_text = f"Желающие {len(extra_participants)}: " + ", ".join(extra_participants)
+        extra_text = ", ".join(extra_participants)
         updated_text = (
             f"*Идем в инсты {time}*. Как обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. "
             f"*Нажмите ➕ в сообщении для участия*.\n\n"
             f"Идут {participants_count} человек: *{main_text}*\n"
-            f"{extra_text}" if extra_participants else ""
+            f"Желающие: {extra_text}"
         )
 
     try:
-        await photo_message.edit_caption(caption=updated_text, parse_mode="Markdown", reply_markup=keyboard)
+        # Проверяем, нужно ли обновлять сообщение
+        if photo_message.caption != updated_text or photo_message.reply_markup != keyboard:
+            await photo_message.edit_caption(caption=updated_text, parse_mode="Markdown", reply_markup=keyboard)
+        else:
+            logging.debug("Изменений в сообщении нет, обновление пропущено.")
+
         await callback.answer(action_message)
     except Exception as e:
         logging.error(f"Ошибка при обновлении подписи: {e}")
