@@ -35,7 +35,7 @@ async def fix_handler(message: types.Message):
 
 # Функция для парсинга текста и получения списка участников
 def filter_participants(caption: str):
-    match = re.search(r"Идут \d+ человек: (.+)", caption, flags=re.DOTALL)
+    match = re.search(r"Идут \d+ человек: ([^Желающие]+)", caption, flags=re.DOTALL)
     if match:
         return [name.strip() for name in match.group(1).split(",") if name.strip()]
     return []
