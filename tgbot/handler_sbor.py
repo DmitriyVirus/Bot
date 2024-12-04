@@ -34,25 +34,17 @@ async def fix_handler(message: types.Message):
         await message.answer("Произошла ошибка. Попробуйте снова.")
 
 def parse_participants(caption: str):
-    # Убираем все строки с "Желающие:" и выделяем всех участников
-    cleaned_caption = re.sub(r"\n?Желающие:", "", caption)  # Убираем слово "Желающие:" из текста
+    # Убираем все вхождения слова "Желающие:" и символы новой строки перед ним
+    cleaned_caption = re.sub(r"\n?Желающие:\s*", "", caption)  # Убираем символ новой строки перед "Желающие:" и само слово
 
     # Находим строку с участниками "Идут X человек"
     match = re.search(r"Идут \d+ человек: (.+)", cleaned_caption, flags=re.DOTALL)
     
-    participants = []
-    
     if match:
         # Разбиваем строку участников по запятой и очищаем от лишних пробелов
-        participants.extend([name.strip() for name in match.group(1).split(",") if name.strip()])
-
-    # Находим имена после слова "Желающие:" и добавляем их в список участников
-    additional_participants = re.findall(r"Желающие:\s*(.+?)(?=\n|$)", caption, flags=re.DOTALL)
-    for part in additional_participants:
-        participants.extend([name.strip() for name in part.split(",") if name.strip()])
-
-    # Если в списке участников никого нет, возвращаем пустой список
-    return participants if participants else []
+        return [name.strip() for name in match.group(1).split(",") if name.strip()]
+    
+    return []  # Возвращаем пустой список, если участников нет
     
 # Функция для извлечения времени из подписи
 def extract_time_from_caption(caption: str):
