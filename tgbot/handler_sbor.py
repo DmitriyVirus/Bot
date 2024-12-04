@@ -34,11 +34,8 @@ async def fix_handler(message: types.Message):
         await message.answer("Произошла ошибка. Попробуйте снова.")
 
 def parse_participants(caption: str):
-    # Убираем символы новой строки перед "Желающие:"
-    cleaned_caption = re.sub(r"\n?Желающие:\s*", "", caption)  # Убираем символ новой строки перед "Желающие:" и само слово
-
-    # Разделяем на две части - до и после "Желающие:"
-    parts = cleaned_caption.split("Желающие:")
+       # Разделяем на две части - до и после "Желающие:"
+    parts = caption.split("Желающие:")
 
     # Парсим первую часть (до слова "Желающие")
     first_part = parts[0]
