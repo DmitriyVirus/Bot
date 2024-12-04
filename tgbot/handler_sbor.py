@@ -34,17 +34,27 @@ async def fix_handler(message: types.Message):
         await message.answer("Произошла ошибка. Попробуйте снова.")
 
 def parse_participants(caption: str):
-    # Убираем все вхождения слова "Желающие:" и символы новой строки перед ним
+    # Убираем символы новой строки перед "Желающие:"
     cleaned_caption = re.sub(r"\n?Желающие:\s*", "", caption)  # Убираем символ новой строки перед "Желающие:" и само слово
 
-    # Находим строку с участниками "Идут X человек"
-    match = re.search(r"Идут \d+ человек: (.+)", cleaned_caption, flags=re.DOTALL)
-    
-    if match:
-        # Разбиваем строку участников по запятой и очищаем от лишних пробелов
-        return [name.strip() for name in match.group(1).split(",") if name.strip()]
-    
-    return []  # Возвращаем пустой список, если участников нет
+    # Разделяем на две части - до и после "Желающие:"
+    parts = cleaned_caption.split("Желающие:")
+
+    # Парсим первую часть (до слова "Желающие")
+    first_part = parts[0]
+    first_part_names = []
+    match1 = re.search(r"Идут \d+ человек: (.+)", first_part, flags=re.DOTALL)
+    if match1:
+        first_part_names = [name.strip() for name in match1.group(1).split(",") if name.strip()]
+
+    # Парсим вторую часть (после слова "Желающие:")
+    second_part = parts[1] if len(parts) > 1 else ""
+    second_part_names = [name.strip() for name in second_part.split(",") if name.strip()]
+
+    # Объединяем имена из первой и второй части
+    participants = first_part_names + second_part_names
+
+    return participants
     
 # Функция для извлечения времени из подписи
 def extract_time_from_caption(caption: str):
