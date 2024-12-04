@@ -33,16 +33,15 @@ async def fix_handler(message: types.Message):
         logging.error(f"Ошибка при обработке команды /inst: {e}")
         await message.answer("Произошла ошибка. Попробуйте снова.")
 
-def filter_participants(caption: str):
-    # Используем более гибкое регулярное выражение для захвата имен
-    match = re.search(r"Идут \d+ человек: ([^Желающие]+)", caption, flags=re.DOTALL)
+# Функция для парсинга текста и получения списка участников
+def filter_participants(caption: str):  
+    match = re.search(r"Идут \d+ человек: (.+)", caption, flags=re.DOTALL)
     if match:
-        # Разделяем по запятой и фильтруем лишние пробелы
         return [name.strip() for name in match.group(1).split(",") if name.strip()]
-    return []
+    return [] 
 
 def filter_extra_participants(caption: str):
-    match = re.search(r"Желающие: (.+)", caption, flags=re.DOTALL)
+    match = re.search(r"Желающие: (.+) ([^Желающие]+)", caption, flags=re.DOTALL)
     if match:
         # Разделяем строку по разделителям (например, запятая или пробел)
         participants = match.group(1).strip()
