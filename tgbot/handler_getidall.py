@@ -1,9 +1,6 @@
 import logging
-import asyncio
-from aiogram import Bot, Router, types
+from aiogram import Router, types
 from aiogram.filters import Command
-# Импорт ParseMode больше не нужен
-# from aiogram.types import ParseMode
 
 # Настройка логирования
 logging.basicConfig(level=logging.DEBUG)
@@ -23,6 +20,7 @@ async def send_welcome(message: types.Message):
 @router.message()
 async def collect_user_data(message: types.Message):
     """Собираем данные об участниках и обновляем сообщение."""
+    bot = message.bot  # Получаем объект bot из контекста сообщения
     user_id = message.from_user.id
     first_name = message.from_user.first_name
     chat_id = message.chat.id
