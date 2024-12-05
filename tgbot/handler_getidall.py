@@ -50,3 +50,13 @@ async def collect_user_data(message: types.Message):
         # Отправляем сообщение и закрепляем его
         sent_message = await bot.send_message(chat_id, text, parse_mode=ParseMode.MARKDOWN)
         await bot.pin_chat_message(chat_id=chat_id, message_id=sent_message.message_id)
+
+# Основная функция для запуска бота
+async def main():
+    # Запуск бота с обработчиками
+    from aiogram import Client
+    await bot.start_polling(router)
+
+if __name__ == "__main__":
+    # Используем asyncio для запуска бота
+    asyncio.run(main())
