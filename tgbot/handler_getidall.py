@@ -8,7 +8,7 @@ logging.basicConfig(level=logging.DEBUG)
 router = Router()
 
 # ID закрепленного сообщения (замените на нужный ID)
-PINNED_MESSAGE_ID = 123456789  # Предварительно установите ID сообщения
+PINNED_MESSAGE_ID = 2700  # Предварительно установите ID сообщения
 
 # Обработчик команды /getidall
 @router.message(Command("getidall"))
