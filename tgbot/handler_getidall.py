@@ -1,7 +1,8 @@
+import logging
+import asyncio
 from aiogram import Bot, Router, types
 from aiogram.filters import Command
-from aiogram.utils import executor
-import logging
+from aiogram.types import ParseMode
 
 # Настройка логирования
 logging.basicConfig(level=logging.DEBUG)
@@ -47,5 +48,5 @@ async def collect_user_data(message: types.Message):
         text = f"id участников чата: {user_list}"
 
         # Отправляем сообщение и закрепляем его
-        sent_message = await bot.send_message(chat_id, text, parse_mode=types.ParseMode.MARKDOWN)
+        sent_message = await bot.send_message(chat_id, text, parse_mode=ParseMode.MARKDOWN)
         await bot.pin_chat_message(chat_id=chat_id, message_id=sent_message.message_id)
