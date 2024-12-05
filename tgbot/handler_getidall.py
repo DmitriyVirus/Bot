@@ -11,23 +11,28 @@ router = Router()
 CHAT_ID = -1002388880478  # Замените на ID вашего чата
 PINNED_MESSAGE_ID = 2743  # Замените на ID закрепленного сообщения
 
-# Хендлер для команды /getidall
-@router.message(Command(commands=["getidall"]))
+@router.message()
 async def update_message_text(message: types.Message):
-    """Меняет текст закрепленного сообщения на 'Тут список id и имен людей в чате:'"""
+    """Обновляет текст закрепленного сообщения с id и именами пользователей, не добавляя повторений"""
     try:
-        # Ответим пользователю, что обновляем текст
-        await message.answer("Обновляю текст закрепленного сообщения...")
-
-        # Считываем информацию о пользователе, отправившем сообщение
+        # Извлекаем информацию о пользователе
         user_id = message.from_user.id
         user_name = message.from_user.full_name
 
-        # Формируем информацию, которую будем добавлять в текст закрепленного сообщения
+        # Формируем строку для добавления в сообщение
         user_info = f"{user_id} - {user_name}"
 
-        # Обновляем текст закрепленного сообщения
-        updated_text = f"Тут список id и имен людей в чате:\n\n{user_info}"
+        # Получаем текущее закрепленное сообщение
+        pinned_message = await message.bot.get_chat(CHAT_ID)
+        pinned_message_text = pinned_message.pinned_message.text if pinned_message.pinned_message else ""
+
+        # Проверяем, не добавлен ли этот пользователь уже в список
+        if user_info not in pinned_message_text:
+            # Добавляем пользователя в текущий текст
+            updated_text = f"{pinned_message_text}\n{user_info}"
+        else:
+            # Если пользователь уже добавлен, оставляем текст без изменений
+            updated_text = pinned_message_text
 
         # Обновляем текст закрепленного сообщения
         await message.bot.edit_message_text(
@@ -36,7 +41,6 @@ async def update_message_text(message: types.Message):
             text=updated_text
         )
 
-        logging.info(f"Текст закрепленного сообщения обновлен: {user_info}")
+        logging.info(f"Текст закрепленного сообщения обновлен.")
     except Exception as e:
         logging.error(f"Ошибка при обновлении сообщения: {e}")
-        await message.answer("Произошла ошибка. Попробуйте снова.")
