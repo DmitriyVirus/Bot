@@ -1,6 +1,6 @@
 from aiogram import Bot, Router, types
 from aiogram.filters import Command
-from aiogram.types import ParseMode
+from aiogram.utils.markdown import ParseMode  # Правильный импорт ParseMode
 from aiogram.utils import executor
 import logging
 
@@ -27,7 +27,7 @@ async def collect_user_data(message: types.Message):
     chat_id = message.chat.id
 
     try:
-        # Получаем закрепленное сообщение
+        # Получаем информацию о чате
         chat = await bot.get_chat(chat_id)
         pinned_message = chat.pinned_message
 
