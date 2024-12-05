@@ -27,7 +27,16 @@ async def update_message_text(message: types.Message):
             text=updated_text
         )
 
-        logging.info(f"Текст закрепленного сообщения обновлен.")
+        # Логируем ID обновленного сообщения
+        logging.info(f"Текст закрепленного сообщения обновлен. ID сообщения: {PINNED_MESSAGE_ID}")
+        
+        # Отправляем подтверждающее сообщение и логируем его ID
+        sent_message = await message.bot.send_message(
+            chat_id=CHAT_ID,
+            text=f"ID этого сообщения: {PINNED_MESSAGE_ID}"
+        )
+        logging.info(f"Отправлено новое сообщение с ID: {sent_message.message_id}")
+
     except Exception as e:
         logging.error(f"Ошибка при обновлении сообщения: {e}")
         await message.answer("Произошла ошибка. Попробуйте снова.")
