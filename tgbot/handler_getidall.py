@@ -19,12 +19,14 @@ router = Router()
 async def send_message_and_pin(message: types.Message, bot: Bot):
     """Изменяет текст указанного сообщения на 'Здесь буду записывать id и имена участников чата:'"""
     try:
-        # Получаем сообщение с указанным message_id
-        pinned_message = await bot.get_message(chat_id=CHAT_ID, message_id=PINNED_MESSAGE_ID)
-
-        # Проверяем, что сообщение существует
+        # Получаем информацию о чате
+        chat = await bot.get_chat(CHAT_ID)
+        
+        # Получаем закрепленное сообщение с определенным ID
+        pinned_message = await bot.get_chat_message(chat.id, PINNED_MESSAGE_ID)
+        
+        # Если сообщение существует, обновляем его
         if pinned_message:
-            # Меняем текст сообщения
             updated_text = "Здесь буду записывать id и имена участников чата:"
             await bot.edit_message_text(
                 chat_id=CHAT_ID,
