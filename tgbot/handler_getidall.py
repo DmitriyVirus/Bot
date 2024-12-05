@@ -34,13 +34,18 @@ async def update_message_text(message: types.Message):
             # Если пользователь уже добавлен, оставляем текст без изменений
             updated_text = pinned_message_text
 
-        # Обновляем текст закрепленного сообщения
-        await message.bot.edit_message_text(
-            chat_id=CHAT_ID,
-            message_id=PINNED_MESSAGE_ID,
-            text=updated_text
-        )
+       # Проверяем, изменился ли текст
+        if updated_text != pinned_message_text:
+            # Обновляем текст закрепленного сообщения
+            await message.bot.edit_message_text(
+                chat_id=CHAT_ID,
+                message_id=PINNED_MESSAGE_ID,
+                text=updated_text
+            )
 
-        logging.info(f"Текст закрепленного сообщения обновлен.")
+            logging.info(f"Текст закрепленного сообщения обновлен.")
+        else:
+            logging.info(f"Текст закрепленного сообщения не изменился. Обновление не требуется.")
+
     except Exception as e:
         logging.error(f"Ошибка при обновлении сообщения: {e}")
