@@ -1,6 +1,6 @@
 from aiogram import Bot, Router, types
 from aiogram.filters import Command
-from aiogram.utils.markdown import ParseMode  # Правильный импорт ParseMode
+from aiogram.types import ParseMode  # Использование правильного импорта
 from aiogram.utils import executor
 import logging
 
