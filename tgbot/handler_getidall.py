@@ -7,36 +7,22 @@ logging.basicConfig(level=logging.DEBUG)
 
 router = Router()
 
-# Указываем ID чата и закрепленного сообщения вручную
-CHAT_ID = -1002388880478  # Замените на ID вашего чата
-PINNED_MESSAGE_ID = 2719  # Замените на ID закрепленного сообщения
-
 # Хендлер для команды /getidall
 @router.message(Command(commands=["getidall"]))
-async def update_message_text(message: types.Message):
-    """Меняет текст закрепленного сообщения на 'Здесь буду записывать id и имена участников чата:'"""
+async def send_message_with_id(message: types.Message):
+    """Отправляет сообщение с id этого сообщения"""
     try:
-        # Ответим пользователю, что обновляем текст
-        await message.answer("Обновляю текст закрепленного сообщения...")
-
-        # Обновляем текст закрепленного сообщения
-        updated_text = "Здесь буду записывать id и имена участников чата:"
-        await message.bot.edit_message_text(
-            chat_id=CHAT_ID,
-            message_id=PINNED_MESSAGE_ID,
-            text=updated_text
-        )
-
-        # Логируем ID обновленного сообщения
-        logging.info(f"Текст закрепленного сообщения обновлен. ID сообщения: {PINNED_MESSAGE_ID}")
+        # Отправляем начальное сообщение
+        sent_message = await message.answer("Это сообщение, в котором будет id.")
         
-        # Отправляем подтверждающее сообщение и логируем его ID
-        sent_message = await message.bot.send_message(
-            chat_id=CHAT_ID,
-            text=f"ID этого сообщения: {PINNED_MESSAGE_ID}"
-        )
-        logging.info(f"Отправлено новое сообщение с ID: {sent_message.message_id}")
-
+        # Извлекаем ID отправленного сообщения
+        message_id = sent_message.message_id
+        
+        # Редактируем это сообщение, добавляя его ID в текст
+        updated_text = f"Здесь будет id и имена участников чата. ID этого сообщения: {message_id}"
+        await sent_message.edit_text(updated_text)
+        
+        logging.info(f"Текст обновлен. ID сообщения: {message_id}")  # Логируем ID сообщения
     except Exception as e:
-        logging.error(f"Ошибка при обновлении сообщения: {e}")
+        logging.error(f"Ошибка при отправке или редактировании сообщения: {e}")
         await message.answer("Произошла ошибка. Попробуйте снова.")
