@@ -40,6 +40,15 @@ async def say_goodbye(message: Message):
     except Exception as e:
         logging.error(f"Ошибка при отправке прощания для {left_member.first_name}: {e}")
 
+def build_expanded_table(name_table, aliases):
+    expanded_table = {}
+    for key, value in name_table.items():
+        expanded_table[key] = value
+        if key in aliases:
+            for alias in aliases[key]:
+                expanded_table[alias] = value
+    return expanded_table
+
 @router.message(Command(commands=["kto"]))
 async def who_is_this(message: types.Message):
     expanded_table = build_expanded_table(NAME_TABLE, ALIASES)
