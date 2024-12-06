@@ -43,7 +43,12 @@ async def send_reminder():
         logging.error(f"Ошибка при отправке напоминания: {e}")
         return {"status": "error", "message": str(e)}
 
-async def send_reminder1(tgbot):
+from aiogram import types
+import datetime
+import logging
+
+# Функция для отправки напоминания
+async def send_reminder1():
     try:
         # Получаем текущий день недели (0 - понедельник, 1 - вторник, ..., 6 - воскресенье)
         day_of_week = datetime.datetime.now().weekday()
@@ -52,20 +57,13 @@ async def send_reminder1(tgbot):
             # Получаем ID чата
             chat_id = config('CHAT_ID')
             
-            # Отправка сообщения
-            await tgbot.send_message(
-                chat_id,
-                "/inst 19:30",  # Текст сообщения
-                parse_mode=ParseMode.MARKDOWN  # Если нужно, можно указать режим парсинга
-            )
+            # Отправка текстового сообщения
+            text = "/inst 19:30"  # Текст с командой для напоминания
+            await tgbot.bot.send_message(chat_id, text)
             
             return {"status": "success", "message": "Reminder sent"}
         else:
             return {"status": "skipped", "message": "Not a reminder day"}
-    
-    except Throttled as e:
-        logging.error(f"Too many requests. Throttled: {e}")
-        return {"status": "throttled", "message": "Too many requests, try again later"}
     
     except Exception as e:
         logging.error(f"Ошибка при отправке напоминания: {e}")
