@@ -1,6 +1,6 @@
 import asyncio
 from config import config  # Используем конфигурацию для токена
-from aiogram import Bot, Dispatcher, Router, types
+from aiogram import Bot, Dispatcher, Router, types  # Добавляем импорт types
 from tgbot.handlers import router as handlers_router  # Убедитесь, что импортируете router из handlers
 from tgbot.handler_sbor import router as handler_sbor_router
 from tgbot.handler_getidall import router as handler_getidall_router
@@ -21,7 +21,7 @@ class TGBot:
     async def update_bot(self, update: dict) -> None:
         # Используем dispatcher для обработки обновлений
         update_obj = types.Update(**update)  # Преобразуем в объект Update
-        await self.dp.process_update(update_obj)
+        await self.dp.process_updates([update_obj])  # Передаем список обновлений
 
     async def set_webhook(self) -> None:
         await self.bot.set_webhook(self.webhook_url)
