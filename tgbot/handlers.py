@@ -40,7 +40,7 @@ async def say_goodbye(message: Message):
     except Exception as e:
         logging.error(f"Ошибка при отправке прощания для {left_member.first_name}: {e}")
 
-@router.message(Command(commands=["кто"]))
+@router.message(Command(commands=["kto"]))
 async def who_is_this(message: types.Message):
     # Разделяем команду и имя (если есть)
     name = message.text.split(' ', 1)
