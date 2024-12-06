@@ -49,20 +49,20 @@ async def send_reminder1():
         # Получаем текущий день недели (0 - понедельник, 1 - вторник, ..., 6 - воскресенье)
         day_of_week = datetime.datetime.now().weekday()
         if day_of_week in [0, 1, 2, 3, 4]:
-            # Создаем объект сообщения
+            # Создание объекта Message
             message = types.Message(
                 message_id=1234,  # Поставьте подходящий id
                 from_user=types.User(id=12345, is_bot=False, first_name="Bot", last_name="Botov", username="botov_user"),  # Создание пользователя
-                chat=types.Chat(id=config('CHAT_ID'), type='private'),  # ID чата
+                chat=types.Chat(id=config('CHAT_ID'), type='private'),  # Здесь нужно указать ID чата, в котором будет происходить отправка сообщения
                 date=datetime.datetime.now(),
-                text="/inst 19:30"  # Текст с командой
+                text="/inst 19:30"  # Текст с командой, которую нужно передать в хендлер
             )
             
-            # Создайте объект Update с нужным update_id
+            # Создаем объект Update с нужным update_id
             update = types.Update(update_id=123456789, message=message)
             
-            # Передаем обновление в диспетчер
-            await tgbot.dp.feed_update(update)  # Обрабатываем обновление через Dispatcher
+            # Передаем обновление в Dispatcher с использованием process_update
+            await tgbot.dp.process_update(update)  # Обрабатываем обновление через Dispatcher
             return {"status": "success", "message": "Reminder sent"}
         else:
             return {"status": "skipped", "message": "Not a reminder day"}
