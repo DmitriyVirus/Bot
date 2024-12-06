@@ -43,40 +43,45 @@ async def say_goodbye(message: Message):
 def build_expanded_table(name_table, aliases):
     expanded_table = {}
     for key, value in name_table.items():
-        expanded_table[key.lower()] = value
+        expanded_table[key] = value
         if key in aliases:
             for alias in aliases[key]:
-                expanded_table[alias.lower()] = value
+                expanded_table[alias] = value
     return expanded_table
 
 @router.message(Command(commands=["kto"]))
 async def who_is_this(message: types.Message):
+    # Расширяем таблицу перед использованием
     expanded_table = build_expanded_table(NAME_TABLE, ALIASES)
     
+    # Преобразуем ключи в таблице в нижний регистр для удобства поиска
+    expanded_table_lower = {key.lower(): value for key, value in expanded_table.items()}
+
     # Разделяем команду и аргументы
     args = message.text.split(' ', 1)
-    
+
     # Если аргумент не указан
     if len(args) < 2:
         await message.answer("Пожалуйста, укажите имя после команды или 'all' для всех.")
         return
 
-    name = args[1].strip()  # Получаем введённое имя
+    # Получаем введённое имя в нижнем регистре
+    name = args[1].strip().lower()
 
     # Если пользователь ввёл "all"
-    if name.lower() == "all":
+    if name == "all":
         response = "Список всех пользователей:\n"
         for user_name, user_info in expanded_table.items():
             response += f"\nИмя: {user_info['name']}\nНик: {user_info['nick']}\nИнфо: {user_info['about']}\n"
         await message.answer(response)
     else:
-        # Ищем конкретное имя или алиас
-        user_info = expanded_table.get(name)
+        # Ищем конкретное имя или алиас в нижнем регистре
+        user_info = expanded_table_lower.get(name)
         if user_info:
             response = f"Имя: {user_info['name']}\nНик: {user_info['nick']}\nИнфо: {user_info['about']}"
             await message.answer(response)
         else:
-            await message.answer(f"Информация о пользователе '{name}' не найдена.")
+            await message.answer(f"Информация о пользователе '{args[1]}' не найдена.")
 
 # Обработчик команды /fu
 @router.message(Command(commands=["fu"]))  # Используем фильтр Command
