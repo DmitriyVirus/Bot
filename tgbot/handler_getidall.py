@@ -9,7 +9,7 @@ router = Router()
 
 # Указываем ID чата и ID закрепленного сообщения, которое будем обновлять
 CHAT_ID = -1002388880478  # Замените на ID вашего чата
-PINNED_MESSAGE_ID = 2743  # Замените на ID закрепленного сообщения
+PINNED_MESSAGE_ID = 2810  # Замените на ID закрепленного сообщения
 
 # Хендлер для команды /getidbot
 @router.message(Command(commands=["getidbot"]))
