@@ -48,20 +48,20 @@ async def send_reminder1():
     try:
         # Получаем текущий день недели (0 - понедельник, 1 - вторник, ..., 6 - воскресенье)
         day_of_week = datetime.datetime.now().weekday()
-        # Проверяем, что день недели - понедельник (0), вторник (1), среда (2) или четверг (3)
         if day_of_week in [0, 1, 2, 3, 4]:
-            # Создаем команду
-            text = "/inst 19:30"
+            # Создаем объект сообщения
             message = types.Message(
                 message_id=1234,  # Поставьте подходящий id
                 from_user=types.User(id=12345, is_bot=False, first_name="Bot", last_name="Botov", username="botov_user"),  # Создание пользователя
                 chat=types.Chat(id=config('CHAT_ID'), type='private'),  # ID чата
                 date=datetime.datetime.now(),
-                text=text  # Текст с командой
+                text="/inst 19:30"  # Текст с командой
             )
-
+            
+            # Создайте объект Update с нужным update_id
+            update = types.Update(update_id=123456789, message=message)
+            
             # Передаем обновление в диспетчер
-            update = types.Update(message=message)
             await tgbot.dp.feed_update(update)  # Обрабатываем обновление через Dispatcher
             return {"status": "success", "message": "Reminder sent"}
         else:
