@@ -3,7 +3,6 @@ from config import config  # Используем конфигурацию дл�
 from aiogram import Bot, Dispatcher, Router
 from tgbot.handlers import router as handlers_router # Убедитесь, что импортируете router из handlers
 from tgbot.handler_sbor import router as handler_sbor_router
-from tgbot.handler_bleski import router as handler_bleski_router
 from tgbot.handler_getidall import router as handler_getidall_router
 
 router = Router()
