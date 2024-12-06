@@ -42,20 +42,29 @@ async def say_goodbye(message: Message):
 
 @router.message(Command(commands=["kto"]))
 async def who_is_this(message: types.Message):
-    name = message.text.split(' ', 1)  # Разделяем текст сообщения на команду и имя
-    if len(name) < 2:
-        await message.answer("Пожалуйста, укажите имя после команды.")
+    # Разделяем команду и имя (если есть)
+    name = message.text.split(' ', 1)
+    
+    if len(name) < 2:  # Если нет имени, показываем список всех
+        await message.answer("Пожалуйста, укажите имя после команды или 'all' для всех.")
         return
 
-    name = name[1].strip()
+    name = name[1].strip()  # Получаем имя после команды
 
-    # Ищем пользователя в таблице
-    if name in NAME_TABLE:
-        user_info = NAME_TABLE[name]
-        response = f"Имя: {user_info['name']}\nНик: {user_info['nick']}\nИнфо: {user_info['about']}"
+    # Если введено 'all', показываем информацию о всех пользователях
+    if name.lower() == "all":
+        response = "Список всех пользователей:\n"
+        for user_name, user_info in NAME_TABLE.items():
+            response += f"\nИмя: {user_info['name']}\nНик: {user_info['nick']}\nИнфо: {user_info['about']}\n"
         await message.answer(response)
     else:
-        await message.answer(f"Информация о пользователе '{name}' не найдена.")
+        # Ищем конкретного пользователя
+        if name in NAME_TABLE:
+            user_info = NAME_TABLE[name]
+            response = f"Имя: {user_info['name']}\nНик: {user_info['nick']}\nИнфо: {user_info['about']}"
+            await message.answer(response)
+        else:
+            await message.answer(f"Информация о пользователе '{name}' не найдена.")
         
 # Обработчик команды /fu
 @router.message(Command(commands=["fu"]))  # Используем фильтр Command
