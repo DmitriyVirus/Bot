@@ -14,7 +14,7 @@ class TGBot:
     def __init__(self, router: Router) -> None:
         token = config('TOKEN')
         self.bot = Bot(token)
-        self.dp = Dispatcher(self.bot)  # Передаем bot в Dispatcher
+        self.dp = Dispatcher()  # Инициализируем Dispatcher без передачи bot в конструктор
         self.dp.include_router(router)  # Подключаем роутер
         self.webhook_url = config('WEBHOOK_URL')
 
@@ -29,6 +29,10 @@ class TGBot:
 
     async def close(self) -> None:
         await self.bot.close()  # Правильный способ закрытия сессии
+
+    async def start_polling(self):
+        # Теперь передаем bot в polling
+        await self.dp.start_polling(self.bot)
 
 # Инициализация tgbot с импортированным router
 tgbot = TGBot(router)
