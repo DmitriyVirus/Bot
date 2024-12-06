@@ -5,6 +5,7 @@ import datetime
 from tgbot import tgbot
 from aiogram import types
 from decouple import config
+from aiogram.types import Message, User, Chat
 from tgbot.handler_sbor import fix_handler
 
 async def send_reminder():
@@ -46,19 +47,19 @@ async def send_reminder():
 async def send_reminder1():
     try:
         # Параметры команды
-        chat_id = config('CHAT_ID')
+        chat_id = config('CHAT_ID')  # Ваш ID чата
         command_text = "/inst 19:30"
         
         # Создаём фейковое сообщение для передачи в хендлер
         fake_message = Message(
-            message_id=123,  # Идентификатор сообщения (можно указать любое значение)
-            from_user=User(id=12345, is_bot=True, first_name="Bot"),  # Данные бота как отправителя
-            chat=Chat(id=chat_id, type="private"),  # Данные чата, куда отправляется сообщение
+            message_id=123,  # Любое значение
+            from_user=User(id=12345, is_bot=True, first_name="Bot"),  # Данные отправителя
+            chat=Chat(id=chat_id, type="private"),  # Данные чата
             date=datetime.datetime.now(),
             text=command_text
         )
         
-        # Вызываем хендлер напрямую, передавая созданное сообщение
+        # Вызываем хендлер напрямую
         await fix_handler(fake_message)
         
         return {"status": "success", "message": "Command processed by handler"}
