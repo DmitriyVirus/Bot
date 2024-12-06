@@ -7,7 +7,8 @@ from aiogram import types
 from decouple import config
 from aiogram.types import Message, User, Chat
 from tgbot.handler_sbor import fix_handler
-from fastapi import FastAPI
+from fastapi import FastAPI, Request  # Импортируем Request
+
 
 app = FastAPI()
 
