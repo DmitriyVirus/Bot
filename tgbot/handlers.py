@@ -69,7 +69,7 @@ async def who_is_this(message: types.Message):
     if name == "all":
         response = "Список всех пользователей:\n"
         for user_name, user_info in NAME_TABLE.items():  # Используем исходную таблицу без алиасов
-            response += f"\nИмя: {user_info['name']}\nНик: {user_info['nick']}\nИнфо: {user_info['about']}\n"
+            response += f"\nИмя: {user_info['name']}\nИмя в телеграмм: {user_info['tgnick']}\nНик: {user_info['nick']}\nИнфо: {user_info['about']}\n"
         await message.answer(response)
     else:
         # Преобразуем ключи в таблице в нижний регистр для удобства поиска
