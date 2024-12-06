@@ -11,12 +11,11 @@ router = Router()
 CHAT_ID = -1002388880478  # Замените на ID вашего чата
 PINNED_MESSAGE_ID = 2810  # Замените на ID закрепленного сообщения
 
-# Хендлер для команды /getidbot
-@router.message(Command("getidbot"))
-async def get_id_bot(message: types.Message):
+@router.message(Command(commands=["getidbot"]))
+async def send_message_with_id(message: types.Message):
     try:
         # Указываем ID пользователя, который может вызвать команду
-        allowed_user_id = 559273200  # Замените на нужный ID
+        allowed_user_id = 123456789  # Замените на нужный ID
 
         # Проверяем, является ли ID пользователя допустимым
         if message.from_user.id != allowed_user_id:
@@ -47,8 +46,13 @@ async def update_message_text(message: types.Message):
         user_info = f"{user_id} - {user_name}"
 
         # Получаем текущее закрепленное сообщение
-        pinned_message = await message.bot.get_chat(CHAT_ID)
-        pinned_message_text = pinned_message.pinned_message.text if pinned_message.pinned_message else ""
+        chat = await message.bot.get_chat(CHAT_ID)
+        
+        # Проверка, есть ли закрепленное сообщение
+        if chat.pinned_message:
+            pinned_message_text = chat.pinned_message.text or ""  # Если текст пустой, используем пустую строку
+        else:
+            pinned_message_text = ""  # Если закрепленного сообщения нет, текст пуст
 
         # Проверяем, не добавлен ли этот пользователь уже в список
         if user_info not in pinned_message_text:
@@ -66,10 +70,9 @@ async def update_message_text(message: types.Message):
                 message_id=PINNED_MESSAGE_ID,
                 text=updated_text
             )
-
-            logging.info(f"Текст закрепленного сообщения обновлен.")
+            logging.info("Текст закрепленного сообщения обновлен.")
         else:
-            logging.info(f"Текст закрепленного сообщения не изменился. Обновление не требуется.")
+            logging.info("Текст закрепленного сообщения не изменился. Обновление не требуется.")
 
     except Exception as e:
-        logging.error(f"Ошибка при обновлении сообщения: {e}")
+        logging.error(f"Ошибка при обновлении сообщения: {type(e).__name__}: {e}")
