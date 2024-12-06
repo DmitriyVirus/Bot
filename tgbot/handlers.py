@@ -40,23 +40,6 @@ async def say_goodbye(message: Message):
     except Exception as e:
         logging.error(f"Ошибка при отправке прощания для {left_member.first_name}: {e}")
 
-from aiogram import types, Router
-from aiogram.filters import Command
-
-# Настройка логирования
-import logging
-logging.basicConfig(level=logging.DEBUG)
-
-# Таблица с информацией о пользователях
-NAME_TABLE = {
-    "Аня (Elisan)":{"name": "Аня(Elisan)", "nick": "@muse_queen", "about": "Кл, Местный боженька. Средний сум."},
-    "Евгений(ХныкКи)":{"name": "Евгений(ХныкКи)", "nick": "@disika", "about": "Второй после боженьки. Местный сенсей. Ответит на любые вопросы по игре. Активный."},
-    "Павел":{"name": "Павел(Обезгномливание)", "nick": "@Pavel1234455", "about": "Средний сум. Помощник по инстам. Подскажет по сумам. Активный."},
-    # Добавьте остальные записи...
-}
-
-router = Router()
-
 @router.message(Command(commands=["кто"]))
 async def who_is_this(message: types.Message):
     # Разделяем команду и имя (если есть)
