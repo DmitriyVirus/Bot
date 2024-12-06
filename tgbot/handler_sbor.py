@@ -1,6 +1,7 @@
 from aiogram import types, Router
 from aiogram.filters import Command
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from tgbot.triggers import USER_MAPPING
 import re
 import logging
 
@@ -34,25 +35,19 @@ async def fix_handler(message: types.Message):
         await message.answer("Произошла ошибка. Попробуйте снова.")
 
 def parse_participants(caption: str):
-       # Разделяем на две части - до и после "Желающие:"
     parts = caption.split("Желающие:")
-
-    # Парсим первую часть (до слова "Желающие")
     first_part = parts[0]
     first_part_names = []
     match1 = re.search(r"Идут \d+ человек: (.+)", first_part, flags=re.DOTALL)
     if match1:
         first_part_names = [name.strip() for name in match1.group(1).split(",") if name.strip()]
 
-    # Парсим вторую часть (после слова "Желающие:")
     second_part = parts[1] if len(parts) > 1 else ""
     second_part_names = [name.strip() for name in second_part.split(",") if name.strip()]
 
-    # Объединяем имена из первой и второй части
     participants = first_part_names + second_part_names
-
     return participants
-    
+
 # Функция для извлечения времени из подписи
 def extract_time_from_caption(caption: str):
     time_match = re.search(r"Идем в инсты\s*(\d{1,2}:\d{2}|когда соберемся)", caption)
@@ -100,36 +95,42 @@ async def update_caption(photo_message: types.Message, participants: list, callb
 # Обработчик для нажатия на кнопку "➕ Присоединиться"
 @router.callback_query(lambda callback: callback.data == "join_plus")
 async def handle_plus_reaction(callback: types.CallbackQuery):
+    user_id = callback.from_user.id
     username = callback.from_user.first_name
     message = callback.message
 
     participants = parse_participants(message.caption)
-
     logging.debug(f"[До добавления] Участники: {participants}")
 
-    if username in participants:
-        await callback.answer(f"Вы уже участвуете, {username}!")
+    # Проверяем имя из таблицы
+    display_name = USER_MAPPING.get(user_id, username)
+
+    if display_name in participants:
+        await callback.answer(f"Вы уже участвуете, {display_name}!")
         return
 
-    participants.append(username)
+    participants.append(display_name)
     logging.debug(f"[После добавления] Участники: {participants}")
 
     time = extract_time_from_caption(message.caption)
     keyboard = create_keyboard()
-    await update_caption(message, participants, callback, f"Вы присоединились, {username}!", time, keyboard)
+    await update_caption(message, participants, callback, f"Вы присоединились, {display_name}!", time, keyboard)
+
 
 # Обработчик для нажатия на кнопку "➖ Не участвовать"
 @router.callback_query(lambda callback: callback.data == "join_minus")
 async def handle_minus_reaction(callback: types.CallbackQuery):
+    user_id = callback.from_user.id
     username = callback.from_user.first_name
     message = callback.message
 
     participants = parse_participants(message.caption)
-
     logging.debug(f"[До удаления] Участники: {participants}")
 
-    if username in participants:
-        participants.remove(username)
+    display_name = USER_MAPPING.get(user_id, username)
+
+    if display_name in participants:
+        participants.remove(display_name)
     else:
         await callback.answer("Вы не участвуете.")
         return
@@ -138,7 +139,7 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
 
     time = extract_time_from_caption(message.caption)
     keyboard = create_keyboard()
-    await update_caption(message, participants, callback, f"Вы больше не участвуете, {username}.", time, keyboard)
+    await update_caption(message, participants, callback, f"Вы больше не участвуете, {display_name}.", time, keyboard)
     
 # Функция для создания клавиатуры
 def create_keyboard():
