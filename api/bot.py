@@ -5,8 +5,7 @@ from decouple import config
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-from api.reminder import send_reminder, send_reminder1  # Импортируем обе функции
-
+from api.reminder import send_reminder
 app = FastAPI()
 
 # Монтируем директорию для статических файлов
