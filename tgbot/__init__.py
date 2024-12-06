@@ -8,7 +8,6 @@ from tgbot.handler_getidall import router as handler_getidall_router
 router = Router()
 router.include_router(handlers_router)  # Подключаем хендлеры
 router.include_router(handler_sbor_router)
-router.include_router(handler_bleski_router)
 router.include_router(handler_getidall_router)
 
 class TGBot:
