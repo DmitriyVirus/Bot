@@ -44,6 +44,22 @@ async def tgbot_webhook_route(request: Request):
         print(f"Error processing update: {e}")
         return {"error": str(e)}
 
+@app.post("/send_reminder1")
+async def handle_pipedream_webhook(request: Request):
+    try:
+        payload = await request.json()  # Получаем данные из тела запроса
+        # Понимание команды из запроса
+        if 'command' in payload and payload['command'] == 'inst 19:30':
+            # Здесь вы вызываете вашу функцию для команды /inst
+            message = types.Message()  # Создайте объект message, если это необходимо
+            await fix_handler(message)
+            return {"status": "Command executed"}
+        else:
+            return {"status": "Invalid command"}
+    except Exception as e:
+        logging.error(f"Error handling webhook: {e}")
+        return {"status": "Error", "message": str(e)}
+        
 # Вызов функции отправки первого напоминания
 @app.get('/send_reminder', include_in_schema=False)
 async def send_reminder_route():
