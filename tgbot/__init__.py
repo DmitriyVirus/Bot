@@ -14,7 +14,7 @@ class TGBot:
     def __init__(self, router: Router) -> None:
         token = config('TOKEN')
         self.bot = Bot(token)
-        self.dp = Dispatcher.from_type(self.bot)  # Используем from_type для создания Dispatcher
+        self.dp = Dispatcher.from_bot(self.bot)  # Используем from_bot для создания Dispatcher
         self.dp.include_router(router)  # Подключаем роутер
         self.webhook_url = config('WEBHOOK_URL')
 
