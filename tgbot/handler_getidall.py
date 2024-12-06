@@ -9,18 +9,17 @@ router = Router()
 
 # Указываем ID чата и ID закрепленного сообщения, которое будем обновлять
 CHAT_ID = -1002388880478  # Замените на ID вашего чата
-PINNED_MESSAGE_ID = 2810  # Замените на ID закрепленного сообщения
+PINNED_MESSAGE_ID = 2832  # Замените на ID закрепленного сообщения
 
 @router.message(Command(commands=["getidbot"]))
 async def send_message_with_id(message: types.Message):
     try:
         # Указываем ID пользователя, который может вызвать команду
-        allowed_user_id = 123456789  # Замените на нужный ID
+        allowed_user_id = 559273200  # Замените на нужный ID
 
         # Проверяем, является ли ID пользователя допустимым
         if message.from_user.id != allowed_user_id:
             # Если это не тот пользователь, игнорируем команду или отправляем сообщение
-            await message.answer("У вас нет прав для использования этой команды.")
             return
 
         # Если это тот пользователь, выполняем команду
