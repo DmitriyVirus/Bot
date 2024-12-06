@@ -72,8 +72,11 @@ async def who_is_this(message: types.Message):
             response += f"\nИмя: {user_info['name']}\nНик: {user_info['nick']}\nИнфо: {user_info['about']}\n"
         await message.answer(response)
     else:
-        # Ищем конкретного пользователя в расширенной таблице (с алиасами)
-        user_info = expanded_table.get(name)  # Используем таблицу с алиасами
+        # Преобразуем ключи в таблице в нижний регистр для удобства поиска
+        expanded_table_lower = {key.lower(): value for key, value in expanded_table.items()}
+        
+        # Ищем конкретного пользователя в расширенной таблице с алиасами, используя таблицу с нижним регистром
+        user_info = expanded_table_lower.get(name)  # Используем таблицу с алиасами в нижнем регистре
         if user_info:
             response = f"Имя: {user_info['name']}\nНик: {user_info['nick']}\nИнфо: {user_info['about']}"
             await message.answer(response)
