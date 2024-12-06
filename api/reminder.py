@@ -43,33 +43,29 @@ async def send_reminder():
         logging.error(f"Ошибка при отправке напоминания: {e}")
         return {"status": "error", "message": str(e)}
 
-# Пример исправления для вызова хендлера с передачей команды /inst
-async def send_reminder1():
+async def send_reminder1(tgbot):
     try:
         # Получаем текущий день недели (0 - понедельник, 1 - вторник, ..., 6 - воскресенье)
         day_of_week = datetime.datetime.now().weekday()
         
-        if day_of_week in [0, 1, 2, 3, 4]:
-            # Создание объекта Message
-            message = types.Message(
-                message_id=1234,  # Поставьте подходящий id
-                from_user=types.User(id=12345, is_bot=False, first_name="Bot", last_name="Botov", username="botov_user"),  # Создание пользователя
-                chat=types.Chat(id=config('CHAT_ID'), type='private'),  # Здесь нужно указать ID чата, в котором будет происходить отправка сообщения
-                date=datetime.datetime.now(),
-                text="/inst 19:30"  # Текст с командой, которую нужно передать в хендлер
+        if day_of_week in [0, 1, 2, 3, 4]:  # Напоминания только с понедельника по пятницу
+            # Получаем ID чата
+            chat_id = config('CHAT_ID')
+            
+            # Отправка сообщения
+            await tgbot.send_message(
+                chat_id,
+                "/inst 19:30",  # Текст сообщения
+                parse_mode=ParseMode.MARKDOWN  # Если нужно, можно указать режим парсинга
             )
             
-            # Создаем объект Update
-            update = types.Update(
-                update_id=123456789,  # Уникальный ID для обновления
-                message=message  # Добавляем сообщение в объект Update
-            )
-
-            # Передаем обновление в Dispatcher с использованием feed_update
-            await tgbot.dp.feed_update(update)  # Обрабатываем обновление через feed_update
             return {"status": "success", "message": "Reminder sent"}
         else:
             return {"status": "skipped", "message": "Not a reminder day"}
+    
+    except Throttled as e:
+        logging.error(f"Too many requests. Throttled: {e}")
+        return {"status": "throttled", "message": "Too many requests, try again later"}
     
     except Exception as e:
         logging.error(f"Ошибка при отправке напоминания: {e}")
