@@ -55,33 +55,17 @@ async def who_is_this(message: types.Message):
     if name.lower() == "all":
         response = "Список всех пользователей:\n"
         for user_name, user_info in NAME_TABLE.items():
-            response += (
-                f"\nИмя ключа: {user_name}\n"  # Имя ключа (из вашего NAME_TABLE)
-                f"Имя: {user_info['name']}\n"
-                f"Ник: {user_info['nick']}\n"
-                f"Инфо: {user_info['about']}\n"
-            )
+            response += f"\nИмя: {user_info['name']}\nНик: {user_info['nick']}\nИнфо: {user_info['about']}\n"
         await message.answer(response)
     else:
         # Ищем конкретного пользователя
         if name in NAME_TABLE:
             user_info = NAME_TABLE[name]
-            
-            # Получаем имя пользователя в Telegram
-            telegram_name = message.from_user.full_name  # Имя пользователя Telegram
-
-            # Формируем ответ
-            response = (
-                f"Имя: {user_info['name']}\n"
-                f"Имя в телеграмм: {telegram_name}\n"  # Имя в Telegram
-                f"Ник: {user_info['nick']}\n"
-                f"Инфо: {user_info['about']}"
-            )
+            response = f"Имя: {user_info['name']}\nНик: {user_info['nick']}\nИнфо: {user_info['about']}"
             await message.answer(response)
         else:
             await message.answer(f"Информация о пользователе '{name}' не найдена.")
 
-        
 # Обработчик команды /fu
 @router.message(Command(commands=["fu"]))  # Используем фильтр Command
 async def fu_handler(message: Message):
