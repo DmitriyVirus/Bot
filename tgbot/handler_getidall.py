@@ -12,7 +12,9 @@ CHAT_ID = -1002388880478  # Замените на ID вашего чата
 PINNED_MESSAGE_ID = 2810  # Замените на ID закрепленного сообщения
 
 # Хендлер для команды /getidbot
-try:
+@router.message(Command("getidbot"))
+async def get_id_bot(message: types.Message):
+    try:
         # Указываем ID пользователя, который может вызвать команду
         allowed_user_id = 559273200  # Замените на нужный ID
 
@@ -56,7 +58,7 @@ async def update_message_text(message: types.Message):
             # Если пользователь уже добавлен, оставляем текст без изменений
             updated_text = pinned_message_text
 
-       # Проверяем, изменился ли текст
+        # Проверяем, изменился ли текст
         if updated_text != pinned_message_text:
             # Обновляем текст закрепленного сообщения
             await message.bot.edit_message_text(
