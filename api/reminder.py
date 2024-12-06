@@ -48,6 +48,7 @@ async def send_reminder1():
     try:
         # Получаем текущий день недели (0 - понедельник, 1 - вторник, ..., 6 - воскресенье)
         day_of_week = datetime.datetime.now().weekday()
+        
         if day_of_week in [0, 1, 2, 3, 4]:
             # Создание объекта Message
             message = types.Message(
@@ -58,14 +59,18 @@ async def send_reminder1():
                 text="/inst 19:30"  # Текст с командой, которую нужно передать в хендлер
             )
             
-            # Создаем объект Update с нужным update_id
-            update = types.Update(update_id=123456789, message=message)
-            
-            # Передаем обновление в Dispatcher с использованием process_update
-            await tgbot.dp.process_update(update)  # Обрабатываем обновление через Dispatcher
+            # Создаем объект Update
+            update = types.Update(
+                update_id=123456789,  # Уникальный ID для обновления
+                message=message  # Добавляем сообщение в объект Update
+            )
+
+            # Передаем обновление в Dispatcher с использованием feed_update
+            await tgbot.dp.feed_update(update)  # Обрабатываем обновление через feed_update
             return {"status": "success", "message": "Reminder sent"}
         else:
             return {"status": "skipped", "message": "Not a reminder day"}
+    
     except Exception as e:
         logging.error(f"Ошибка при отправке напоминания: {e}")
         return {"status": "error", "message": str(e)}
