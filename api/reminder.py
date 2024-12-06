@@ -43,9 +43,8 @@ async def send_reminder():
         logging.error(f"Ошибка при отправке напоминания: {e}")
         return {"status": "error", "message": str(e)}
 
-# Функция для отправки напоминания
-async def send_reminder1():
-     try:
+async def send_reminder1(tgbot):
+    try:
         # Параметры команды
         chat_id = config('CHAT_ID')
         command_text = "/inst 19:30"
@@ -63,6 +62,7 @@ async def send_reminder1():
         await fix_handler(fake_message)
         
         return {"status": "success", "message": "Command processed by handler"}
+    
     except Exception as e:
         logging.error(f"Ошибка при обработке команды: {e}")
         return {"status": "error", "message": str(e)}
