@@ -44,27 +44,18 @@ async def send_reminder():
         logging.error(f"Ошибка при отправке напоминания: {e}")
         return {"status": "error", "message": str(e)}
 
-async def send_reminder1():
+@app.post("/send_reminder1")
+async def handle_pipedream_webhook(request: Request):
     try:
-        # Параметры команды
-        chat_id = config('CHAT_ID')  # Ваш ID чата
-        command_text = "/inst 19:30"
-        
-        # Создаём фейковое сообщение для передачи в хендлер
-        fake_message = Message(
-            message_id=123,  # Любое значение
-            from_user=User(id=12345, is_bot=True, first_name="Bot"),  # Данные отправителя
-            chat=Chat(id=chat_id, type="private"),  # Данные чата
-            date=datetime.datetime.now(),
-            text=command_text,  # <-- Исправлено: добавлена запятая
-            bot=tgbot.bot
-        )
-        
-        # Вызываем хендлер напрямую
-        await fix_handler(fake_message)
-        
-        return {"status": "success", "message": "Command processed by handler"}
-    
+        payload = await request.json()  # Получаем данные из тела запроса
+        # Понимание команды из запроса
+        if 'command' in payload and payload['command'] == 'inst 19:30':
+            # Здесь вы вызываете вашу функцию для команды /inst
+            message = types.Message()  # Создайте объект message, если это необходимо
+            await fix_handler(message)
+            return {"status": "Command executed"}
+        else:
+            return {"status": "Invalid command"}
     except Exception as e:
-        logging.error(f"Ошибка при обработке команды: {e}")
-        return {"status": "error", "message": str(e)}
+        logging.error(f"Error handling webhook: {e}")
+        return {"status": "Error", "message": str(e)}
