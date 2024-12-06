@@ -26,35 +26,53 @@ async def send_message_with_id(message: types.Message):
 
 @router.message()
 async def update_message_text(message: types.Message):
-    """Обновляет текст закрепленного сообщения с id и именами пользователей, не добавляя повторений"""
+    """Обновляет текст закрепленного сообщения, добавляя новых пользователей, и сохраняет заголовок"""
     try:
+        # Извлекаем ID и имя пользователя
         user_id = message.from_user.id
         user_name = message.from_user.full_name
         user_info = f"{user_id} - {user_name}"
 
+        # Получаем текущее закрепленное сообщение
         pinned_message = await message.bot.get_chat(CHAT_ID)
         pinned_message_text = ""
+        
         if pinned_message.pinned_message:
             pinned_message_text = pinned_message.pinned_message.text or ""
 
-        if user_info not in pinned_message_text:
-            updated_text = f"{pinned_message_text}\n{user_info}"
-        else:
-            updated_text = pinned_message_text
+        # Заголовок для списка участников
+        header = "Айди участников:\n\n"
 
+        # Проверяем, содержит ли сообщение заголовок
+        if not pinned_message_text.startswith(header):
+            # Если заголовка нет, начинаем с чистого заголовка
+            current_list = []
+        else:
+            # Извлекаем существующий список участников, удаляя заголовок
+            current_list = pinned_message_text[len(header):].strip().split("\n")
+        
+        # Проверяем, есть ли уже информация о пользователе
+        if user_info not in current_list:
+            current_list.append(user_info)  # Добавляем нового участника
+        else:
+            logging.info(f"Пользователь {user_info} уже есть в списке. Обновление не требуется.")
+            return
+        
+        # Формируем обновленный текст
+        updated_text = f"{header}{'\n'.join(current_list)}"
+
+        # Проверяем длину текста
         if len(updated_text) > 4096:
             logging.warning("Текст слишком длинный для обновления сообщения.")
             return
 
-        if updated_text != pinned_message_text:
-            await message.bot.edit_message_text(
-                chat_id=CHAT_ID,
-                message_id=PINNED_MESSAGE_ID,
-                text=updated_text
-            )
-            logging.info("Текст закрепленного сообщения обновлен.")
-        else:
-            logging.info("Текст закрепленного сообщения не изменился. Обновление не требуется.")
+        # Обновляем текст закрепленного сообщения
+        await message.bot.edit_message_text(
+            chat_id=CHAT_ID,
+            message_id=PINNED_MESSAGE_ID,
+            text=updated_text
+        )
+        logging.info("Текст закрепленного сообщения успешно обновлен.")
 
     except Exception as e:
         logging.error(f"Ошибка при обновлении сообщения: {type(e).__name__}: {e}")
