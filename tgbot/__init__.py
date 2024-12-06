@@ -19,6 +19,7 @@ class TGBot:
         self.webhook_url = config('WEBHOOK_URL')
 
     async def update_bot(self, update: dict) -> None:
+        aiogram_update = Update(**update)
         await self.dp.feed_raw_update(self.bot, update)
         await self.bot.session.close()
 
