@@ -57,6 +57,7 @@ async def send_reminder1():
             chat=Chat(id=chat_id, type="private"),  # Данные чата
             date=datetime.datetime.now(),
             text=command_text
+            bot=tgbot.bot
         )
         
         # Вызываем хендлер напрямую
