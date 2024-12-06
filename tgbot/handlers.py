@@ -2,7 +2,7 @@ import logging
 from aiogram import Router
 from aiogram.types import Message
 from aiogram.filters import Command
-from tgbot.triggers import TRIGGERS, WELCOME_TEXT, HELP_TEXT_HEADER, COMMANDS_LIST
+from tgbot.triggers import TRIGGERS, WELCOME_TEXT, HELP_TEXT_HEADER, COMMANDS_LIST, NAME_TABLE
 
 router = Router()
 
@@ -40,6 +40,23 @@ async def say_goodbye(message: Message):
     except Exception as e:
         logging.error(f"Ошибка при отправке прощания для {left_member.first_name}: {e}")
 
+@router.message(Command(commands=["kto"]))
+async def who_is_this(message: types.Message):
+    name = message.text.split(' ', 1)  # Разделяем текст сообщения на команду и имя
+    if len(name) < 2:
+        await message.answer("Пожалуйста, укажите имя после команды.")
+        return
+
+    name = name[1].strip()
+
+    # Ищем пользователя в таблице
+    if name in NAME_TABLE:
+        user_info = NAME_TABLE[name]
+        response = f"Имя: {user_info['name']}\nНик: {user_info['nick']}\nИнфо: {user_info['about']}"
+        await message.answer(response)
+    else:
+        await message.answer(f"Информация о пользователе '{name}' не найдена.")
+        
 # Обработчик команды /fu
 @router.message(Command(commands=["fu"]))  # Используем фильтр Command
 async def fu_handler(message: Message):
