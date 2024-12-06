@@ -56,7 +56,7 @@ async def send_reminder1():
             from_user=User(id=12345, is_bot=True, first_name="Bot"),  # Данные отправителя
             chat=Chat(id=chat_id, type="private"),  # Данные чата
             date=datetime.datetime.now(),
-            text=command_text
+            text=command_text,  # <-- Исправлено: добавлена запятая
             bot=tgbot.bot
         )
         
