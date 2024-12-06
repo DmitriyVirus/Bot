@@ -3,27 +3,8 @@ from aiogram import Router, types
 from aiogram.types import Message
 from aiogram.filters import Command
 from tgbot.triggers import TRIGGERS, WELCOME_TEXT, HELP_TEXT_HEADER, COMMANDS_LIST, NAME_TABLE, ALIASES
-from fastapi import FastAPI, Request
-
-app = FastAPI()
 
 router = Router()
-
-@app.post("/send_reminder1")
-async def handle_pipedream_webhook(request: Request):
-    try:
-        payload = await request.json()  # Получаем данные из тела запроса
-        # Понимание команды из запроса
-        if 'command' in payload and payload['command'] == 'inst 19:30':
-            # Здесь вы вызываете вашу функцию для команды /inst
-            message = types.Message()  # Создайте объект message, если это необходимо
-            await fix_handler(message)
-            return {"status": "Command executed"}
-        else:
-            return {"status": "Invalid command"}
-    except Exception as e:
-        logging.error(f"Error handling webhook: {e}")
-        return {"status": "Error", "message": str(e)}
 
 # Приветствие новых пользователей
 @router.message(lambda message: hasattr(message, 'new_chat_members') and message.new_chat_members)
