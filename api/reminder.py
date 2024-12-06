@@ -43,28 +43,26 @@ async def send_reminder():
         logging.error(f"Ошибка при отправке напоминания: {e}")
         return {"status": "error", "message": str(e)}
 
-from aiogram import types
-import datetime
-import logging
-
 # Функция для отправки напоминания
 async def send_reminder1():
-    try:
-        # Получаем текущий день недели (0 - понедельник, 1 - вторник, ..., 6 - воскресенье)
-        day_of_week = datetime.datetime.now().weekday()
+     try:
+        # Параметры команды
+        chat_id = config('CHAT_ID')
+        command_text = "/inst 19:30"
         
-        if day_of_week in [0, 1, 2, 3, 4]:  # Напоминания только с понедельника по пятницу
-            # Получаем ID чата
-            chat_id = config('CHAT_ID')
-            
-            # Отправка текстового сообщения
-            text = "/inst 19:30"  # Текст с командой для напоминания
-            await tgbot.bot.send_message(chat_id, text)
-            
-            return {"status": "success", "message": "Reminder sent"}
-        else:
-            return {"status": "skipped", "message": "Not a reminder day"}
-    
+        # Создаём фейковое сообщение для передачи в хендлер
+        fake_message = Message(
+            message_id=123,  # Идентификатор сообщения (можно указать любое значение)
+            from_user=User(id=12345, is_bot=True, first_name="Bot"),  # Данные бота как отправителя
+            chat=Chat(id=chat_id, type="private"),  # Данные чата, куда отправляется сообщение
+            date=datetime.datetime.now(),
+            text=command_text
+        )
+        
+        # Вызываем хендлер напрямую, передавая созданное сообщение
+        await fix_handler(fake_message)
+        
+        return {"status": "success", "message": "Command processed by handler"}
     except Exception as e:
-        logging.error(f"Ошибка при отправке напоминания: {e}")
+        logging.error(f"Ошибка при обработке команды: {e}")
         return {"status": "error", "message": str(e)}
