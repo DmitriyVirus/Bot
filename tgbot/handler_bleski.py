@@ -122,3 +122,9 @@ async def handle_minus_bleski(callback: types.CallbackQuery):
     keyboard = create_keyboard()
     await update_bleski_caption(message, participants, callback, f"Вы больше не участвуете, {display_name}.", time, keyboard)
 
+# Функция для создания клавиатуры
+def create_keyboard():
+    plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
+    minus_button = InlineKeyboardButton(text="➖ Не участвовать", callback_data="join_minus")
+    return InlineKeyboardMarkup(inline_keyboard=[[plus_button, minus_button]])
+
