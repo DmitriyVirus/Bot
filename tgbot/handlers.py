@@ -43,10 +43,10 @@ async def say_goodbye(message: Message):
 def build_expanded_table(name_table, aliases):
     expanded_table = {}
     for key, value in name_table.items():
-        expanded_table[key] = value
+        expanded_table[key.lower()] = value
         if key in aliases:
             for alias in aliases[key]:
-                expanded_table[alias] = value
+                expanded_table[alias.lower()] = value
     return expanded_table
 
 @router.message(Command(commands=["kto"]))
