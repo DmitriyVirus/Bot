@@ -37,21 +37,19 @@ async def bleski_handler(message: types.Message):
         await message.answer("Произошла ошибка. Попробуйте снова.")
 
 async def update_bleski_caption(photo_message: types.Message, participants: list, callback: types.CallbackQuery, action_message: str, time: str, keyboard: InlineKeyboardMarkup):
-    main_participants = participants[:5]
-    extra_participants = participants[5:]
-    participants_count = len(participants)
+    main_participants = participants[:10]
+    extra_participants = participants[10:]
 
     # Логируем общее количество участников
     logging.debug(f"Идут: {len(main_participants)} человек, Желающие: {len(extra_participants)} человек")
 
     if not participants:
-        # Если список участников пуст
         updated_text = (
             f"☠️*Идем в блески {time}*.☠️\n\nКак обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. Есть 5 мест.\n\n"
             f"⚡⚡⚡*Нажмите ➕ в сообщении для участия*⚡⚡⚡"
         )
     else:
-        # Формируем текст обновления
+        # Формируем текст для обновления
         main_text = ", ".join(main_participants)
         extra_text = ", ".join(extra_participants)
         updated_text = (
@@ -62,8 +60,8 @@ async def update_bleski_caption(photo_message: types.Message, participants: list
         if extra_participants:
             updated_text += f"\nЖелающие: {extra_text}"
 
-    # Проверяем, нужно ли обновлять сообщение
-    if photo_message.caption != updated_text or photo_message.reply_markup != keyboard:
+    # Здесь мы обновляем только клавиатуру (если она изменилась) и участников
+    if photo_message.reply_markup != keyboard:
         try:
             await photo_message.edit_caption(caption=updated_text, parse_mode="Markdown", reply_markup=keyboard)
             await callback.answer(action_message)
