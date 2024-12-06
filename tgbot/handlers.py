@@ -40,7 +40,24 @@ async def say_goodbye(message: Message):
     except Exception as e:
         logging.error(f"Ошибка при отправке прощания для {left_member.first_name}: {e}")
 
-@router.message(Command(commands=["kto"]))
+from aiogram import types, Router
+from aiogram.filters import Command
+
+# Настройка логирования
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
+# Таблица с информацией о пользователях
+NAME_TABLE = {
+    "Аня (Elisan)":{"name": "Аня(Elisan)", "nick": "@muse_queen", "about": "Кл, Местный боженька. Средний сум."},
+    "Евгений(ХныкКи)":{"name": "Евгений(ХныкКи)", "nick": "@disika", "about": "Второй после боженьки. Местный сенсей. Ответит на любые вопросы по игре. Активный."},
+    "Павел":{"name": "Павел(Обезгномливание)", "nick": "@Pavel1234455", "about": "Средний сум. Помощник по инстам. Подскажет по сумам. Активный."},
+    # Добавьте остальные записи...
+}
+
+router = Router()
+
+@router.message(Command(commands=["кто"]))
 async def who_is_this(message: types.Message):
     # Разделяем команду и имя (если есть)
     name = message.text.split(' ', 1)
@@ -55,16 +72,32 @@ async def who_is_this(message: types.Message):
     if name.lower() == "all":
         response = "Список всех пользователей:\n"
         for user_name, user_info in NAME_TABLE.items():
-            response += f"\nИмя: {user_info['name']}\nНик: {user_info['nick']}\nИнфо: {user_info['about']}\n"
+            response += (
+                f"\nИмя ключа: {user_name}\n"  # Имя ключа (из вашего NAME_TABLE)
+                f"Имя: {user_info['name']}\n"
+                f"Ник: {user_info['nick']}\n"
+                f"Инфо: {user_info['about']}\n"
+            )
         await message.answer(response)
     else:
         # Ищем конкретного пользователя
         if name in NAME_TABLE:
             user_info = NAME_TABLE[name]
-            response = f"Имя: {user_info['name']}\nНик: {user_info['nick']}\nИнфо: {user_info['about']}"
+            
+            # Получаем имя пользователя в Telegram
+            telegram_name = message.from_user.full_name  # Имя пользователя Telegram
+
+            # Формируем ответ
+            response = (
+                f"Имя: {user_info['name']}\n"
+                f"Имя в телеграмм: {telegram_name}\n"  # Имя в Telegram
+                f"Ник: {user_info['nick']}\n"
+                f"Инфо: {user_info['about']}"
+            )
             await message.answer(response)
         else:
             await message.answer(f"Информация о пользователе '{name}' не найдена.")
+
         
 # Обработчик команды /fu
 @router.message(Command(commands=["fu"]))  # Используем фильтр Command
