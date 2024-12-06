@@ -2,7 +2,7 @@ import logging
 from aiogram import Router, types
 from aiogram.types import Message
 from aiogram.filters import Command
-from tgbot.triggers import TRIGGERS, WELCOME_TEXT, HELP_TEXT_HEADER, COMMANDS_LIST, NAME_TABLE
+from tgbot.triggers import TRIGGERS, WELCOME_TEXT, HELP_TEXT_HEADER, COMMANDS_LIST, NAME_TABLE, ALIASES
 
 router = Router()
 
