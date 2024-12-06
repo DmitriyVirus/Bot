@@ -6,11 +6,6 @@ from tgbot import tgbot
 from aiogram import types
 from decouple import config
 from aiogram.types import Message, User, Chat
-from tgbot.handler_sbor import fix_handler
-from fastapi import FastAPI, Request  # Импортируем Request
-
-
-app = FastAPI()
 
 async def send_reminder():
     try:
@@ -47,19 +42,3 @@ async def send_reminder():
     except Exception as e:
         logging.error(f"Ошибка при отправке напоминания: {e}")
         return {"status": "error", "message": str(e)}
-
-@app.post("/send_reminder1")
-async def handle_pipedream_webhook(request: Request):
-    try:
-        payload = await request.json()  # Получаем данные из тела запроса
-        # Понимание команды из запроса
-        if 'command' in payload and payload['command'] == 'inst 19:30':
-            # Здесь вы вызываете вашу функцию для команды /inst
-            message = types.Message()  # Создайте объект message, если это необходимо
-            await fix_handler(message)
-            return {"status": "Command executed"}
-        else:
-            return {"status": "Invalid command"}
-    except Exception as e:
-        logging.error(f"Error handling webhook: {e}")
-        return {"status": "Error", "message": str(e)}
