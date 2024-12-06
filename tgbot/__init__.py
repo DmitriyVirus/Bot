@@ -14,14 +14,14 @@ class TGBot:
     def __init__(self, router: Router) -> None:
         token = config('TOKEN')
         self.bot = Bot(token)
-        self.dp = Dispatcher()  # Инициализируем Dispatcher без передачи bot в конструктор
+        self.dp = Dispatcher(self.bot)  # Передаем bot в Dispatcher
         self.dp.include_router(router)  # Подключаем роутер
         self.webhook_url = config('WEBHOOK_URL')
 
     async def update_bot(self, update: dict) -> None:
-        # Используем dispatcher для обработки обновлений
-        update_obj = types.Update(**update)  # Преобразуем в объект Update
-        await self.dp.feed_update(update_obj)  # Используем feed_update
+        # Преобразуем словарь обновления в объект типа Update
+        update_obj = types.Update(**update)  # Преобразуем словарь в объект Update
+        await self.dp.feed_update(update_obj)  # Передаем обновление для обработки
 
     async def set_webhook(self) -> None:
         await self.bot.set_webhook(self.webhook_url)
