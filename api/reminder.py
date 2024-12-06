@@ -43,7 +43,7 @@ async def send_reminder():
         logging.error(f"Ошибка при отправке напоминания: {e}")
         return {"status": "error", "message": str(e)}
 
-async def send_reminder1(tgbot):
+async def send_reminder1():
     try:
         # Параметры команды
         chat_id = config('CHAT_ID')
