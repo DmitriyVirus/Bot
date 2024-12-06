@@ -42,25 +42,28 @@ async def say_goodbye(message: Message):
 
 @router.message(Command(commands=["kto"]))
 async def who_is_this(message: types.Message):
-    # Разделяем команду и имя (если есть)
-    name = message.text.split(' ', 1)
+    expanded_table = build_expanded_table(NAME_TABLE, ALIASES)
     
-    if len(name) < 2:  # Если нет имени, показываем список всех
+    # Разделяем команду и аргументы
+    args = message.text.split(' ', 1)
+    
+    # Если аргумент не указан
+    if len(args) < 2:
         await message.answer("Пожалуйста, укажите имя после команды или 'all' для всех.")
         return
 
-    name = name[1].strip()  # Получаем имя после команды
+    name = args[1].strip()  # Получаем введённое имя
 
-    # Если введено 'all', показываем информацию о всех пользователях
+    # Если пользователь ввёл "all"
     if name.lower() == "all":
         response = "Список всех пользователей:\n"
-        for user_name, user_info in NAME_TABLE.items():
+        for user_name, user_info in expanded_table.items():
             response += f"\nИмя: {user_info['name']}\nНик: {user_info['nick']}\nИнфо: {user_info['about']}\n"
         await message.answer(response)
     else:
-        # Ищем конкретного пользователя
-        if name in NAME_TABLE:
-            user_info = NAME_TABLE[name]
+        # Ищем конкретное имя или алиас
+        user_info = expanded_table.get(name)
+        if user_info:
             response = f"Имя: {user_info['name']}\nНик: {user_info['nick']}\nИнфо: {user_info['about']}"
             await message.answer(response)
         else:
