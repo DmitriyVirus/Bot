@@ -12,16 +12,25 @@ CHAT_ID = -1002388880478  # Замените на ID вашего чата
 PINNED_MESSAGE_ID = 2810  # Замените на ID закрепленного сообщения
 
 # Хендлер для команды /getidbot
-@router.message(Command(commands=["getidbot"]))
-async def send_message_with_id(message: types.Message):
-    try:
+try:
+        # Указываем ID пользователя, который может вызвать команду
+        allowed_user_id = 559273200  # Замените на нужный ID
+
+        # Проверяем, является ли ID пользователя допустимым
+        if message.from_user.id != allowed_user_id:
+            # Если это не тот пользователь, игнорируем команду или отправляем сообщение
+            await message.answer("У вас нет прав для использования этой команды.")
+            return
+
+        # Если это тот пользователь, выполняем команду
         sent_message = await message.answer("Получаю id.")
         message_id = sent_message.message_id
         updated_text = f"ID этого сообщения: {message_id}"
         await sent_message.edit_text(updated_text)
         logging.info(f"Текст обновлен. ID сообщения: {message_id}")
+
     except Exception as e:
-        logging.error(f"Ошибка при отправке или редактировании сообщения: {type(e).__name__}: {e}")
+        logging.error(f"Ошибка при отправке или редактировании сообщения: {e}")
         await message.answer("Произошла ошибка. Попробуйте снова.")
 
 @router.message()
