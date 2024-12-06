@@ -21,7 +21,7 @@ class TGBot:
     async def update_bot(self, update: dict) -> None:
         # Используем dispatcher для обработки обновлений
         update_obj = types.Update(**update)  # Преобразуем в объект Update
-        await self.dp.process_updates([update_obj])  # Передаем список обновлений
+        await self.dp.feed_update(update_obj)  # Используем feed_update
 
     async def set_webhook(self) -> None:
         await self.bot.set_webhook(self.webhook_url)
