@@ -46,11 +46,16 @@ async def tgbot_webhook_route(request: Request):
 @app.post("/send_reminder1")
 async def handle_pipedream_webhook(request: Request):
     try:
+        raw_body = await request.body()
+        print("Raw body:", raw_body)
         payload = await request.json()
-        logging.debug(f"Received payload: {payload}")  # Логируем запрос
-        # Далее обработка
+        print("Parsed payload:", payload)
+        return {"status": "success", "message": "Payload processed"}
+    except json.JSONDecodeError:
+        print("Invalid JSON format")
+        raise HTTPException(status_code=400, detail="Invalid JSON format")
     except Exception as e:
-        logging.error(f"Error processing webhook: {e}")
+        print(f"Error processing webhook: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
         
 # Вызов функции отправки первого напоминания
