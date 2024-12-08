@@ -5,6 +5,7 @@ from tgbot.triggers import USER_MAPPING
 import re
 import logging
 
+bot = Bot(token=config("BOT_TOKEN"))
 # Настройка логирования
 logging.basicConfig(level=logging.DEBUG)
 
