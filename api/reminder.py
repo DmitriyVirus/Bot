@@ -5,7 +5,8 @@ import datetime
 from tgbot import tgbot
 from aiogram import types
 from decouple import config
-from aiogram.types import Message, User, Chat
+from aiogram.types import Message, User, Chat, InlineKeyboardButton, InlineKeyboardMarkup
+from datetime import datetime
 
 async def send_reminder():
     try:
@@ -42,3 +43,35 @@ async def send_reminder():
     except Exception as e:
         logging.error(f"Ошибка при отправке напоминания: {e}")
         return {"status": "error", "message": str(e)}
+
+async def send_reminder1_route(request: Request):
+    try:
+        # Основная логика отправки фото
+        photo_url = "https://battleclub.space/uploads/monthly_2022_07/baylor.jpg.02e0df864753bf47b1ef76303b993a1d.jpg"
+        keyboard = create_keyboard()
+        chat_id = config('CHAT_ID')
+
+        sent_message = await tgbot.bot.send_photo(
+            chat_id=chat_id,
+            photo=photo_url,
+            caption=(
+                f"☠️*Идем в инсты 19:30*.☠️\n\nКак обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. Есть 5 мест.\n\n"
+                f"⚡⚡⚡*Нажмите ➕ в сообщении для участия*⚡⚡⚡"
+            ),
+            parse_mode="Markdown",
+            reply_markup=keyboard
+        )
+        # Закрепление сообщения
+        await tgbot.bot.pin_chat_message(chat_id=chat_id, message_id=sent_message.message_id)
+        logging.info(f"Сообщение отправлено и закреплено с id: {sent_message.message_id}")
+        return {"status": "success", "message": "Сообщение отправлено и закреплено"}
+    except Exception as e:
+        logging.error(f"Ошибка при обработке команды: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {e}")
+
+# Функция для создания клавиатуры
+def create_keyboard():
+    plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
+    minus_button = InlineKeyboardButton(text="➖ Не участвовать", callback_data="join_minus")
+    return InlineKeyboardMarkup(inline_keyboard=[[plus_button, minus_button]])
+
