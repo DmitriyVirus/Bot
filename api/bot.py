@@ -49,7 +49,7 @@ async def handle_pipedream_webhook(request: Request):
     try:
         raw_body = await request.body()
         # Вызываем хендлер вручную
-        message = types.Message(text=f"/inst 19:30", chat=types.Chat(id=chat_id))
+        message = types.Message(text=f"/inst 19:30", chat=types.Chat(id=config('CHAT_ID')))
         await fix_handler(message)
         if not raw_body:
             print("Request body is empty.")
