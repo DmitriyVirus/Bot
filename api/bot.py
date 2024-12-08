@@ -51,16 +51,27 @@ async def tgbot_webhook_route(request: Request):
 @app.post("/send_reminder1")
 async def send_reminder1_route(request: Request):
     try:
-        # Извлекаем данные из запроса
-        payload = await request.json()
-        command = payload.get("text", "").strip()
+        # Попытка чтения тела запроса
+        try:
+            payload = await request.json()
+        except Exception as e:
+            logging.error(f"Ошибка при чтении тела запроса: {e}")
+            raise HTTPException(status_code=400, detail="Invalid JSON format")
 
+        # Проверка содержимого
+        if not payload:
+            logging.error("Тело запроса пустое.")
+            return {"status": "error", "message": "Request body is empty"}
+
+        # Извлечение команды
+        command = payload.get("text", "").strip()
         if not command:
-            raise ValueError("Текст команды отсутствует в запросе")
+            logging.error("Текст команды отсутствует в запросе.")
+            return {"status": "error", "message": "Missing 'text' in request"}
 
         logging.info(f"Получен текст команды: {command}")
 
-        # Обработка текста
+        # Основная логика
         if command.lower() == "старт":
             photo_url = "https://battleclub.space/uploads/monthly_2022_07/baylor.jpg.02e0df864753bf47b1ef76303b993a1d.jpg"
             keyboard = create_keyboard()
@@ -81,9 +92,8 @@ async def send_reminder1_route(request: Request):
             return {"status": "success", "message": f"Сообщение отправлено и закреплено, ID: {sent_message.message_id}"}
         else:
             return {"status": "error", "message": "Неизвестная команда"}
-    except ValueError as e:
-        logging.error(f"Ошибка: {e}")
-        return {"status": "error", "message": str(e)}
+    except HTTPException as http_ex:
+        raise http_ex
     except Exception as e:
         logging.error(f"Ошибка при обработке команды: {e}")
         raise HTTPException(status_code=500, detail=f"Internal Server Error: {e}")
