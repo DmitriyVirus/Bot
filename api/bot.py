@@ -51,9 +51,6 @@ async def tgbot_webhook_route(request: Request):
 @app.post("/send_reminder1")
 async def send_reminder1_route(request: Request):
     try:
-         # Логируем запрос для отладки
-        logging.info("Получен запрос на /send_reminder1")
-
         # Основная логика отправки фото
         photo_url = "https://battleclub.space/uploads/monthly_2022_07/baylor.jpg.02e0df864753bf47b1ef76303b993a1d.jpg"
         keyboard = create_keyboard()
