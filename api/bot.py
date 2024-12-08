@@ -2,6 +2,7 @@ import os
 import json
 from tgbot import tgbot
 from decouple import config
+from aiogram.types import Chat
 from fastapi import FastAPI, Request
 from aiogram import Bot, Router, types
 from fastapi.staticfiles import StaticFiles
@@ -49,7 +50,10 @@ async def handle_pipedream_webhook(request: Request):
     try:
         raw_body = await request.body()
         # Вызываем хендлер вручную
-        message = types.Message(text=f"/inst 19:30", chat=types.Chat(id=config('CHAT_ID')))
+        message = types.Message(
+        text=f"/inst 19:30", 
+        chat=Chat(id=config('CHAT_ID'), type="supergroup")  # Добавляем тип чата
+        )
         await fix_handler(message)
         if not raw_body:
             print("Request body is empty.")
