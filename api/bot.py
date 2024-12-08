@@ -47,6 +47,10 @@ async def tgbot_webhook_route(request: Request):
 async def handle_pipedream_webhook(request: Request):
     try:
         raw_body = await request.body()
+        if not raw_body:
+            print("Request body is empty.")
+            return {"status": "error", "message": "Request body is empty"}
+        
         print("Raw body:", raw_body)
         payload = await request.json()
         print("Parsed payload:", payload)
