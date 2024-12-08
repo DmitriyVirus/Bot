@@ -2,7 +2,6 @@ from aiogram import types, Router, Bot
 from aiogram.filters import Command
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from tgbot.triggers import USER_MAPPING
-from tgbot import tgbot
 import re
 import logging
 
@@ -19,7 +18,7 @@ async def fix_handler(message: types.Message, bot: Bot):
         time = time_match.group(1) if time_match else "когда соберемся"
         photo_url = "https://battleclub.space/uploads/monthly_2022_07/baylor.jpg.02e0df864753bf47b1ef76303b993a1d.jpg"
         keyboard = create_keyboard()
-        sent_message = await tgbot.send_photo(
+        sent_message = await bot.send_photo(
             chat_id=message.chat.id,
             photo=photo_url,
             caption=(
