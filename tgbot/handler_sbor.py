@@ -10,10 +10,6 @@ logging.basicConfig(level=logging.DEBUG)
 
 router = Router()
 
-# Создание экземпляра Bot
-API_TOKEN = "YOUR_BOT_API_TOKEN"
-bot = Bot(token=API_TOKEN)
-
 # Хендлер для команды /inst
 @router.message(Command(commands=["inst"]))
 async def fix_handler(message: types.Message):
