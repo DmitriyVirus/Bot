@@ -51,30 +51,39 @@ async def tgbot_webhook_route(request: Request):
 @app.post("/send_reminder1")
 async def send_reminder1_route(request: Request):
     try:
-        # Основная логика отправки фото
-        photo_url = "https://battleclub.space/uploads/monthly_2022_07/baylor.jpg.02e0df864753bf47b1ef76303b993a1d.jpg"
-        keyboard = create_keyboard()
-        chat_id = config('CHAT_ID')
+        # Извлекаем данные из запроса
+        payload = await request.json()
+        command = payload.get("text", "").strip()
 
-        sent_message = await tgbot.bot.send_photo(
-            chat_id=chat_id,
-            photo=photo_url,
-            caption=(
-                f"☠️*Идем в инсты 19:30*.☠️\n\nКак обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. Есть 5 мест.\n\n"
-                f"⚡⚡⚡*Нажмите ➕ в сообщении для участия*⚡⚡⚡"
-            ),
-            parse_mode="Markdown",
-            reply_markup=keyboard
-        )
-        
-        logging.info(f"Сообщение отправлено с ID: {sent_message.message_id}")
+        if not command:
+            raise ValueError("Текст команды отсутствует в запросе")
 
-        # Закрепление сообщения
-        await tgbot.bot.pin_chat_message(chat_id=chat_id, message_id=sent_message.message_id)
-        logging.info(f"Сообщение отправлено и закреплено с id: {sent_message.message_id}")
-        
-        # Возвращаем успешный ответ
-        return {"status": "success", "message": f"Сообщение отправлено и закреплено, ID: {sent_message.message_id}"}
+        logging.info(f"Получен текст команды: {command}")
+
+        # Обработка текста
+        if command.lower() == "старт":
+            photo_url = "https://battleclub.space/uploads/monthly_2022_07/baylor.jpg.02e0df864753bf47b1ef76303b993a1d.jpg"
+            keyboard = create_keyboard()
+            chat_id = config('CHAT_ID')
+
+            # Отправляем фото
+            sent_message = await tgbot.bot.send_photo(
+                chat_id=chat_id,
+                photo=photo_url,
+                caption=(f"☠️*Идем в инсты 19:30*.☠️\n\nКак обычно идут участники. Есть 5 мест."),
+                parse_mode="Markdown",
+                reply_markup=keyboard
+            )
+            # Закрепляем сообщение
+            await tgbot.bot.pin_chat_message(chat_id=chat_id, message_id=sent_message.message_id)
+            logging.info(f"Сообщение отправлено с ID: {sent_message.message_id}")
+
+            return {"status": "success", "message": f"Сообщение отправлено и закреплено, ID: {sent_message.message_id}"}
+        else:
+            return {"status": "error", "message": "Неизвестная команда"}
+    except ValueError as e:
+        logging.error(f"Ошибка: {e}")
+        return {"status": "error", "message": str(e)}
     except Exception as e:
         logging.error(f"Ошибка при обработке команды: {e}")
         raise HTTPException(status_code=500, detail=f"Internal Server Error: {e}")
