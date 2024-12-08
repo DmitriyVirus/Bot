@@ -51,6 +51,9 @@ async def tgbot_webhook_route(request: Request):
 @app.post("/send_reminder1")
 async def send_reminder1_route(request: Request):
     try:
+         # Логируем запрос для отладки
+        logging.info("Получен запрос на /send_reminder1")
+
         # Основная логика отправки фото
         photo_url = "https://battleclub.space/uploads/monthly_2022_07/baylor.jpg.02e0df864753bf47b1ef76303b993a1d.jpg"
         keyboard = create_keyboard()
@@ -66,6 +69,9 @@ async def send_reminder1_route(request: Request):
             parse_mode="Markdown",
             reply_markup=keyboard
         )
+        
+        logging.info(f"Сообщение отправлено с ID: {sent_message.message_id}")
+
         # Закрепление сообщения
         await tgbot.bot.pin_chat_message(chat_id=chat_id, message_id=sent_message.message_id)
         logging.info(f"Сообщение отправлено и закреплено с id: {sent_message.message_id}")
