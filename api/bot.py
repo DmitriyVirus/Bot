@@ -51,14 +51,6 @@ async def tgbot_webhook_route(request: Request):
 @app.post("/send_reminder1")
 async def send_reminder1_route(request: Request):
     try:
-        # Получение данных из запроса (если они есть)
-        raw_body = await request.body()
-        if raw_body:
-            payload = await request.json()
-            logging.info(f"Полученные данные: {payload}")
-        else:
-            logging.info("Тело запроса пустое.")
-        
         # Основная логика отправки фото
         photo_url = "https://battleclub.space/uploads/monthly_2022_07/baylor.jpg.02e0df864753bf47b1ef76303b993a1d.jpg"
         keyboard = create_keyboard()
@@ -77,7 +69,6 @@ async def send_reminder1_route(request: Request):
         # Закрепление сообщения
         await tgbot.bot.pin_chat_message(chat_id=chat_id, message_id=sent_message.message_id)
         logging.info(f"Сообщение отправлено и закреплено с id: {sent_message.message_id}")
-
         return {"status": "success", "message": "Сообщение отправлено и закреплено"}
     except Exception as e:
         logging.error(f"Ошибка при обработке команды: {e}")
