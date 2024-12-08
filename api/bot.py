@@ -8,6 +8,7 @@ from fastapi import FastAPI, Request
 from aiogram import Bot, Router, types
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from tgbot.handler_sbor import fix_handler
 from api.reminder import send_reminder
 app = FastAPI()
 
