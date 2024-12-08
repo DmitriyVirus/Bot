@@ -27,4 +27,4 @@ class TGBot:
         print(f"Webhook set to {self.webhook_url}")
 
 # Инициализация tgbot с импортированным router
-bot = TGBot(router)
+tgbot = TGBot(router)
