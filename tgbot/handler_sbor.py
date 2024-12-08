@@ -31,7 +31,7 @@ async def fix_handler(message: types.Message):
     except Exception as e:
         logging.error(f"Ошибка при обработке команды /inst: {e}")
         await message.answer("Произошла ошибка. Попробуйте снова.")
-
+        
 def parse_participants(caption: str):
     parts = caption.split("Желающие:")
     first_part = parts[0]
