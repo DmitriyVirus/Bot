@@ -45,7 +45,7 @@ async def send_reminder():
         logging.error(f"Ошибка при отправке напоминания: {e}")
         return {"status": "error", "message": str(e)}
 
-async def send_reminder1_route(request: Request):
+async def send_reminder1():
     try:
         # Основная логика отправки фото
         photo_url = "https://battleclub.space/uploads/monthly_2022_07/baylor.jpg.02e0df864753bf47b1ef76303b993a1d.jpg"
