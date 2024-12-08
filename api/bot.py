@@ -57,9 +57,3 @@ async def handle_pipedream_webhook(request: Request):
 @app.get('/send_reminder', include_in_schema=False)
 async def send_reminder_route():
     return await send_reminder()  # Используем функцию из reminder.py
-
-# Вызов функции отправки второго напоминания
-@app.get('/send_reminder1', include_in_schema=False)
-async def send_reminder1_route():
-    return await send_reminder1()  # Используем новую функцию из reminder.py
-
