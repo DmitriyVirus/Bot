@@ -1,4 +1,4 @@
-from aiogram import types, Router
+from aiogram import types, Router, Bot
 from aiogram.filters import Command
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from tgbot.triggers import USER_MAPPING
