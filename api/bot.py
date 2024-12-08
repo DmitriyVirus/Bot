@@ -69,7 +69,9 @@ async def send_reminder1_route(request: Request):
         # Закрепление сообщения
         await tgbot.bot.pin_chat_message(chat_id=chat_id, message_id=sent_message.message_id)
         logging.info(f"Сообщение отправлено и закреплено с id: {sent_message.message_id}")
-        return {"status": "success", "message": "Сообщение отправлено и закреплено"}
+        
+        # Возвращаем успешный ответ
+        return {"status": "success", "message": f"Сообщение отправлено и закреплено, ID: {sent_message.message_id}"}
     except Exception as e:
         logging.error(f"Ошибка при обработке команды: {e}")
         raise HTTPException(status_code=500, detail=f"Internal Server Error: {e}")
