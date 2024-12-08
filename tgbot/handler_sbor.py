@@ -12,7 +12,7 @@ router = Router()
 
 # Хендлер для команды /inst
 @router.message(Command(commands=["inst"]))
-async def fix_handler(message: types.Message):
+async def fix_handler(message: types.Message, bot: Bot):
     try:
         time_match = re.search(r"(\d{1,2}:\d{2})", message.text)
         time = time_match.group(1) if time_match else "когда соберемся"
@@ -21,8 +21,10 @@ async def fix_handler(message: types.Message):
         sent_message = await bot.send_photo(
             chat_id=message.chat.id,
             photo=photo_url,
-            caption=(f"☠️*Идем в инсты {time}*.☠️\n\nКак обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. Есть 5 мест.\n\n"
-                     f"⚡⚡⚡*Нажмите ➕ в сообщении для участия*⚡⚡⚡"),
+            caption=(
+                f"☠️*Идем в инсты {time}*.☠️\n\nКак обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. Есть 5 мест.\n\n"
+                f"⚡⚡⚡*Нажмите ➕ в сообщении для участия*⚡⚡⚡"
+            ),
             parse_mode="Markdown",
             reply_markup=keyboard
         )
@@ -31,7 +33,7 @@ async def fix_handler(message: types.Message):
     except Exception as e:
         logging.error(f"Ошибка при обработке команды /inst: {e}")
         await message.answer("Произошла ошибка. Попробуйте снова.")
-        
+
 def parse_participants(caption: str):
     parts = caption.split("Желающие:")
     first_part = parts[0]
