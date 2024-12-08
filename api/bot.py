@@ -10,6 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from tgbot.handler_sbor import fix_handler
 from api.reminder import send_reminder
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 app = FastAPI()
 
 # Монтируем директорию для статических файлов
@@ -48,27 +49,41 @@ async def tgbot_webhook_route(request: Request):
         return {"error": str(e)}
 
 @app.post("/send_reminder1")
-async def handle_pipedream_webhook(request: Request):
+async def send_reminder1_route():
     try:
-        raw_body = await request.body()  # Считываем тело запроса
-        # Создаем сообщение вручную
-        message = types.Message(
-            message_id=12345,  # Пример уникального идентификатора сообщения
-            date=datetime.now().timestamp(),
-            text=f"/inst 19:30", 
-            chat=types.Chat(id=config('CHAT_ID'), type="supergroup")  # Добавляем тип чата
-        )
-        # Явно передаем bot при вызове хендлера
-        await fix_handler(message, tgbot.bot)
-        # Возвращаем успешный статус
-        return {"status": "success", "message": "Payload processed"}
-    except json.JSONDecodeError:
-        raise HTTPException(status_code=400, detail="Invalid JSON format")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail="Internal Server Error")
+        # Настройки
+        photo_url = "https://battleclub.space/uploads/monthly_2022_07/baylor.jpg.02e0df864753bf47b1ef76303b993a1d.jpg"
+        chat_id = config('CHAT_ID')  # Укажите идентификатор чата в конфигурации
+        keyboard = create_keyboard()
 
-            
+        # Отправляем сообщение
+        sent_message = await tgbot.bot.send_photo(
+            chat_id=chat_id,
+            photo=photo_url,
+            caption=(
+                f"☠️*Идем в инсты 19:30*.☠️\n\nКак обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. Есть 5 мест.\n\n"
+                f"⚡⚡⚡*Нажмите ➕ в сообщении для участия*⚡⚡⚡"
+            ),
+            parse_mode="Markdown",
+            reply_markup=keyboard
+        )
+
+        # Закрепляем сообщение
+        await tgbot.bot.pin_chat_message(chat_id=chat_id, message_id=sent_message.message_id)
+        logging.info(f"Сообщение отправлено и закреплено с id: {sent_message.message_id}")
+
+        return {"status": "success", "message_id": sent_message.message_id}
+    except Exception as e:
+        logging.error(f"Ошибка при обработке команды /inst: {e}")
+        return {"status": "error", "message": str(e)}
+        
 # Вызов функции отправки первого напоминания
 @app.get('/send_reminder', include_in_schema=False)
 async def send_reminder_route():
     return await send_reminder()  # Используем функцию из reminder.py
+
+# Функция для создания клавиатуры
+def create_keyboard():
+    plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
+    minus_button = InlineKeyboardButton(text="➖ Не участвовать", callback_data="join_minus")
+    return InlineKeyboardMarkup(inline_keyboard=[[plus_button, minus_button]])
