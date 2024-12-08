@@ -2,6 +2,7 @@ import os
 import json
 from tgbot import tgbot
 from decouple import config
+from datetime import datetime
 from aiogram.types import Chat
 from fastapi import FastAPI, Request
 from aiogram import Bot, Router, types
@@ -51,6 +52,8 @@ async def handle_pipedream_webhook(request: Request):
         raw_body = await request.body()
         # Вызываем хендлер вручную
         message = types.Message(
+        message_id=12345,  # Пример уникального идентификатора сообщения
+        date=datetime.now().timestamp(),
         text=f"/inst 19:30", 
         chat=Chat(id=config('CHAT_ID'), type="supergroup")  # Добавляем тип чата
         )
