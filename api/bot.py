@@ -4,7 +4,7 @@ from tgbot import tgbot
 from decouple import config
 from datetime import datetime
 from aiogram.types import Chat
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from aiogram import Bot, Router, types
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -49,14 +49,21 @@ async def tgbot_webhook_route(request: Request):
         return {"error": str(e)}
 
 @app.post("/send_reminder1")
-async def send_reminder1_route():
+async def send_reminder1_route(request: Request):
     try:
-        # Настройки
+        # Получение данных из запроса (если они есть)
+        raw_body = await request.body()
+        if raw_body:
+            payload = await request.json()
+            logging.info(f"Полученные данные: {payload}")
+        else:
+            logging.info("Тело запроса пустое.")
+        
+        # Основная логика отправки фото
         photo_url = "https://battleclub.space/uploads/monthly_2022_07/baylor.jpg.02e0df864753bf47b1ef76303b993a1d.jpg"
-        chat_id = config('CHAT_ID')  # Укажите идентификатор чата в конфигурации
         keyboard = create_keyboard()
+        chat_id = config('CHAT_ID')
 
-        # Отправляем сообщение
         sent_message = await tgbot.bot.send_photo(
             chat_id=chat_id,
             photo=photo_url,
@@ -67,15 +74,14 @@ async def send_reminder1_route():
             parse_mode="Markdown",
             reply_markup=keyboard
         )
-
-        # Закрепляем сообщение
+        # Закрепление сообщения
         await tgbot.bot.pin_chat_message(chat_id=chat_id, message_id=sent_message.message_id)
         logging.info(f"Сообщение отправлено и закреплено с id: {sent_message.message_id}")
 
-        return {"status": "success", "message_id": sent_message.message_id}
+        return {"status": "success", "message": "Сообщение отправлено и закреплено"}
     except Exception as e:
-        logging.error(f"Ошибка при обработке команды /inst: {e}")
-        return {"status": "error", "message": str(e)}
+        logging.error(f"Ошибка при обработке команды: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {e}")
         
 # Вызов функции отправки первого напоминания
 @app.get('/send_reminder', include_in_schema=False)
