@@ -51,7 +51,7 @@ async def tgbot_webhook_route(request: Request):
 async def handle_pipedream_webhook(request: Request):
     try:
         raw_body = await request.body()
-        
+
         # Создаем сообщение вручную
         message = types.Message(
             message_id=12345,  # Пример уникального идентификатора сообщения
@@ -60,8 +60,8 @@ async def handle_pipedream_webhook(request: Request):
             chat=types.Chat(id=config('CHAT_ID'), type="supergroup")  # Добавляем тип чата
         )
 
-        # Указываем bot при вызове хендлера
-        await fix_handler.as_(tgbot.bot)(message)
+        # Явно передаем bot при вызове хендлера
+        await fix_handler(message, tgbot.bot)
 
         if not raw_body:
             print("Request body is empty.")
@@ -77,6 +77,7 @@ async def handle_pipedream_webhook(request: Request):
     except Exception as e:
         print(f"Error processing webhook: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
+
         
 # Вызов функции отправки первого напоминания
 @app.get('/send_reminder', include_in_schema=False)
