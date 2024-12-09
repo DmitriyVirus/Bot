@@ -53,7 +53,4 @@ async def send_reminder_route():
 # Вызов функции отправки первого напоминания
 @app.get('/send_reminder1', include_in_schema=False)
 async def send_reminder1_route():
-    if tgbot.bot.session.is_closed:
-        print("Bot session is closed. Reinitializing session.")
-        tgbot.bot.session = aiohttp.ClientSession()
     return await send_reminder1()
