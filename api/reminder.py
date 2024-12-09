@@ -7,7 +7,6 @@ from aiogram import types
 from decouple import config
 from aiogram.types import Message, User, Chat, InlineKeyboardButton, InlineKeyboardMarkup
 from fastapi import FastAPI, Request, HTTPException
-from datetime import datetime
 
 async def send_reminder():
     try:
