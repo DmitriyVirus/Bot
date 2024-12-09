@@ -13,19 +13,35 @@ app = FastAPI()
 # Монтируем директорию для статических файлов
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Установка webhook при старте
 @app.on_event("startup")
 async def on_startup():
     try:
-        print("Setting webhook...")
+        logging.info("Setting webhook...")
         await tgbot.set_webhook()
+        logging.info("Webhook successfully set.")
     except Exception as e:
-        print(f"Error setting webhook: {e}")
+        logging.error(f"Error setting webhook: {e}")
 
 @app.on_event("shutdown")
 async def on_shutdown():
+    logging.info("Shutting down...")
     await tgbot.bot.session.close()
-    print("Bot session closed.")
+    logging.info("Bot session closed.")
+
+@app.get('/send_reminder/{reminder_type}', include_in_schema=False)
+async def send_reminder_route(reminder_type: str):
+    try:
+        if reminder_type == "1":
+            asyncio.create_task(send_reminder1())
+            return {"status": "success", "message": "Reminder 1 task started"}
+        elif reminder_type == "2":
+            asyncio.create_task(send_reminder())
+            return {"status": "success", "message": "Reminder 2 task started"}
+        else:
+            raise HTTPException(status_code=400, detail="Invalid reminder type")
+    except Exception as e:
+        logging.error(f"Error in send_reminder_route: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {e}")
 
 # Главная страница
 @app.get("/", include_in_schema=False)
@@ -44,13 +60,3 @@ async def tgbot_webhook_route(request: Request):
     except Exception as e:
         print(f"Error processing update: {e}")
         return {"error": str(e)}
-        
-# Вызов функции отправки первого напоминания
-@app.get('/send_reminder', include_in_schema=False)
-async def send_reminder_route():
-    return await send_reminder()  
-
-# Вызов функции отправки первого напоминания
-@app.get('/send_reminder1', include_in_schema=False)
-async def send_reminder1_route():
-    return await send_reminder1()  
