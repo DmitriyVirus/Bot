@@ -73,6 +73,13 @@ def parse_participants(caption: str):
 
     # Объединяем обе части в список участников
     participants = first_part_names + second_part_names
+
+    # Добавляем фиксированных участников, если их нет в списке
+    fixed_participants = ["Дмитрий(маКароноВирус)", "Леонид(ТуманныйТор)"]
+    for participant in fixed_participants:
+        if participant not in participants:
+            participants.insert(0, participant)
+
     return participants
 
 # Функция для извлечения времени из подписи
@@ -162,7 +169,7 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
     time = extract_time_from_caption(message.caption)
     keyboard = create_keyboard()
     await update_caption(message, participants, callback, f"Вы больше не участвуете, {display_name}.", time, keyboard)
-
+    
 # Функция для создания клавиатуры
 def create_keyboard():
     plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
