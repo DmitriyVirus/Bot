@@ -38,6 +38,13 @@ async def send_message_with_id(message: types.Message):
 @router.message(Command(commands=["getid"]))
 async def send_chat_id(message: Message):
     try:
+        # Указываем ID пользователя, который может вызвать команду
+        allowed_user_id = 559273200  # Замените на нужный ID
+
+        # Проверяем, является ли ID пользователя допустимым
+        if message.from_user.id != allowed_user_id:
+            # Если это не тот пользователь, игнорируем команду или отправляем сообщение
+            return
         # Получаем ID чата
         chat_id = message.chat.id
         # Отправляем ID чата пользователю
