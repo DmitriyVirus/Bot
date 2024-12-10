@@ -1,6 +1,5 @@
 import os
 import json
-import asyncio
 from tgbot import tgbot
 from decouple import config
 from fastapi import FastAPI, Request, HTTPException
@@ -8,10 +7,6 @@ from aiogram import Bot, Router, types
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from api.reminder import send_reminder, send_reminder1
-# Явно задаем цикл событий
-if not asyncio.get_event_loop_policy():
-    asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
-
 
 app = FastAPI()
 
@@ -49,12 +44,10 @@ async def tgbot_webhook_route(request: Request):
     except Exception as e:
         print(f"Error processing update: {e}")
         return {"error": str(e)}
-
+        
 # Вызов функции отправки первого напоминания
 @app.get('/send_reminder', include_in_schema=False)
 async def send_reminder_route():
-    loop = asyncio.get_event_loop()
-    print(f"Event loop status: {loop.is_running()}, Closed: {loop.is_closed()}")
     return await send_reminder()  
 
 # Вызов функции отправки первого напоминания
