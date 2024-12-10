@@ -2,6 +2,7 @@ import os
 import random
 import logging
 import datetime
+from tgbot import tgbot
 from decouple import config
 from aiogram import Router, types
 from aiogram.types import Message
