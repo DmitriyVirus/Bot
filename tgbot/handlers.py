@@ -195,18 +195,6 @@ async def help_handler(message: Message):
     for command in COMMANDS_LIST:
         help_text += f"{command}\n"
     await message.answer(help_text, parse_mode="Markdown")
-
-# Обработчик команды /getid
-@router.message(Command(commands=["getid"]))
-async def send_chat_id(message: Message):
-    try:
-        # Получаем ID чата
-        chat_id = message.chat.id
-        # Отправляем ID чата пользователю
-        await message.answer(f"Ваш Chat ID: `{chat_id}`", parse_mode="Markdown")
-        logging.info(f"Chat ID ({chat_id}) отправлен пользователю {message.from_user.id}")
-    except Exception as e:
-        logging.error(f"Ошибка при отправке Chat ID: {e}")
         
 # Обрабатываем Триггеры
 @router.message(lambda message: message.text and any(trigger in message.text.lower() for trigger in TRIGGERS))
