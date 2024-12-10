@@ -2,10 +2,14 @@ import datetime
 import os
 import random
 import logging
-from aiogram import types
-from aiogram.dispatcher.filters import Command
-from tgbot import tgbot
+from aiogram import types, Router
+from aiogram.filters import Command
 from config import config  # Убедитесь, что ваш config правильно настроен
+
+# Настройка логирования
+logging.basicConfig(level=logging.DEBUG)
+
+router = Router()
 
 @router.message(Command("goodmornigeverydayGG"))
 async def good_mornig_every_day_GG(message: types.Message):
