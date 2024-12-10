@@ -70,18 +70,27 @@ def extract_time_from_caption(caption: str):
 # Функция для обновления подписи к фото
 async def update_caption(photo_message: types.Message, participants: list, callback: types.CallbackQuery, action_message: str, time: str, keyboard: InlineKeyboardMarkup):
     """
-    Обновляет подпись с учетом фиксированных участников.
+    Обновляет подпись с учетом фиксированных участников и формирования скамейки запасных.
     """
     # Убираем дубли
     participants = list(dict.fromkeys(participants))
 
-    # Формируем текст
-    main_text = ", ".join(participants)
+    # Основной список участников и скамейка запасных
+    main_participants = participants[:7]
+    bench_participants = participants[7:]
+
+    # Формируем текст для основных участников
+    main_text = ", ".join(main_participants)
     updated_text = (
         f"\u2620\ufe0f*Идем в инсты {time}*.\u2620\ufe0f\n\n"
         f"\u26a1\u26a1\u26a1*Нажмите \u2795 в сообщении для участия*.\u26a1\u26a1\u26a1\n\n"
         f"Участвуют: {main_text}"
     )
+
+    # Если есть участники на скамейке запасных, добавляем их
+    if bench_participants:
+        bench_text = ", ".join(bench_participants)
+        updated_text += f"\n\nСкамейка запасных: {bench_text}"
 
     try:
         await photo_message.edit_caption(caption=updated_text, parse_mode="Markdown", reply_markup=keyboard)
