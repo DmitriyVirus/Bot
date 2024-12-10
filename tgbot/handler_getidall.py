@@ -11,12 +11,9 @@ router = Router()
 CHAT_ID = -1002388880478  # Замените на ID вашего чата
 TARGET_MESSAGE_ID = 3665  # Замените на ID закрепленного сообщения
 
-from aiogram import types
-import logging
-
 @router.message()
 async def update_message_text(message: types.Message):
-    """Обновляет текст указанного сообщения с id и именами пользователей, не добавляя повторений"""
+    """Обновляет текст закрепленного сообщения с id и именами пользователей, не добавляя повторений"""
     try:
         # Извлекаем информацию о пользователе
         user_id = message.from_user.id
@@ -25,31 +22,34 @@ async def update_message_text(message: types.Message):
         # Формируем строку для добавления в сообщение
         user_info = f"{user_id} - {user_name}"
 
-        # Получаем сообщение с указанным ID
-        target_message = await message.bot.get_message(chat_id=CHAT_ID, message_id=TARGET_MESSAGE_ID)
+        # Получаем текущее закрепленное сообщение
+        chat = await message.bot.get_chat(CHAT_ID)
         
-        # Извлекаем текст сообщения
-        message_text = target_message.text or ""  # Если текст пустой, используем пустую строку
+        # Проверка, есть ли закрепленное сообщение
+        if chat.pinned_message:
+            pinned_message_text = chat.pinned_message.text or ""  # Если текст пустой, используем пустую строку
+        else:
+            pinned_message_text = ""  # Если закрепленного сообщения нет, текст пуст
 
         # Проверяем, не добавлен ли этот пользователь уже в список
-        if user_info not in message_text:
+        if user_info not in pinned_message_text:
             # Добавляем пользователя в текущий текст
-            updated_text = f"{message_text}\n{user_info}"
+            updated_text = f"{pinned_message_text}\n{user_info}"
         else:
             # Если пользователь уже добавлен, оставляем текст без изменений
-            updated_text = message_text
+            updated_text = pinned_message_text
 
         # Проверяем, изменился ли текст
-        if updated_text != message_text:
-            # Обновляем текст сообщения
+        if updated_text != pinned_message_text:
+            # Обновляем текст закрепленного сообщения
             await message.bot.edit_message_text(
                 chat_id=CHAT_ID,
-                message_id=TARGET_MESSAGE_ID,
+                message_id=PINNED_MESSAGE_ID,
                 text=updated_text
             )
-            logging.info("Текст сообщения обновлен.")
+            logging.info("Текст закрепленного сообщения обновлен.")
         else:
-            logging.info("Текст сообщения не изменился. Обновление не требуется.")
+            logging.info("Текст закрепленного сообщения не изменился. Обновление не требуется.")
 
     except Exception as e:
         logging.error(f"Ошибка при обновлении сообщения: {type(e).__name__}: {e}")
