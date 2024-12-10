@@ -11,6 +11,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 router = Router()
 
+# Хендлер для команды /goodmornigeverydayGG
 @router.message(Command("goodmornigeverydayGG"))
 async def good_mornig_every_day_GG(message: types.Message):
     try:
@@ -49,9 +50,16 @@ async def good_mornig_every_day_GG(message: types.Message):
         photo_url = random.choice(photo_urls).strip()  # Убираем лишние пробелы или символы новой строки
         
         # Отправка текста и фото
-        await message.bot.send_photo(chat_id=config('CHAT_ID'), photo=photo_url, caption=text)
+        await message.bot.send_photo(
+            chat_id=message.chat.id,
+            photo=photo_url,
+            caption=text,
+            parse_mode="Markdown"
+        )
+
         return {"status": "success", "message": "Reminder sent"}
 
     except Exception as e:
-        logging.error(f"Ошибка при отправке напоминания: {e}")
+        logging.error(f"Ошибка при обработке команды /goodmornigeverydayGG: {e}")
+        await message.answer("Произошла ошибка. Попробуйте снова.")
         return {"status": "error", "message": str(e)}
