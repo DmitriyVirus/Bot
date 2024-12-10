@@ -1,11 +1,10 @@
-from aiogram import types, Router
-from aiogram.filters import Command
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from tgbot.triggers import USER_MAPPING
 import re
 import logging
+from aiogram import types, Router
+from aiogram.filters import Command
+from tgbot.triggers import USER_MAPPING
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-# Настройка логирования
 logging.basicConfig(level=logging.DEBUG)
 
 router = Router()
@@ -22,8 +21,9 @@ async def fix_handler(message: types.Message):
             chat_id=message.chat.id,
             photo=photo_url,
             caption=(
-                f"☠️*Идем в инсты {time}*.☠️\n\nКак обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. Есть 5 мест.\n\n"
-                f"⚡⚡⚡*Нажмите ➕ в сообщении для участия*⚡⚡⚡"
+                f"☠️*Идем в инсты {time}*.☠️\n\n"
+                f"⚡⚡⚡*Нажмите ➕ в сообщении для участия*⚡⚡⚡\n\n"
+                f"Участвуют: Дмитрий(МакароноВирус), Леонид(ТуманныйТор)"
             ),
             parse_mode="Markdown",
             reply_markup=keyboard
@@ -35,10 +35,10 @@ async def fix_handler(message: types.Message):
         await message.answer("Произошла ошибка. Попробуйте снова.")
 
 def parse_participants(caption: str):
-    parts = caption.split("Желающие:")
+    parts = caption.split("Скамейка запасных:")
     first_part = parts[0]
     first_part_names = []
-    match1 = re.search(r"Идут \d+ человек: (.+)", first_part, flags=re.DOTALL)
+    match1 = re.search(r"Участвуют: \d+ человек: (.+)", first_part, flags=re.DOTALL)
     if match1:
         first_part_names = [name.strip() for name in match1.group(1).split(",") if name.strip()]
 
@@ -58,27 +58,26 @@ async def update_caption(photo_message: types.Message, participants: list, callb
     main_participants = participants[:5]
     extra_participants = participants[5:]
     participants_count = len(participants)
-
-    # Логируем общее количество участников
-    logging.debug(f"Идут: {len(main_participants)} человек, Желающие: {len(extra_participants)} человек")
+    logging.debug(f"Участвуют {len(main_participants)} человек, Скамейка запасных: {len(extra_participants)} человек")
 
     if not participants:
         # Если список участников пуст
         updated_text = (
-            f"☠️*Идем в инсты {time}*.☠️\n\n Как обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. Есть 5 мест \n\n"
-            f"⚡⚡⚡*Нажмите ➕ в сообщении для участия*.⚡⚡⚡"
+            f"☠️*Идем в инсты {time}*.☠️\n\n"
+            f"⚡⚡⚡*Нажмите ➕ в сообщении для участия*.⚡⚡⚡\n\n"
+            f"Участвуют: Дмитрий(МакароноВирус), Леонид(ТуманныйТор)"
         )
     else:
         # Формируем текст обновления
         main_text = ", ".join(main_participants)
         extra_text = ", ".join(extra_participants)
         updated_text = (
-            f"☠️*Идем в инсты {time}*.☠️\n\n Как обычно идут Дмитрий(МакароноВирус), Леонид(ТуманныйТор) и кто-то еще. Есть 5 мест. \n\n"
+            f"☠️*Идем в инсты {time}*.☠️\n\n"
             f"⚡⚡⚡*Нажмите ➕ в сообщении для участия*.⚡⚡⚡\n\n"
-            f"😈Идут {len(main_participants)} человек: {main_text}"
+            f"😈Участвуют {len(main_participants)} человек: {main_text}"
         )
         if extra_participants:
-            updated_text += f"\nЖелающие: {extra_text}"
+            updated_text += f"\nСкамейка запасных: {extra_text}"
 
     # Проверяем, нужно ли обновлять сообщение
     if photo_message.caption != updated_text or photo_message.reply_markup != keyboard:
