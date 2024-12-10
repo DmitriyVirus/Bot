@@ -33,13 +33,6 @@ async def send_message_with_id(message: types.Message):
         logging.error(f"Ошибка при отправке или редактировании сообщения: {e}")
         await message.answer("Произошла ошибка. Попробуйте снова.")
 
-from aiogram import types
-import logging
-
-# Пример заранее заданного message_id и chat_id
-MESSAGE_ID = 12345  # ID сообщения, которое нужно обновить
-CHAT_ID = 67890  # ID чата, где отправляется сообщение
-
 @router.message()
 async def update_message_text(message: types.Message):
     """Обновляет текст НЕ закрепленного сообщения с id и именами пользователей"""
