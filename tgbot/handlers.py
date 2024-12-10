@@ -1,9 +1,13 @@
+import datetime  # Для работы с датой и временем
+import os  # Для работы с файловой системой
+import random  # Для случайного выбора ссылки
 import logging
 from aiogram import Router, types
 from aiogram.types import Message
 from aiogram.filters import Command
 from aiogram.types import Message, User, Chat, InlineKeyboardButton, InlineKeyboardMarkup
 from tgbot.triggers import TRIGGERS, WELCOME_TEXT, HELP_TEXT_HEADER, COMMANDS_LIST, NAME_TABLE, ALIASES
+from config import config  # Ваш файл конфигурации с токенами, чатами и другими параметрами
 
 router = Router()
 
@@ -227,7 +231,62 @@ async def trigger_handler(message: Message):
                 await message.answer(response, parse_mode="Markdown")
             break
 
-@router.message(Command(commands=["goodmornigeverydayGG"]))  # Используем фильтр Command
+@router.message(Command(commands=["goodmornigeverydayGG"]))
 async def good_mornig_every_day_GG(message: types.Message):
-    logging.info("Хендлер сработал!")  # Логирование в консоль
-    await message.answer("Команда сработала!")  # Ответ пользователю
+    try:
+        logging.info("Хендлер сработал!")  # Лог для подтверждения вызова
+
+        # Получаем текущий день недели
+        day_of_week = datetime.datetime.now().weekday()
+        logging.info(f"Сегодня день недели: {day_of_week}")
+
+        # Логика для дней недели
+        if day_of_week == 0:  # Понедельник
+            text = "Утро добрым не бывает, а понедельник ведь все-таки день тяжелый... Но не унываем!"
+            file_path = os.path.join(os.getcwd(), "urls", "mond_url.txt")
+        elif day_of_week in [1, 2, 3]:  # Вторник, Среда, Четверг
+            text = "Всем доброго утра! Рабочий день начинается!"
+            file_path = os.path.join(os.getcwd(), "urls", "workdays_url.txt")
+        elif day_of_week == 4:  # Пятница
+            text = "Всем доброго утра! А вот вы знали, что сегодня пятница?!"
+            file_path = os.path.join(os.getcwd(), "urls", "fri_url.txt")
+        elif day_of_week in [5, 6]:  # Выходные
+            text = "Всем доброго утра! Выхходные! Гуляеммм!!!"
+            file_path = os.path.join(os.getcwd(), "urls", "weekend_url.txt")
+        else:
+            logging.warning("День недели не обработан.")
+            return
+
+        # Проверка существования файла
+        if not os.path.exists(file_path):
+            logging.error(f"Файл {file_path} не найден.")
+            await message.answer("Ошибка: файл со ссылками не найден.")
+            return
+
+        # Загрузка ссылок из файла
+        with open(file_path, "r") as file:
+            photo_urls = file.readlines()
+
+        # Проверка, что список не пуст
+        if not photo_urls:
+            logging.error(f"Файл {file_path} пуст.")
+            await message.answer("Ошибка: файл со ссылками пуст.")
+            return
+
+        # Выбор случайной ссылки
+        photo_url = random.choice(photo_urls).strip()
+        logging.info(f"Выбрана ссылка: {photo_url}")
+
+        # Отправка текста и фото
+        await message.bot.send_photo(
+            chat_id=message.chat.id,
+            photo=photo_url,
+            caption=text,
+            parse_mode="Markdown"
+        )
+        logging.info("Сообщение отправлено успешно.")
+
+    except Exception as e:
+        logging.error(f"Ошибка при обработке команды /goodmornigeverydayGG: {e}")
+        await message.answer("Произошла ошибка. Попробуйте снова.")
+
