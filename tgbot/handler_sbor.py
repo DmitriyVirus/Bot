@@ -2,7 +2,6 @@ import re
 import logging
 from aiogram import types, Router
 from aiogram.filters import Command
-from tgbot.triggers import USER_MAPPING
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 # Настройка логирования
@@ -10,8 +9,20 @@ logging.basicConfig(level=logging.DEBUG)
 
 router = Router()
 
-# Фиксированные участники
-FIXED_PARTICIPANTS = ["Дмитрий(МакароноВирус)", "Леонид(ТуманныйТор)"]
+# Словарь пользовательских отображений
+USER_MAPPING = {
+    559273200: "Дмитрий(маКароноВирус)",
+    638155657: "Вячеслав(DumSpiroSpero)",
+    1141764502: "Аня(Elisan)",
+    1034353655: "Вячеслав(Saela)",
+    809946596: "Кристина(СерыеГлазки)",
+    5263336963: "Леонид(ТуманныйТор)",
+    1687314254: "Игорь(ФунтАпельсинов)",
+    1207400705: "Евгений(ХныкКи)",
+    1705787763: "Александр(Piuv)",
+    442475543: "Александр(Клаар)",
+    923927066: "Михаил(Remorse)",
+}
 
 # Хендлер для команды /inst
 @router.message(Command(commands=["inst"]))
@@ -21,17 +32,23 @@ async def fix_handler(message: types.Message):
         time = time_match.group(1) if time_match else "когда соберемся"
         photo_url = "https://battleclub.space/uploads/monthly_2022_07/baylor.jpg.02e0df864753bf47b1ef76303b993a1d.jpg"
         keyboard = create_keyboard()
+
+        # Добавляем фиксированных участников в начало списка
+        initial_participants = ["Дмитрий(маКароноВирус)", "Леонид(ТуманныйТор)"]
+        caption = (
+            f"\u2620\ufe0f*Идем в инсты {time}*.\u2620\ufe0f\n\n"
+            f"\u26a1\u26a1\u26a1*Нажмите \u2795 в сообщении для участия*\u26a1\u26a1\u26a1\n\n"
+            f"Участвуют: {', '.join(initial_participants)}"
+        )
+
         sent_message = await message.bot.send_photo(
             chat_id=message.chat.id,
             photo=photo_url,
-            caption=(
-                f"\u2620\ufe0f*Идем в инсты {time}*.\u2620\ufe0f\n\n"
-                f"\u26a1\u26a1\u26a1*Нажмите \u2795 в сообщении для участия*\u26a1\u26a1\u26a1\n\n"
-                f"Участвуют: {', '.join(FIXED_PARTICIPANTS)}"
-            ),
+            caption=caption,
             parse_mode="Markdown",
             reply_markup=keyboard
         )
+
         await message.chat.pin_message(sent_message.message_id)
         logging.info(f"Сообщение отправлено и закреплено с id: {sent_message.message_id}")
     except Exception as e:
@@ -55,13 +72,11 @@ async def update_caption(photo_message: types.Message, participants: list, callb
     """
     Обновляет подпись с учетом фиксированных участников.
     """
-    # Учитываем порядок фиксированных участников, если они присутствуют
-    main_participants = [p for p in FIXED_PARTICIPANTS if p in participants]
-    other_participants = [p for p in participants if p not in FIXED_PARTICIPANTS]
-    full_list = main_participants + other_participants
+    # Убираем дубли
+    participants = list(dict.fromkeys(participants))
 
     # Формируем текст
-    main_text = ", ".join(full_list)
+    main_text = ", ".join(participants)
     updated_text = (
         f"\u2620\ufe0f*Идем в инсты {time}*.\u2620\ufe0f\n\n"
         f"\u26a1\u26a1\u26a1*Нажмите \u2795 в сообщении для участия*.\u26a1\u26a1\u26a1\n\n"
