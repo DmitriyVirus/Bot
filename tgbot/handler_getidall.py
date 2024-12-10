@@ -33,6 +33,13 @@ async def send_message_with_id(message: types.Message):
         logging.error(f"Ошибка при отправке или редактировании сообщения: {e}")
         await message.answer("Произошла ошибка. Попробуйте снова.")
 
+from aiogram import types
+import logging
+
+# Пример заранее заданного message_id и chat_id
+MESSAGE_ID = 12345  # ID сообщения, которое нужно обновить
+CHAT_ID = 67890  # ID чата, где отправляется сообщение
+
 @router.message()
 async def update_message_text(message: types.Message):
     """Обновляет текст НЕ закрепленного сообщения с id и именами пользователей"""
@@ -44,14 +51,14 @@ async def update_message_text(message: types.Message):
         # Формируем строку для добавления в сообщение
         user_info = f"{user_id} - {user_name}"
 
-        # Текущий текст сообщения (которое вы хотите обновить)
-        current_text = "Инициализируем сообщение..."  # Это должен быть текущий текст вашего сообщения
+        # Получаем текущее сообщение
+        current_message = await message.bot.get_message(chat_id=CHAT_ID, message_id=MESSAGE_ID)
+        current_text = current_message.text if current_message else ""
 
-        # Формируем обновленный текст
-        updated_text = f"{current_text}\n{user_info}"
-
-        # Проверяем, изменился ли текст
-        if updated_text != current_text:
+        # Проверяем, был ли уже этот пользователь добавлен в сообщение
+        if user_info not in current_text:
+            # Формируем обновленный текст
+            updated_text = f"{current_text}\n{user_info}"
             # Редактируем текст сообщения
             await message.bot.edit_message_text(
                 chat_id=CHAT_ID,  # ID чата, где сообщение
@@ -60,6 +67,7 @@ async def update_message_text(message: types.Message):
             )
             logging.info(f"Текст сообщения с ID {MESSAGE_ID} обновлен.")
         else:
-            logging.info(f"Текст сообщения с ID {MESSAGE_ID} не изменился. Обновление не требуется.")
+            logging.info(f"Пользователь {user_info} уже был добавлен. Обновление не требуется.")
+    
     except Exception as e:
         logging.error(f"Ошибка при обновлении сообщения: {type(e).__name__}: {e}")
