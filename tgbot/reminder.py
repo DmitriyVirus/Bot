@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.DEBUG)
 router = Router()
 
 # Хендлер для команды /goodmornigeverydayGG
-@router.message(Command("goodmornigeverydayGG"))
+@router.message(Command(commands=["goodmornigeverydayGG"]))
 async def good_mornig_every_day_GG(message: types.Message):
     try:
         # Получаем текущий день недели
