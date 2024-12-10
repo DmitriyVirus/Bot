@@ -1,3 +1,5 @@
+import os
+import random
 import logging
 import datetime
 from decouple import config
