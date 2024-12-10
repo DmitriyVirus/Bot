@@ -85,7 +85,7 @@ async def handle_plus_reaction(callback: types.CallbackQuery):
     logging.debug(f"[До добавления] Участники: {participants}")
 
     # Проверяем имя из таблицы
-    display_name = username
+    display_name = USER_MAPPING.get(user_id, username)
 
     # Проверка на дублирование
     if display_name in participants:
@@ -111,7 +111,7 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
     logging.debug(f"[До удаления] Участники: {participants}")
 
     # Проверяем имя из таблицы
-    display_name = username
+    display_name = USER_MAPPING.get(user_id, username)
 
     if display_name in participants:
         participants.remove(display_name)
