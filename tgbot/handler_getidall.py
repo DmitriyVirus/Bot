@@ -34,6 +34,18 @@ async def send_message_with_id(message: types.Message):
         logging.error(f"Ошибка при отправке или редактировании сообщения: {e}")
         await message.answer("Произошла ошибка. Попробуйте снова.")
 
+# Обработчик команды /getid
+@router.message(Command(commands=["getid"]))
+async def send_chat_id(message: Message):
+    try:
+        # Получаем ID чата
+        chat_id = message.chat.id
+        # Отправляем ID чата пользователю
+        await message.answer(f"Ваш Chat ID: `{chat_id}`", parse_mode="Markdown")
+        logging.info(f"Chat ID ({chat_id}) отправлен пользователю {message.from_user.id}")
+    except Exception as e:
+        logging.error(f"Ошибка при отправке Chat ID: {e}")
+        
 @router.message()
 async def update_message_text(message: types.Message):
     """Обновляет текст закрепленного сообщения с id и именами пользователей, не добавляя повторений"""
