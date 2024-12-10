@@ -57,10 +57,23 @@ async def fix_handler(message: types.Message):
 
 # Функция для разбора участников
 def parse_participants(caption: str):
-    match = re.search(r"Участвуют: (.+)", caption, flags=re.DOTALL)
-    if match:
-        return [name.strip() for name in match.group(1).split(",") if name.strip()]
-    return []
+    # Разделение подписи на две части: основную и скамейку запасных
+    parts = caption.split("Скамейка запасных:")
+
+    # Извлекаем участников из основной части (до "Скамейка запасных:")
+    first_part = parts[0]
+    first_part_names = []
+    match1 = re.search(r"Участвуют \(\d+\): (.+)", first_part, flags=re.DOTALL)
+    if match1:
+        first_part_names = [name.strip() for name in match1.group(1).split(",") if name.strip()]
+
+    # Извлекаем участников из части с "Скамейка запасных"
+    second_part = parts[1] if len(parts) > 1 else ""
+    second_part_names = [name.strip() for name in second_part.split(",") if name.strip()]
+
+    # Объединяем обе части в список участников
+    participants = first_part_names + second_part_names
+    return participants
 
 # Функция для извлечения времени из подписи
 def extract_time_from_caption(caption: str):
