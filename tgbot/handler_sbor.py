@@ -32,13 +32,11 @@ async def fix_handler(message: types.Message):
         time = time_match.group(1) if time_match else "когда соберемся"
         photo_url = "https://battleclub.space/uploads/monthly_2022_07/baylor.jpg.02e0df864753bf47b1ef76303b993a1d.jpg"
         keyboard = create_keyboard()
-
-        # Добавляем фиксированных участников в начало списка
-        initial_participants = ["Дмитрий(маКароноВирус)", "Леонид(ТуманныйТор)"]
+        
         caption = (
             f"\u2620\ufe0f*Идем в инсты {time}*.\u2620\ufe0f\n\n"
             f"\u26a1\u26a1\u26a1*Нажмите \u2795 в сообщении для участия*\u26a1\u26a1\u26a1\n\n"
-            f"Участвуют: {', '.join(initial_participants)}"
+            f"Участвуют (2): Дмитрий(маКароноВирус), Леонид(ТуманныйТор)"
         )
 
         sent_message = await message.bot.send_photo(
@@ -73,13 +71,6 @@ def parse_participants(caption: str):
 
     # Объединяем обе части в список участников
     participants = first_part_names + second_part_names
-
-    # Добавляем фиксированных участников, если их нет в списке
-    fixed_participants = ["Дмитрий(маКароноВирус)", "Леонид(ТуманныйТор)"]
-    for participant in fixed_participants:
-        if participant not in participants:
-            participants.insert(0, participant)
-
     return participants
 
 # Функция для извлечения времени из подписи
@@ -139,7 +130,7 @@ async def handle_plus_reaction(callback: types.CallbackQuery):
 
     # Добавляем нового участника
     participants.append(display_name)
-
+    logging.debug(f"[После добавления] Участники: {participants}")
     # Обновляем текст
     time = extract_time_from_caption(message.caption)
     keyboard = create_keyboard()
