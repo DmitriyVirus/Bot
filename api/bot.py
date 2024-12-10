@@ -44,7 +44,7 @@ async def tgbot_webhook_route(request: Request):
     except Exception as e:
         print(f"Error processing update: {e}")
         return {"error": str(e)}
-        
+
 # Вызов функции отправки первого напоминания
 @app.get('/send_reminder', include_in_schema=False)
 async def send_reminder_route():
