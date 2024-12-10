@@ -53,6 +53,8 @@ async def tgbot_webhook_route(request: Request):
 # Вызов функции отправки первого напоминания
 @app.get('/send_reminder', include_in_schema=False)
 async def send_reminder_route():
+    loop = asyncio.get_event_loop()
+    print(f"Event loop status: {loop.is_running()}, Closed: {loop.is_closed()}")
     return await send_reminder()  
 
 # Вызов функции отправки первого напоминания
