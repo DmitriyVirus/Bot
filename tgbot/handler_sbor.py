@@ -80,17 +80,17 @@ async def update_caption(photo_message: types.Message, participants: list, callb
     bench_participants = participants[7:]
 
     # Формируем текст для основных участников
-    main_text = ", ".join(main_participants)
+    main_text = f"Участвуют ({len(main_participants)}): {', '.join(main_participants)}"
     updated_text = (
         f"\u2620\ufe0f*Идем в инсты {time}*.\u2620\ufe0f\n\n"
         f"\u26a1\u26a1\u26a1*Нажмите \u2795 в сообщении для участия*.\u26a1\u26a1\u26a1\n\n"
-        f"Участвуют: {main_text}"
+        f"{main_text}"
     )
 
     # Если есть участники на скамейке запасных, добавляем их
     if bench_participants:
-        bench_text = ", ".join(bench_participants)
-        updated_text += f"\n\nСкамейка запасных: {bench_text}"
+        bench_text = f"Скамейка запасных ({len(bench_participants)}): {', '.join(bench_participants)}"
+        updated_text += f"\n\n{bench_text}"
 
     try:
         await photo_message.edit_caption(caption=updated_text, parse_mode="Markdown", reply_markup=keyboard)
