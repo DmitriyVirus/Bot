@@ -6,7 +6,6 @@ from fastapi import FastAPI, Request, HTTPException
 from aiogram import Bot, Router, types
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-from api.reminder import send_reminder, send_reminder1
 
 app = FastAPI()
 
@@ -44,13 +43,3 @@ async def tgbot_webhook_route(request: Request):
     except Exception as e:
         print(f"Error processing update: {e}")
         return {"error": str(e)}
-        
-# Вызов функции отправки первого напоминания
-@app.get('/send_reminder', include_in_schema=False)
-async def send_reminder_route():
-    return await send_reminder()  
-
-# Вызов функции отправки первого напоминания
-@app.get('/send_reminder1', include_in_schema=False)
-async def send_reminder1_route():
-    return await send_reminder1()
