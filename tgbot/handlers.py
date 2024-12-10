@@ -226,3 +226,8 @@ async def trigger_handler(message: Message):
             else:
                 await message.answer(response, parse_mode="Markdown")
             break
+
+@router.message(Command(commands=["goodmornigeverydayGG"]))  # Используем фильтр Command
+async def good_mornig_every_day_GG(message: types.Message):
+    logging.info("Хендлер сработал!")  # Логирование в консоль
+    await message.answer("Команда сработала!")  # Ответ пользователю
