@@ -1,5 +1,6 @@
 import os
 import json
+import asyncio
 from tgbot import tgbot
 from decouple import config
 from fastapi import FastAPI, Request, HTTPException
@@ -7,6 +8,10 @@ from aiogram import Bot, Router, types
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from api.reminder import send_reminder, send_reminder1
+# Явно задаем цикл событий
+if not asyncio.get_event_loop_policy():
+    asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
+
 
 app = FastAPI()
 
