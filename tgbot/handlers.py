@@ -230,8 +230,8 @@ async def trigger_handler(message: Message):
                 await message.answer(response, parse_mode="Markdown")
             break
 
-@router.message(Command(commands=["goodmornigeverydayGG"]))
-async def good_mornig_every_day_GG():
+@router.message(Command("goodmornigeverydayGG"))
+async def good_mornig_every_day_GG(message: types.Message):
     try:
         # Получаем текущий день недели
         day_of_week = datetime.datetime.now().weekday()
@@ -266,4 +266,3 @@ async def good_mornig_every_day_GG():
     except Exception as e:
         logging.error(f"Ошибка при отправке напоминания: {e}")
         return {"status": "error", "message": str(e)}
-
