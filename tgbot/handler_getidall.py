@@ -9,7 +9,7 @@ router = Router()
 
 # Указываем ID чата и ID закрепленного сообщения, которое будем обновлять
 CHAT_ID = -1002388880478  # Замените на ID вашего чата
-TARGET_MESSAGE_ID = 3665  # Замените на ID закрепленного сообщения
+PINNED_MESSAGE_ID = 3665  # Замените на ID закрепленного сообщения
 
 @router.message()
 async def update_message_text(message: types.Message):
