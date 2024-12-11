@@ -55,35 +55,32 @@ async def fix_handler(message: types.Message):
 
 # Функция для разбора участников
 def parse_participants(caption: str):
-    # Логируем исходную подпись
     logging.debug(f"Исходная подпись:\n{caption}")
 
-    # Разделяем подпись на две части
-    parts = caption.split("Скамейка запасных:")
-    logging.debug(f"Разделённые части:\n{parts}")
-
-    # Парсим основную часть участников
+    # Извлекаем основную часть участников
     main_participants = []
-    match_main = re.search(r"Участвуют \(\d+\): (.+)", parts[0], flags=re.DOTALL)
+    match_main = re.search(r"Участвуют \(\d+\): ([^\n]+)", caption)
     if match_main:
         main_participants = [
             name.strip() for name in match_main.group(1).split(",") if name.strip()
         ]
+
     logging.debug(f"Основной список участников: {main_participants}")
 
-    # Парсим скамейку запасных
+    # Извлекаем скамейку запасных
     bench_participants = []
-    if len(parts) > 1:
+    match_bench = re.search(r"Скамейка запасных \(\d+\): ([^\n]+)", caption)
+    if match_bench:
         bench_participants = [
-            name.strip() for name in parts[1].strip().split(",") if name.strip()
+            name.strip() for name in match_bench.group(1).split(",") if name.strip()
         ]
+
     logging.debug(f"Скамейка запасных: {bench_participants}")
 
     # Объединяем оба списка
     participants = main_participants + bench_participants
     logging.debug(f"Общий список участников: {participants}")
     return participants
-
 
 # Функция для извлечения времени из подписи
 def extract_time_from_caption(caption: str):
