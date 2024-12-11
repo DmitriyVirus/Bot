@@ -154,11 +154,7 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
     else:
         await callback.answer("Вы не участвуете.")
         return
-
-    if len(participants) > 7:
-        bench_participant = participants.pop(7)
-        participants.insert(6, bench_participant)
-
+        
     time = extract_time_from_caption(message.caption)
     keyboard = create_keyboard()
     await update_caption(message, participants, callback, f"Вы больше не участвуете, {display_name}.", time, keyboard)
