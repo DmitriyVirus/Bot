@@ -1,28 +1,15 @@
+import os
 import re
 import logging
 from aiogram import types, Router
 from aiogram.filters import Command
+from tgbot.triggers import TRIGGERS
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 # Настройка логирования
 logging.basicConfig(level=logging.DEBUG)
 
 router = Router()
-
-# Словарь пользовательских отображений
-USER_MAPPING = {
-    559273200: "Дмитрий(маКароноВирус)",
-    638155657: "Вячеслав(DumSpiroSpero)",
-    1141764502: "Аня(Elisan)",
-    1034353655: "Вячеслав(Saela)",
-    809946596: "Кристина(СерыеГлазки)",
-    5263336963: "Леонид(ТуманныйТор)",
-    1687314254: "Игорь(ФунтАпельсинов)",
-    1207400705: "Евгений(ХныкКи)",
-    1705787763: "Александр(Piuv)",
-    442475543: "Александр(Клаар)",
-    923927066: "Михаил(Remorse)",
-}
 
 # Хендлер для команды /inst
 @router.message(Command(commands=["inst"]))
