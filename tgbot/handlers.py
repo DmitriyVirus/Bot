@@ -37,6 +37,12 @@ def create_back_menu():
     back_button = InlineKeyboardButton(text="Назад", callback_data="back_to_main")
     return InlineKeyboardMarkup(inline_keyboard=[[back_button]])
 
+# Обработчик для кнопки "Назад" (возвращает в главное меню)
+@router.callback_query(lambda callback: callback.data == "back_to_main")
+async def back_to_main_handler(callback: types.CallbackQuery):
+    keyboard = create_main_menu()
+    await callback.message.edit_text("Привет, я ваш бот!", reply_markup=keyboard)
+
 # Обработчик для кнопок меню
 @router.callback_query(lambda callback: callback.data.startswith("menu_"))
 async def menu_callback_handler(callback: types.CallbackQuery):
@@ -66,9 +72,6 @@ async def commands_callback_handler(callback: types.CallbackQuery):
     elif data == "commands_debug":
         keyboard = create_commands_menu()
         await callback.message.edit_text("Команды для отладки:\n/debug_info - Получить информацию для отладки\n/reset - Сбросить настройки.", reply_markup=keyboard)
-    elif data == "back_to_main":
-        keyboard = create_main_menu()
-        await callback.message.edit_text("Привет, я ваш бот!", reply_markup=keyboard)
         
 # Приветствие новых пользователей
 @router.message(lambda message: hasattr(message, 'new_chat_members') and message.new_chat_members)
