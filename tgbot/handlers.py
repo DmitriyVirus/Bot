@@ -175,17 +175,6 @@ async def send_welcome(message: Message):
     except Exception as e:
         # Логируем ошибку, если не удалось отправить сообщение
         logging.error(f"Ошибка при отправке приветствия: {e}")
-        
-# Обработчик команды /bot
-@router.message(Command(commands=["bot"]))  # Используем фильтр Command
-async def help_handler(message: Message):
-    help_text = HELP_TEXT_HEADER    
-    # Перебираем триггеры и нумеруем их
-    for i, trigger in enumerate(TRIGGERS, 1):
-        trigger_text = trigger.split(":")[0]  # Извлекаем часть до символа ":" или оставляем сам текст, если ":" нет
-        trigger_text = trigger_text.capitalize()  # Преобразуем первую букву в верхний регистр
-        help_text += f"{i}. {trigger_text}\n"  # Добавляем номер и фразу
-    await message.answer(help_text, parse_mode="Markdown")
 
 # Обработчик команды /help
 @router.message(Command(commands=["help"]))
