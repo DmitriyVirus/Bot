@@ -20,9 +20,9 @@ async def bot_command_handler(message: types.Message):
 # Функция для создания главного меню
 def create_main_menu():
     commands_button = InlineKeyboardButton(text="Команды", callback_data="menu_commands")
-    participants_button = InlineKeyboardButton(text="Участники", callback_data="menu_participants")
-    about_game_button = InlineKeyboardButton(text="Об игре", callback_data="menu_about_game")
-    about_bot_button = InlineKeyboardButton(text="О боте", callback_data="menu_about_bot")
+    participants_button = InlineKeyboardButton(text="Участники", url="https://t.me/participants_info")
+    about_game_button = InlineKeyboardButton(text="Об игре", url="https://t.me/about_game_info")
+    about_bot_button = InlineKeyboardButton(text="О боте", url="https://t.me/about_bot_info")
     return InlineKeyboardMarkup(inline_keyboard=[[commands_button], [participants_button], [about_game_button], [about_bot_button]])
 
 # Функция для создания подменю "Команды"
@@ -40,12 +40,6 @@ async def menu_callback_handler(callback: types.CallbackQuery):
     if data == "menu_commands":
         keyboard = create_commands_menu()
         await callback.message.edit_text("Типы команд:", reply_markup=keyboard)
-    elif data == "menu_participants":
-        await callback.answer("Список участников: Дмитрий, Леонид.")
-    elif data == "menu_about_game":
-        await callback.answer("Об игре: Игра представляет собой приключение в мире фэнтези.")
-    elif data == "menu_about_bot":
-        await callback.answer("О боте: Я создан для помощи в организации ваших приключений!")
 
 # Обработчик для кнопок подменю "Команды"
 @router.callback_query(lambda callback: callback.data.startswith("commands_"))
