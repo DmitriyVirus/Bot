@@ -55,23 +55,21 @@ async def fix_handler(message: types.Message):
 
 # Функция для разбора участников
 def parse_participants(caption: str):
-    # Разделение подписи на две части: основную и скамейку запасных
     parts = caption.split("Скамейка запасных:")
 
-    # Извлекаем участников из основной части (до "Скамейка запасных:")
-    first_part = parts[0]
-    first_part_names = []
-    match1 = re.search(r"Участвуют \(\d+\): (.+)", first_part, flags=re.DOTALL)
-    if match1:
-        first_part_names = [name.strip() for name in match1.group(1).split(",") if name.strip()]
+    # Основной список
+    main_participants = []
+    match_main = re.search(r"Участвуют \(\d+\): (.+)", parts[0], flags=re.DOTALL)
+    if match_main:
+        main_participants = [name.strip() for name in match_main.group(1).split(",") if name.strip()]
 
-    # Извлекаем участников из части с "Скамейка запасных"
-    second_part = parts[1] if len(parts) > 1 else ""
-    second_part_names = [name.strip() for name in second_part.split(",") if name.strip()]
+    # Скамейка запасных
+    bench_participants = []
+    if len(parts) > 1:
+        bench_participants = [name.strip() for name in parts[1].split(",") if name.strip()]
 
-    # Объединяем обе части в список участников
-    participants = first_part_names + second_part_names
-    return participants
+    # Объединяем участников в один список
+    return main_participants + bench_participants
 
 # Функция для извлечения времени из подписи
 def extract_time_from_caption(caption: str):
@@ -80,25 +78,19 @@ def extract_time_from_caption(caption: str):
 
 # Функция для обновления подписи к фото
 async def update_caption(photo_message: types.Message, participants: list, callback: types.CallbackQuery, action_message: str, time: str, keyboard: InlineKeyboardMarkup):
-    """
-    Обновляет подпись с учетом фиксированных участников и формирования скамейки запасных.
-    """
-    # Убираем дубли
     participants = list(dict.fromkeys(participants))
 
     # Основной список участников и скамейка запасных
     main_participants = participants[:7]
     bench_participants = participants[7:]
 
-    # Формируем текст для основных участников
+    # Формируем текст
     main_text = f"Участвуют ({len(main_participants)}): {', '.join(main_participants)}"
     updated_text = (
         f"\u2620\ufe0f*Идем в инсты {time}*.\u2620\ufe0f\n\n"
         f"\u26a1\u26a1\u26a1*Нажмите \u2795 в сообщении для участия*.\u26a1\u26a1\u26a1\n\n"
         f"{main_text}"
     )
-
-    # Если есть участники на скамейке запасных, добавляем их
     if bench_participants:
         bench_text = f"Скамейка запасных ({len(bench_participants)}): {', '.join(bench_participants)}"
         updated_text += f"\n\n{bench_text}"
@@ -120,18 +112,15 @@ async def handle_plus_reaction(callback: types.CallbackQuery):
     participants = parse_participants(message.caption)
     logging.debug(f"[До добавления] Участники: {participants}")
 
-    # Проверяем имя из таблицы
     display_name = USER_MAPPING.get(user_id, username)
 
-    # Проверка на дублирование
     if display_name in participants:
         await callback.answer(f"Вы уже участвуете, {display_name}!")
         return
 
-    # Добавляем нового участника
     participants.append(display_name)
     logging.debug(f"[После добавления] Участники: {participants}")
-    # Обновляем текст
+
     time = extract_time_from_caption(message.caption)
     keyboard = create_keyboard()
     await update_caption(message, participants, callback, f"Вы присоединились, {display_name}!", time, keyboard)
@@ -146,7 +135,6 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
     participants = parse_participants(message.caption)
     logging.debug(f"[До удаления] Участники: {participants}")
 
-    # Проверяем имя из таблицы
     display_name = USER_MAPPING.get(user_id, username)
 
     if display_name in participants:
@@ -156,11 +144,14 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
         await callback.answer("Вы не участвуете.")
         return
 
-    # Обновляем текст
+    if len(participants) > 7:
+        bench_participant = participants.pop(7)
+        participants.insert(6, bench_participant)
+
     time = extract_time_from_caption(message.caption)
     keyboard = create_keyboard()
     await update_caption(message, participants, callback, f"Вы больше не участвуете, {display_name}.", time, keyboard)
-    
+
 # Функция для создания клавиатуры
 def create_keyboard():
     plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
