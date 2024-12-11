@@ -3,7 +3,7 @@ import re
 import logging
 from aiogram import types, Router
 from aiogram.filters import Command
-from tgbot.triggers import TRIGGERS
+from tgbot.triggers import USER_MAPPING
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 # Настройка логирования
