@@ -32,7 +32,7 @@ def create_commands_menu():
     back_button = InlineKeyboardButton(text="Назад", callback_data="back_to_main")
     return InlineKeyboardMarkup(inline_keyboard=[[main_commands_button], [debug_commands_button], [back_button]])
 
-# Функция для создания клавиатуры с кнопкой "Назад"
+# Функция для создания подменю с одной кнопкой "Назад"
 def create_back_menu():
     back_button = InlineKeyboardButton(text="Назад", callback_data="back_to_main")
     return InlineKeyboardMarkup(inline_keyboard=[[back_button]])
@@ -67,10 +67,12 @@ async def commands_callback_handler(callback: types.CallbackQuery):
     data = callback.data
 
     if data == "commands_main":
-        keyboard = create_commands_menu()
+        # Здесь отображаем только кнопку "Назад"
+        keyboard = create_back_menu()
         await callback.message.edit_text("Основные команды:\n/start - Начало работы\n/help - Помощь\n/inst - Команда инст.", reply_markup=keyboard)
     elif data == "commands_debug":
-        keyboard = create_commands_menu()
+        # Здесь отображаем только кнопку "Назад"
+        keyboard = create_back_menu()
         await callback.message.edit_text("Команды для отладки:\n/debug_info - Получить информацию для отладки\n/reset - Сбросить настройки.", reply_markup=keyboard)
         
 # Приветствие новых пользователей
