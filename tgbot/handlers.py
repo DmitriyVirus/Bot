@@ -246,6 +246,18 @@ async def dno_handler(message: Message):
         await message.answer(f"Ошибка при отправке видео: {e}")
         print(f"Ошибка при отправке видео: {e}")
 
+# Обработчик команды /klaar
+@router.message(Command(commands=["klaar"]))  # Используем фильтр Command
+async def dno_handler(message: Message):
+    video_file_id = "BAACAgIAAxkBAAIDgWdar1ZHi4Baas954WdvLHCKOv35AAIlYAAC3ejZSvIFDXGe8drUNgQ"  # Ваш file_id
+    try:
+        # Отправляем видео с использованием file_id
+        await message.answer_video(video_file_id)
+        print(f"Видео отправлено пользователю {message.from_user.id}")
+    except Exception as e:
+        await message.answer(f"Ошибка при отправке видео: {e}")
+        print(f"Ошибка при отправке видео: {e}")
+
 # Обработчик команды /hi
 @router.message(Command(commands=["hi"]))
 async def send_welcome(message: Message):
