@@ -49,15 +49,24 @@ def create_main_menu():
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
+# Функция для создания меню с дополнительными кнопками
+def create_game_info_menu():
+    buttons = [
+        [InlineKeyboardButton(text="💢Свержение", callback_data="menu_revolution")],
+        [InlineKeyboardButton(text="🔯Макросы", callback_data="menu_macros")],
+        [InlineKeyboardButton(text="🏃Назад", callback_data="back_to_main")]
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+
 # Функция для создания подменю с одной кнопкой "Назад"
 def create_back_menu():
-    back_button = InlineKeyboardButton(text="Назад", callback_data="back_to_main")
+    back_button = InlineKeyboardButton(text="🏃Назад", callback_data="back_to_main")
     return InlineKeyboardMarkup(inline_keyboard=[[back_button]])
 
 # Функция для создания меню команд
 def create_commands_menu(is_admin_user: bool):
     main_commands_button = InlineKeyboardButton(text="Основные", callback_data="commands_main")
-    back_button = InlineKeyboardButton(text="Назад", callback_data="back_to_main")
+    back_button = InlineKeyboardButton(text="🏃Назад", callback_data="back_to_main")
     keyboard = [[main_commands_button]]
 
     # Если пользователь администратор, добавляем кнопку "Отладка"
@@ -179,15 +188,6 @@ async def back_to_main_handler(callback: types.CallbackQuery):
     keyboard = create_main_menu()
     await callback.message.edit_text(FIRST, reply_markup=keyboard)
 
-# Функция для создания меню с дополнительными кнопками
-def create_game_info_menu():
-    buttons = [
-        [InlineKeyboardButton(text="Свержение", callback_data="menu_revolution")],
-        [InlineKeyboardButton(text="Макросы", callback_data="menu_macros")],
-        [InlineKeyboardButton(text="Назад", callback_data="back_to_main")]
-    ]
-    return InlineKeyboardMarkup(inline_keyboard=buttons)
-
 # Обработчик для кнопки "Информация об игре"
 @router.callback_query(lambda callback: callback.data == "menu_about_game")
 async def menu_about_game_handler(callback: types.CallbackQuery):
@@ -219,12 +219,6 @@ async def menu_macros_handler(callback: types.CallbackQuery):
         parse_mode="HTML",  # Используем MarkdownV2 для форматирования ссылок
         disable_web_page_preview=True  # Отключаем предпросмотр ссылок
     )
-    
-# Обработчик для кнопки "Назад"
-@router.callback_query(lambda callback: callback.data == "back_to_main")
-async def back_to_main_handler(callback: types.CallbackQuery):
-    keyboard = create_main_menu()
-    await callback.message.edit_text(FIRST, reply_markup=keyboard)
         
 # Приветствие новых пользователей
 @router.message(lambda message: hasattr(message, 'new_chat_members') and message.new_chat_members)
