@@ -18,22 +18,64 @@ router = Router()
 # Список ID администраторов
 ADMINS = {1141764502, 559273200}  # Замените на ID ваших администраторов
 
-# ID пользователя, для которого меню ведет себя по-другому
-EXCLUDED_USER_ID = 559273200  # Замените на нужный ID
+# ID пользователей, для которых меню ведет себя по-другому
+EXCLUDED_USER_IDS = {559273200}  # Замените на нужные ID
+
+# Функции форматирования текстов
+def format_commands(commands_list):
+    """Форматирует список команд."""
+    return "\n".join(commands_list) if commands_list else "Нет доступных команд."
+
+def format_triggers(triggers):
+    """Форматирует список триггеров с нумерацией."""
+    return (
+        "\n".join([f"{i + 1}. {trigger}" for i, trigger in enumerate(triggers.keys())])
+        if triggers
+        else "Нет доступных триггеров."
+    )
+
+def is_excluded_user(user_id: int) -> bool:
+    """Проверяет, является ли пользователь исключённым."""
+    return user_id in EXCLUDED_USER_IDS
+
+# Функция для создания главного меню
+def create_main_menu():
+    buttons = [
+        [InlineKeyboardButton(text="Команды", callback_data="menu_commands")],
+        [InlineKeyboardButton(text="Участники", callback_data="menu_participants")],
+        [InlineKeyboardButton(text="Об игре", callback_data="menu_about_game")],
+        [InlineKeyboardButton(text="О боте", callback_data="menu_about_bot")]
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+# Функция для создания подменю с одной кнопкой "Назад"
+def create_back_menu():
+    back_button = InlineKeyboardButton(text="Назад", callback_data="back_to_main")
+    return InlineKeyboardMarkup(inline_keyboard=[[back_button]])
+
+# Функция для создания меню команд
+def create_commands_menu(is_admin_user: bool):
+    main_commands_button = InlineKeyboardButton(text="Основные", callback_data="commands_main")
+    back_button = InlineKeyboardButton(text="Назад", callback_data="back_to_main")
+    keyboard = [[main_commands_button]]
+
+    # Если пользователь администратор, добавляем кнопку "Отладка"
+    if is_admin_user:
+        debug_commands_button = InlineKeyboardButton(text="Отладка", callback_data="commands_debug")
+        keyboard.append([debug_commands_button])
+
+    keyboard.append([back_button])
+    return InlineKeyboardMarkup(inline_keyboard=keyboard)
+
+# Проверка на администратора
+def is_admin(user_id: int) -> bool:
+    return user_id in ADMINS
 
 # Обработчик команды /bot
 @router.message(Command(commands=["bot"]))
 async def bot_command_handler(message: types.Message):
     keyboard = create_main_menu()
     await message.answer(FIRST, reply_markup=keyboard)
-
-# Функция для создания главного меню
-def create_main_menu():
-    commands_button = InlineKeyboardButton(text="Команды", callback_data="menu_commands")
-    participants_button = InlineKeyboardButton(text="Участники", callback_data="menu_participants")
-    about_game_button = InlineKeyboardButton(text="Об игре", callback_data="menu_about_game")
-    about_bot_button = InlineKeyboardButton(text="О боте", callback_data="menu_about_bot")
-    return InlineKeyboardMarkup(inline_keyboard=[[commands_button], [participants_button], [about_game_button], [about_bot_button]])
 
 # Обработчик для кнопки "Участники"
 @router.callback_query(lambda callback: callback.data == "menu_participants")
@@ -53,76 +95,55 @@ async def menu_participants_handler(callback: types.CallbackQuery):
 async def menu_about_bot_handler(callback: types.CallbackQuery):
     await callback.message.edit_text(ABOUT, reply_markup=create_back_menu(), parse_mode="HTML")
 
+# Обработчик для кнопки "Основные команды"
 @router.callback_query(lambda callback: callback.data == "menu_commands")
 async def menu_commands_handler(callback: types.CallbackQuery):
-    logger.debug("Обработчик вызван.")  # Логируем начало обработки callback
-
+    logger.debug(f"Обработчик {callback.data} вызван пользователем {callback.from_user.id}")
     user_id = callback.from_user.id
-    logger.debug(f"Получен запрос от пользователя с ID: {user_id}")
 
-    # Логируем данные callback
-    logger.debug(f"Callback data: {callback.data}")
-    
-    # Если пользователь не равен исключенному ID, сразу показываем "Основные команды" и триггеры
-    if user_id != EXCLUDED_USER_ID:
-        keyboard = create_back_menu()
-
-        # Логируем список триггеров
-        logger.debug(f"TRIGGERS: {TRIGGERS}")
-
-        # Форматирование триггеров с нумерацией
-        triggers_text = (
-            "\n".join([f"{i + 1}. {trigger}" for i, trigger in enumerate(TRIGGERS.keys())])
-            if TRIGGERS
-            else "Нет доступных триггеров."
-        )
-        logger.debug(f"Triggers text (ключи триггеров): {triggers_text}")  # Логирование текста триггеров
-
+    if not is_excluded_user(user_id):
         try:
-            # Используем edit_text для обновления текста сообщения
+            keyboard = create_back_menu()
+            commands_text = format_commands(COMMANDS_LIST)
+            triggers_text = format_triggers(TRIGGERS)
+
             await callback.message.edit_text(
-                f"Основные команды:\n{'\n'.join(COMMANDS_LIST)}\n\n"
+                f"Основные команды:\n{commands_text}\n\n"
                 f"Основные триггеры:\n{triggers_text}",
                 reply_markup=keyboard
             )
-            logger.debug("Сообщение обновлено успешно.")
+            logger.debug("Сообщение успешно обновлено.")
         except Exception as e:
-            logger.error(f"Ошибка при обновлении текста сообщения: {e}")
+            logger.error(f"Ошибка при обработке команды: {e}")
+            await callback.message.answer("Произошла ошибка при обработке вашего запроса.")
     else:
-        # Логируем исключённого пользователя
-        logger.debug(f"Исключённый пользователь с ID: {user_id}")
-
+        logger.debug(f"Исключённый пользователь с ID {user_id}")
         keyboard = create_commands_menu(is_admin(user_id))
         await callback.message.edit_text("Типы команд:", reply_markup=keyboard)
-        
+
 # Обработчик для кнопки "Отладка"
 @router.callback_query(lambda callback: callback.data == "commands_debug")
 async def commands_debug_handler(callback: types.CallbackQuery):
+    logger.debug(f"Обработчик {callback.data} вызван пользователем {callback.from_user.id}")
     if is_admin(callback.from_user.id):
         keyboard = create_back_menu()
         await callback.message.edit_text(
-            f"Отладочные команды:\n{'\n'.join(DEBUG_BOT)}",
+            f"Отладочные команды:\n{format_commands(DEBUG_BOT)}",
             reply_markup=keyboard
         )
     else:
         await callback.answer("У вас нет прав доступа к этой функции.", show_alert=True)
 
+# Обработчик для кнопки "Основные"
 @router.callback_query(lambda callback: callback.data == "commands_main")
 async def commands_main_handler(callback: types.CallbackQuery):
     logger.debug(f"Получен callback с данными: {callback.data}")
 
     try:
-        # Генерация клавиатуры
         keyboard = create_back_menu()
-        # Форматирование списка команд
-        commands_text = "\n".join(COMMANDS_LIST) if COMMANDS_LIST else "Нет доступных команд."
-        # Форматирование списка триггеров с нумерацией
-        triggers_text = (
-            "\n".join([f"{i + 1}. {trigger}" for i, trigger in enumerate(TRIGGERS.keys())])
-            if TRIGGERS
-            else "Нет доступных триггеров."
-        )
-        # Редактирование сообщения
+        commands_text = format_commands(COMMANDS_LIST)
+        triggers_text = format_triggers(TRIGGERS)
+
         await callback.message.edit_text(
             f"Основные команды:\n{commands_text}\n\n"
             f"Основные триггеры:\n{triggers_text}",
@@ -132,34 +153,11 @@ async def commands_main_handler(callback: types.CallbackQuery):
     except Exception as e:
         logger.error(f"Ошибка при обновлении сообщения: {e}")
 
-# Функция для создания подменю с одной кнопкой "Назад"
-def create_back_menu():
-    back_button = InlineKeyboardButton(text="Назад", callback_data="back_to_main")
-    return InlineKeyboardMarkup(inline_keyboard=[[back_button]])
-
 # Обработчик для кнопки "Назад" (возвращает в главное меню)
 @router.callback_query(lambda callback: callback.data == "back_to_main")
 async def back_to_main_handler(callback: types.CallbackQuery):
     keyboard = create_main_menu()
     await callback.message.edit_text(FIRST, reply_markup=keyboard)
-
-# Функция для создания меню команд
-def create_commands_menu(is_admin_user: bool):
-    main_commands_button = InlineKeyboardButton(text="Основные", callback_data="commands_main")
-    back_button = InlineKeyboardButton(text="Назад", callback_data="back_to_main")
-    keyboard = [[main_commands_button]]
-
-    # Если пользователь администратор, добавляем кнопку "Отладка"
-    if is_admin_user:
-        debug_commands_button = InlineKeyboardButton(text="Отладка", callback_data="commands_debug")
-        keyboard.append([debug_commands_button])
-
-    keyboard.append([back_button])
-    return InlineKeyboardMarkup(inline_keyboard=keyboard)
-
-# Проверка на администратора
-def is_admin(user_id: int) -> bool:
-    return user_id in ADMINS
         
 # Приветствие новых пользователей
 @router.message(lambda message: hasattr(message, 'new_chat_members') and message.new_chat_members)
