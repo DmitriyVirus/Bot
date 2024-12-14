@@ -6,7 +6,7 @@ from aiogram import Router, types
 from aiogram.types import Message
 from aiogram.filters import Command
 from aiogram.types import Message, User, Chat, InlineKeyboardButton, InlineKeyboardMarkup
-from tgbot.triggers import TRIGGERS, WELCOME_TEXT, HELP_TEXT_HEADER, COMMANDS_LIST, NAME_TABLE, ALIASES, FIRST, ABOUT, DEBUG_BOT
+from tgbot.triggers import TRIGGERS, WELCOME_TEXT, HELP_TEXT_HEADER, COMMANDS_LIST, NAME_TABLE, ALIASES, FIRST, ABOUT, DEBUG_BOT, DAREDEVILS
 from config import config  # Ваш файл конфигурации с токенами, чатами и другими параметрами
 
 # Настройка логирования
@@ -41,10 +41,11 @@ def is_excluded_user(user_id: int) -> bool:
 # Функция для создания главного меню
 def create_main_menu():
     buttons = [
-        [InlineKeyboardButton(text="Команды", callback_data="menu_commands")],
-        [InlineKeyboardButton(text="Участники", callback_data="menu_participants")],
-        [InlineKeyboardButton(text="Об игре", callback_data="menu_about_game")],
-        [InlineKeyboardButton(text="О боте", callback_data="menu_about_bot")]
+        [InlineKeyboardButton(text="DareDevils", callback_data="menu_daredevils")],
+        [InlineKeyboardButton(text="Участники чата", callback_data="menu_participants")],
+        [InlineKeyboardButton(text="Информация об игре", callback_data="menu_about_game")],
+        [InlineKeyboardButton(text="Команды для бота", callback_data="menu_commands")],
+        [InlineKeyboardButton(text="Информация о боте", callback_data="menu_about_bot")]
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
@@ -79,9 +80,18 @@ async def bot_command_handler(message: types.Message):
     FIRST,
     reply_markup=keyboard,
     parse_mode="HTML",  # Активируем HTML-разметку для ссылок
-    disable_web_page_preview=True  # Отключаем предпросмотр
 )
 
+# Обработчик для кнопки "DareDevils"
+@router.callback_query(lambda callback: callback.data == "menu_daredevils")
+async def menu_daredevils_handler(callback: types.CallbackQuery):
+    await callback.message.edit_text(
+        DAREDEVILS,
+        reply_markup=create_back_menu(),
+        parse_mode="HTML",
+        disable_web_page_preview=True  # Отключаем предпросмотр ссылок
+    )
+    
 # Обработчик для кнопки "Участники"
 @router.callback_query(lambda callback: callback.data == "menu_participants")
 async def menu_participants_handler(callback: types.CallbackQuery):
