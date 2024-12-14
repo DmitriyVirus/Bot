@@ -143,11 +143,11 @@ FIRST = (
 DAREDEVILS = (
     "🐵🦧🐒Мы дружный и веселый клан, который играет в Lineage II на сервере Айрин.\n"
     "👇👇👇Вот несколько полезных ссылок, рассказывающих о нас:\n\n"
-    '📓🖊️ <a href="https://docs.google.com/spreadsheets/d/1YVuchkaFxnK6swm2n8W4Syy0nM2WqgmlhrBQ8WHxqvY/edit?gid=977389999#gid=977389999">Структура клана</a>\n'
-    '🧙🧙‍♀️🧛 <a href="https://docs.google.com/spreadsheets/d/1YVuchkaFxnK6swm2n8W4Syy0nM2WqgmlhrBQ8WHxqvY/edit?gid=1017631947#gid=1017631947">Состав клана</a> 🧚🦸🧞‍♂️\n'
-    '🗺️ <a href="https://www.google.com/maps/d/viewer?mid=129ywh4oGGwPzaB-hhszzZqh2iG7JPzM&ll=54.49364624759098%2C71.6847242&z=4">География клана</a> 🗺️\n'
-    '🏆🏆🏆 <a href="https://docs.google.com/spreadsheets/d/1YVuchkaFxnK6swm2n8W4Syy0nM2WqgmlhrBQ8WHxqvY/edit?gid=833263188#gid=833263188">Ранги и привилегии</a> 🏆🏆🏆\n\n'
-    '🌐 <a href="https://bot-virus-l2.vercel.app/">Наш сайт</a>'
+    '<a href="https://docs.google.com/spreadsheets/d/1YVuchkaFxnK6swm2n8W4Syy0nM2WqgmlhrBQ8WHxqvY/edit?gid=977389999#gid=977389999">Структура клана</a>\n\n'
+    '🧛<a href="https://docs.google.com/spreadsheets/d/1YVuchkaFxnK6swm2n8W4Syy0nM2WqgmlhrBQ8WHxqvY/edit?gid=1017631947#gid=1017631947">Состав клана</a>🧙\n'
+    '🗺️<a href="https://www.google.com/maps/d/viewer?mid=129ywh4oGGwPzaB-hhszzZqh2iG7JPzM&ll=54.49364624759098%2C71.6847242&z=4">География клана</a>🗺️\n'
+    '🏆🏆🏆<a href="https://docs.google.com/spreadsheets/d/1YVuchkaFxnK6swm2n8W4Syy0nM2WqgmlhrBQ8WHxqvY/edit?gid=833263188#gid=833263188">Ранги и привилегии</a>🏆🏆🏆\n\n'
+    '🌐<a href="https://bot-virus-l2.vercel.app/">Наш сайт</a>'
 )
 
 ABOUT = (
