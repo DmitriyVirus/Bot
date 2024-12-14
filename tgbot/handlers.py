@@ -79,7 +79,7 @@ async def bot_command_handler(message: types.Message):
     await message.answer(
     FIRST,
     reply_markup=keyboard,
-    parse_mode="HTML",  # Активируем HTML-разметку для ссылок
+    parse_mode="MarkdownV2",  # Активируем HTML-разметку для ссылок
 )
 
 # Обработчик для кнопки "DareDevils"
