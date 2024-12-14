@@ -49,7 +49,6 @@ async def menu_participants_handler(callback: types.CallbackQuery):
 async def menu_about_bot_handler(callback: types.CallbackQuery):
     await callback.message.edit_text(ABOUT, reply_markup=create_back_menu(), parse_mode="HTML")
 
-# Обработчик для кнопки "Команды"
 @router.callback_query(lambda callback: callback.data == "menu_commands")
 async def menu_commands_handler(callback: types.CallbackQuery):
     user_id = callback.from_user.id
@@ -57,7 +56,10 @@ async def menu_commands_handler(callback: types.CallbackQuery):
     # Если пользователь не равен исключенному ID, сразу показываем "Основные команды" и триггеры
     if user_id != EXCLUDED_USER_ID:
         keyboard = create_back_menu()
-        triggers_text = "\n".join(TRIGGERS.keys())
+        
+        # Печать триггеров как строки
+        triggers_text = "\n".join([f"{trigger}: {TRIGGERS[trigger]}" for trigger in TRIGGERS])
+        
         await callback.message.edit_text(
             f"Основные команды:\n{'\n'.join(COMMANDS_LIST)}\n\n"
             f"Основные триггеры:\n{triggers_text}",
