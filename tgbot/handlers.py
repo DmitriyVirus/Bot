@@ -14,6 +14,9 @@ router = Router()
 # Список ID администраторов
 ADMINS = {1141764502, 559273200}  # Замените на ID ваших администраторов
 
+# ID пользователя, для которого меню ведет себя по-другому
+EXCLUDED_USER_ID = 123456789  # Замените на нужный ID
+
 # Обработчик команды /bot
 @router.message(Command(commands=["bot"]))
 async def bot_command_handler(message: types.Message):
@@ -32,7 +35,7 @@ def create_main_menu():
     about_bot_button = InlineKeyboardButton(text="О боте", callback_data="menu_about_bot")
     return InlineKeyboardMarkup(inline_keyboard=[[commands_button], [participants_button], [about_game_button], [about_bot_button]])
 
-# Функция для создания подменю "Команды"
+# Функция для создания меню команд
 def create_commands_menu(is_admin_user: bool):
     main_commands_button = InlineKeyboardButton(text="Основные", callback_data="commands_main")
     back_button = InlineKeyboardButton(text="Назад", callback_data="back_to_main")
@@ -51,48 +54,40 @@ def create_back_menu():
     back_button = InlineKeyboardButton(text="Назад", callback_data="back_to_main")
     return InlineKeyboardMarkup(inline_keyboard=[[back_button]])
 
-# Функция для создания подменю "Об игре"
-def create_about_game_menu():
-    general_button = InlineKeyboardButton(text="Общее", callback_data="about_game_general")
-    by_classes_button = InlineKeyboardButton(text="По классам", callback_data="about_game_classes")
-    back_button = InlineKeyboardButton(text="Назад", callback_data="back_to_main")
-    return InlineKeyboardMarkup(inline_keyboard=[[general_button], [by_classes_button], [back_button]])
-
 # Обработчик для кнопки "Назад" (возвращает в главное меню)
 @router.callback_query(lambda callback: callback.data == "back_to_main")
 async def back_to_main_handler(callback: types.CallbackQuery):
     keyboard = create_main_menu()
     await callback.message.edit_text("Привет, я ваш бот!", reply_markup=keyboard)
 
-# Обработчик для кнопки "Об игре"
-@router.callback_query(lambda callback: callback.data == "menu_about_game")
-async def about_game_handler(callback: types.CallbackQuery):
-    keyboard = create_about_game_menu()
-    await callback.message.edit_text("Об игре: выберите категорию.", reply_markup=keyboard)
+# Обработчик для кнопки "Команды"
+@router.callback_query(lambda callback: callback.data == "menu_commands")
+async def menu_commands_handler(callback: types.CallbackQuery):
+    user_id = callback.from_user.id
 
-# Обработчик для кнопок подменю "Об игре"
-@router.callback_query(lambda callback: callback.data.startswith("about_game_"))
-async def about_game_submenu_handler(callback: types.CallbackQuery):
-    data = callback.data
-
-    if data == "about_game_general":
+    # Если пользователь не равен исключенному ID, сразу показываем "Основные команды"
+    if user_id != EXCLUDED_USER_ID:
         keyboard = create_back_menu()
-        await callback.message.edit_text("Общее: Здесь общая информация об игре.", reply_markup=keyboard)
-    elif data == "about_game_classes":
-        keyboard = create_back_menu()
-        await callback.message.edit_text("По классам: Здесь информация о классах.", reply_markup=keyboard)
+        await callback.message.edit_text(
+            "Основные команды:\n/start - Начало работы\n/help - Помощь\n/inst - Команда инст.",
+            reply_markup=keyboard
+        )
+    else:
+        # Для исключенного ID показываем главное меню команд
+        keyboard = create_commands_menu(is_admin(user_id))
+        await callback.message.edit_text("Типы команд:", reply_markup=keyboard)
 
 # Обработчик для кнопок меню
 @router.callback_query(lambda callback: callback.data.startswith("menu_"))
 async def menu_callback_handler(callback: types.CallbackQuery):
     data = callback.data
 
-    if data == "menu_commands":
-        keyboard = create_commands_menu(is_admin(callback.from_user.id))
-        await callback.message.edit_text("Типы команд:", reply_markup=keyboard)
-    elif data == "menu_participants":
+    if data == "menu_participants":
         keyboard = create_back_menu()
         await callback.message.edit_text("Участники:\n1. Дмитрий\n2. Леонид", reply_markup=keyboard)
+    elif data == "menu_about_game":
+        keyboard = create_about_game_menu()
+        await callback.message.edit_text("Об игре: выберите категорию.", reply_markup=keyboard)
     elif data == "menu_about_bot":
         keyboard = create_back_menu()
         await callback.message.edit_text("О боте: Этот бот помогает вам управлять задачами.", reply_markup=keyboard)
@@ -104,12 +99,17 @@ async def commands_callback_handler(callback: types.CallbackQuery):
 
     if data == "commands_main":
         keyboard = create_back_menu()
-        await callback.message.edit_text("Основные команды:\n/start - Начало работы\n/help - Помощь\n/inst - Команда инст.", reply_markup=keyboard)
+        await callback.message.edit_text(
+            "Основные команды:\n/start - Начало работы\n/help - Помощь\n/inst - Команда инст.",
+            reply_markup=keyboard
+        )
     elif data == "commands_debug":
-        # Проверяем, является ли пользователь администратором
         if is_admin(callback.from_user.id):
             keyboard = create_back_menu()
-            await callback.message.edit_text("Команды для отладки:\n/debug_info - Получить информацию для отладки\n/reset - Сбросить настройки.", reply_markup=keyboard)
+            await callback.message.edit_text(
+                "Команды для отладки:\n/debug_info - Получить информацию для отладки\n/reset - Сбросить настройки.",
+                reply_markup=keyboard
+            )
         else:
             await callback.answer("У вас нет прав доступа к этой функции.", show_alert=True)
         
