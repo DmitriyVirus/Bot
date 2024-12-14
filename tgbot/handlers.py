@@ -93,7 +93,12 @@ async def menu_participants_handler(callback: types.CallbackQuery):
 # Обработчик для кнопки "О боте"
 @router.callback_query(lambda callback: callback.data == "menu_about_bot")
 async def menu_about_bot_handler(callback: types.CallbackQuery):
-    await callback.message.edit_text(ABOUT, reply_markup=create_back_menu(), parse_mode="HTML")
+    await callback.message.edit_text(
+        ABOUT,
+        reply_markup=create_back_menu(),
+        parse_mode="HTML",
+        disable_web_page_preview=True  # Отключаем предпросмотр ссылок
+    )
 
 # Обработчик для кнопки "Основные команды"
 @router.callback_query(lambda callback: callback.data == "menu_commands")
