@@ -1,13 +1,13 @@
-import datetime  # Для работы с датой и временем
-import os  # Для работы с файловой системой
-import random  # Для случайного выбора ссылки
+ import os  
+import random  
 import logging
+import datetime 
+from config import config 
 from aiogram import Router, types
 from aiogram.types import Message
 from aiogram.filters import Command
 from aiogram.types import Message, User, Chat, InlineKeyboardButton, InlineKeyboardMarkup
-from tgbot.triggers import TRIGGERS, WELCOME_TEXT, COMMANDS_LIST, NAME_TABLE, ALIASES, FIRST, ABOUT, DEBUG_BOT, DAREDEVILS, ABOUT_GAME
-from config import config  # Ваш файл конфигурации с токенами, чатами и другими параметрами
+from tgbot.triggers import TRIGGERS, WELCOME_TEXT, COMMANDS_LIST, NAME_TABLE, ALIASES, FIRST, ABOUT, DEBUG_BOT, DAREDEVILS, ABOUT_GAME, DETRON, MACROS
 
 # Настройка логирования
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -201,15 +201,25 @@ async def menu_about_game_handler(callback: types.CallbackQuery):
 # Обработчик для кнопки "Свержение"
 @router.callback_query(lambda callback: callback.data == "menu_revolution")
 async def menu_revolution_handler(callback: types.CallbackQuery):
-    # Здесь добавьте действия, которые должны происходить при нажатии на "Свержение"
-    await callback.answer("Здесь будет информация о Свержении!")
+    # Отправляем текст о Свержении и кнопку "Назад"
+    await callback.message.edit_text(
+        DETRON,
+        reply_markup=create_back_menu(),
+        parse_mode="MarkdownV2",  # Используем MarkdownV2 для форматирования ссылок
+        disable_web_page_preview=True  # Отключаем предпросмотр ссылок
+    )
 
 # Обработчик для кнопки "Макросы"
 @router.callback_query(lambda callback: callback.data == "menu_macros")
 async def menu_macros_handler(callback: types.CallbackQuery):
-    # Здесь добавьте действия, которые должны происходить при нажатии на "Макросы"
-    await callback.answer("Здесь будет информация о Макросах!")
-
+    # Отправляем текст о макросах и кнопку "Назад"
+    await callback.message.edit_text(
+        MACROS,
+        reply_markup=create_back_menu(),
+        parse_mode="MarkdownV2",  # Используем MarkdownV2 для форматирования ссылок
+        disable_web_page_preview=True  # Отключаем предпросмотр ссылок
+    )
+    
 # Обработчик для кнопки "Назад"
 @router.callback_query(lambda callback: callback.data == "back_to_main")
 async def back_to_main_handler(callback: types.CallbackQuery):
