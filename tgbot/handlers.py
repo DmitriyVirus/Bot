@@ -41,11 +41,11 @@ def is_excluded_user(user_id: int) -> bool:
 # Функция для создания главного меню
 def create_main_menu():
     buttons = [
-        [InlineKeyboardButton(text="DareDevils", callback_data="menu_daredevils")],
-        [InlineKeyboardButton(text="Участники чата", callback_data="menu_participants")],
-        [InlineKeyboardButton(text="Информация об игре", callback_data="menu_about_game")],
-        [InlineKeyboardButton(text="Команды для бота", callback_data="menu_commands")],
-        [InlineKeyboardButton(text="Информация о боте", callback_data="menu_about_bot")]
+        [InlineKeyboardButton(text="😈DareDevils", callback_data="menu_daredevils")],
+        [InlineKeyboardButton(text="👽Участники чата", callback_data="menu_participants")],
+        [InlineKeyboardButton(text="ℹ️Информация об игре", callback_data="menu_about_game")],
+        [InlineKeyboardButton(text="🤖Команды для бота", callback_data="menu_commands")],
+        [InlineKeyboardButton(text="⚙️Информация о боте", callback_data="menu_about_bot")]
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
@@ -77,10 +77,10 @@ def is_admin(user_id: int) -> bool:
 async def bot_command_handler(message: types.Message):
     keyboard = create_main_menu()
     await message.answer(
-    FIRST,
-    reply_markup=keyboard,
-    parse_mode="Markdown",  # Активируем HTML-разметку для ссылок
-)
+        FIRST,
+        reply_markup=keyboard,
+        parse_mode="MarkdownV2",  # Используем MarkdownV2 для правильного форматирования
+    )
 
 # Обработчик для кнопки "DareDevils"
 @router.callback_query(lambda callback: callback.data == "menu_daredevils")
