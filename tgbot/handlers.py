@@ -9,6 +9,10 @@ from aiogram.types import Message, User, Chat, InlineKeyboardButton, InlineKeybo
 from tgbot.triggers import TRIGGERS, WELCOME_TEXT, HELP_TEXT_HEADER, COMMANDS_LIST, NAME_TABLE, ALIASES, FIRST, ABOUT, DEBUG_BOT
 from config import config  # Ваш файл конфигурации с токенами, чатами и другими параметрами
 
+# Настройка логирования
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
 router = Router()
 
 # Список ID администраторов
@@ -52,13 +56,20 @@ async def menu_about_bot_handler(callback: types.CallbackQuery):
 @router.callback_query(lambda callback: callback.data == "menu_commands")
 async def menu_commands_handler(callback: types.CallbackQuery):
     user_id = callback.from_user.id
-
+    
+    # Логирование ID пользователя
+    logger.debug(f"User ID: {user_id}")
+    
     # Если пользователь не равен исключенному ID, сразу показываем "Основные команды" и триггеры
     if user_id != EXCLUDED_USER_ID:
         keyboard = create_back_menu()
 
+        # Логируем данные триггеров
+        logger.debug(f"TRIGGERS: {TRIGGERS}")
+        
         # Печать только ключей триггеров
         triggers_text = "\n".join(TRIGGERS.keys())
+        logger.debug(f"Triggers text: {triggers_text}")  # Логирование текста триггеров
         
         await callback.message.edit_text(
             f"Основные команды:\n{'\n'.join(COMMANDS_LIST)}\n\n"
@@ -66,7 +77,9 @@ async def menu_commands_handler(callback: types.CallbackQuery):
             reply_markup=keyboard
         )
     else:
-        # Для исключенного ID показываем главное меню команд
+        # Логируем исключённого пользователя
+        logger.debug(f"Excluded user ID: {user_id}")
+
         keyboard = create_commands_menu(is_admin(user_id))
         await callback.message.edit_text("Типы команд:", reply_markup=keyboard)
 
