@@ -12,7 +12,7 @@ COMMANDS_LIST = (
     "/klaar - жаба"
 )
 
-Debug = (
+DEBUG_BOT = (
     "/getid - получить id текущего чата",
     "/getidbot - получить id сообщения",
     "/goodmornigeverydayGG - утреннее приветствие"
