@@ -53,7 +53,6 @@ async def menu_participants_handler(callback: types.CallbackQuery):
 async def menu_about_bot_handler(callback: types.CallbackQuery):
     await callback.message.edit_text(ABOUT, reply_markup=create_back_menu(), parse_mode="HTML")
 
-# Обработчик callback-запроса
 @router.callback_query(lambda callback: callback.data == "menu_commands")
 async def menu_commands_handler(callback: types.CallbackQuery):
     logger.debug("Обработчик вызван.")  # Логируем начало обработки callback
@@ -70,9 +69,13 @@ async def menu_commands_handler(callback: types.CallbackQuery):
 
         # Логируем список триггеров
         logger.debug(f"TRIGGERS: {TRIGGERS}")
-        
-        # Печать только ключей триггеров
-        triggers_text = "\n".join(TRIGGERS.keys())
+
+        # Форматирование триггеров с нумерацией
+        triggers_text = (
+            "\n".join([f"{i + 1}. {trigger}" for i, trigger in enumerate(TRIGGERS.keys())])
+            if TRIGGERS
+            else "Нет доступных триггеров."
+        )
         logger.debug(f"Triggers text (ключи триггеров): {triggers_text}")  # Логирование текста триггеров
 
         try:
@@ -109,11 +112,16 @@ async def commands_main_handler(callback: types.CallbackQuery):
     logger.debug(f"Получен callback с данными: {callback.data}")
 
     try:
-        # Генерация клавиатуры и текста
+        # Генерация клавиатуры
         keyboard = create_back_menu()
-        triggers_text = "\n".join(TRIGGERS.keys())
-        commands_text = "\n".join(COMMANDS_LIST)
-
+        # Форматирование списка команд
+        commands_text = "\n".join(COMMANDS_LIST) if COMMANDS_LIST else "Нет доступных команд."
+        # Форматирование списка триггеров с нумерацией
+        triggers_text = (
+            "\n".join([f"{i + 1}. {trigger}" for i, trigger in enumerate(TRIGGERS.keys())])
+            if TRIGGERS
+            else "Нет доступных триггеров."
+        )
         # Редактирование сообщения
         await callback.message.edit_text(
             f"Основные команды:\n{commands_text}\n\n"
