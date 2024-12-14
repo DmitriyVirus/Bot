@@ -54,17 +54,31 @@ async def menu_about_bot_handler(callback: types.CallbackQuery):
 async def menu_commands_handler(callback: types.CallbackQuery):
     user_id = callback.from_user.id
 
-    # Если пользователь не равен исключенному ID, сразу показываем "Основные команды"
+    # Если пользователь не равен исключенному ID, сразу показываем "Основные команды" и триггеры
     if user_id != EXCLUDED_USER_ID:
         keyboard = create_back_menu()
+        triggers_text = "\n".join(TRIGGERS.keys())
         await callback.message.edit_text(
-            "Основные команды:\n" + "\n".join(COMMANDS_LIST),
+            f"Основные команды:\n{'\n'.join(COMMANDS_LIST)}\n\n"
+            f"Основные триггеры:\n{triggers_text}",
             reply_markup=keyboard
         )
     else:
         # Для исключенного ID показываем главное меню команд
         keyboard = create_commands_menu(is_admin(user_id))
         await callback.message.edit_text("Типы команд:", reply_markup=keyboard)
+
+# Обработчик для кнопки "Отладка"
+@router.callback_query(lambda callback: callback.data == "commands_debug")
+async def commands_debug_handler(callback: types.CallbackQuery):
+    if is_admin(callback.from_user.id):
+        keyboard = create_back_menu()
+        await callback.message.edit_text(
+            f"Отладочные команды:\n{'\n'.join(DEBUG_BOT)}",
+            reply_markup=keyboard
+        )
+    else:
+        await callback.answer("У вас нет прав доступа к этой функции.", show_alert=True)
 
 # Обработчик для кнопки "Основные"
 @router.callback_query(lambda callback: callback.data == "commands_main")
