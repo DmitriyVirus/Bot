@@ -140,10 +140,16 @@ USER_MAPPING = {
 }
 
 FIRST = (
-    "Привет, я помощник клана DareDevils!\n\n"
+    "Привет, я помощник клана DareDevils!\n"
     "Я могу многое подсказать по игре, рассказать о нас и отвечать на некоторые команды.\n\n"
+    "Вот несколько полезных ссылок рассказывающих о нас:\n\n"
+    "<a href='https://docs.google.com/spreadsheets/d/1YVuchkaFxnK6swm2n8W4Syy0nM2WqgmlhrBQ8WHxqvY/edit?gid=977389999#gid=977389999'>Структура клана</a>\n"
+    "<a href='https://docs.google.com/spreadsheets/d/1YVuchkaFxnK6swm2n8W4Syy0nM2WqgmlhrBQ8WHxqvY/edit?gid=1017631947#gid=1017631947'>Состав клана</a>\n"
+    "<a href='https://www.google.com/maps/d/viewer?mid=129ywh4oGGwPzaB-hhszzZqh2iG7JPzM&ll=54.49364624759098%2C71.6847242&z=4'>География клана</a>\n"
+    "<a href='https://docs.google.com/spreadsheets/d/1YVuchkaFxnK6swm2n8W4Syy0nM2WqgmlhrBQ8WHxqvY/edit?gid=833263188#gid=833263188'>Ранги и привилегии</a>\n\n"
     "Нажимай на кнопки внизу, чтобы получить больше информации."
 )
+
 
 ABOUT = (
     "Я бот, разработанный персонажем @DDestopia.\n\n"
