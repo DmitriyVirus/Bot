@@ -85,7 +85,7 @@ NAME_TABLE = {
     "Artem Yakovlev":{"name": "Артем(DeathDior)", "tgnick": "Artem Yakovlev", "nick": "@svao92", "about": "Дк. Он есть."},
     "Андрей🍅":{"name": "Андрей(Greshnyy)", "tgnick": "Андрей🍅", "nick": "@Andrey_kisel72", "about": "Дк. Он есть."},
     "Sergey None":{"name": "Сергей(Butchery)", "tgnick": "Sergey None)", "nick": "@ru_vehement", "about": "Вл. Он есть."},
-    "Михаил [Remorse]":{"name": "Михаил(Remorse)", "tgnick": "Михаил [Remorse]", "nick": "@RemorseADV", "about": "В активном поиске профессии. У него есть лук. Он есть."}
+    "Михаил [Remorse]":{"name": "Михаил(Remorse)", "tgnick": "Михаил [Remorse]", "nick": "@RemorseADV", "about": "Высокоуровневый лучник. Он есть."}
 }
 
 ALIASES = {
