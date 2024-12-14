@@ -77,6 +77,7 @@ async def bot_command_handler(message: types.Message):
     keyboard = create_main_menu()
     await message.answer(
         FIRST,
+        disable_web_page_preview=True
         reply_markup=keyboard,
         parse_mode="HTML",  # Активируем HTML-разметку для ссылок
     )
