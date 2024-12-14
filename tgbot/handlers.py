@@ -11,12 +11,6 @@ from config import config  # Ваш файл конфигурации с ток�
 
 router = Router()
 
-# Список ID администраторов
-ADMINS = {1141764502, 559273200}  # Замените на ID ваших администраторов
-
-# ID пользователя, для которого меню ведет себя по-другому
-EXCLUDED_USER_ID = 559273200  # Замените на нужный ID
-
 # Обработчик команды /bot
 @router.message(Command(commands=["bot"]))
 async def bot_command_handler(message: types.Message):
@@ -50,30 +44,17 @@ async def menu_about_bot_handler(callback: types.CallbackQuery):
     await callback.message.edit_text(ABOUT, reply_markup=create_back_menu(), parse_mode="HTML")
 
 # Обработчик callback-запроса
-@router.callback_query(lambda callback: callback.data == "menu_commands")
+@router.callback_query(lambda c: c.data == "menu_commands")
 async def menu_commands_handler(callback: types.CallbackQuery):
-   
-    user_id = callback.from_user.id
-   
-    # Если пользователь не равен исключенному ID, сразу показываем "Основные команды" и триггеры
-    if user_id != EXCLUDED_USER_ID:
-        keyboard = create_back_menu()
-        try:
-            # Используем edit_text для обновления текста сообщения
-            await callback.message.edit_text(
-                f"Основные команды:\n{'\n'.join(COMMANDS_LIST)}\n\n"
-                f"Основные триггеры:\n{"\n".join(TRIGGERS.keys())}",
-                reply_markup=keyboard
-            )
-        except Exception as e:
-            logger.error(f"Ошибка при обновлении текста сообщения: {e}")
-    else:
-        # Логируем исключённого пользователя
-        logger.debug(f"Исключённый пользователь с ID: {user_id}")
+    try:
+        await callback.message.edit_text(
+            f"Основные команды:\n{'\n'.join(COMMANDS_LIST)}\n\n"
+            f"Основные триггеры:\n{'\n'.join(TRIGGERS.keys())}",
+            reply_markup=keyboard
+        )
+    except Exception as e:
+        logger.error(f"Ошибка при обновлении текста сообщения: {e}")
 
-        keyboard = create_commands_menu(is_admin(user_id))
-        await callback.message.edit_text("Типы команд:", reply_markup=keyboard)
-        
 # Обработчик для кнопки "Отладка"
 @router.callback_query(lambda callback: callback.data == "commands_debug")
 async def commands_debug_handler(callback: types.CallbackQuery):
