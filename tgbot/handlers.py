@@ -51,11 +51,36 @@ def create_back_menu():
     back_button = InlineKeyboardButton(text="Назад", callback_data="back_to_main")
     return InlineKeyboardMarkup(inline_keyboard=[[back_button]])
 
+# Функция для создания подменю "Об игре"
+def create_about_game_menu():
+    general_button = InlineKeyboardButton(text="Общее", callback_data="about_game_general")
+    by_classes_button = InlineKeyboardButton(text="По классам", callback_data="about_game_classes")
+    back_button = InlineKeyboardButton(text="Назад", callback_data="back_to_main")
+    return InlineKeyboardMarkup(inline_keyboard=[[general_button], [by_classes_button], [back_button]])
+
 # Обработчик для кнопки "Назад" (возвращает в главное меню)
 @router.callback_query(lambda callback: callback.data == "back_to_main")
 async def back_to_main_handler(callback: types.CallbackQuery):
     keyboard = create_main_menu()
     await callback.message.edit_text("Привет, я ваш бот!", reply_markup=keyboard)
+
+# Обработчик для кнопки "Об игре"
+@router.callback_query(lambda callback: callback.data == "menu_about_game")
+async def about_game_handler(callback: types.CallbackQuery):
+    keyboard = create_about_game_menu()
+    await callback.message.edit_text("Об игре: выберите категорию.", reply_markup=keyboard)
+
+# Обработчик для кнопок подменю "Об игре"
+@router.callback_query(lambda callback: callback.data.startswith("about_game_"))
+async def about_game_submenu_handler(callback: types.CallbackQuery):
+    data = callback.data
+
+    if data == "about_game_general":
+        keyboard = create_back_menu()
+        await callback.message.edit_text("Общее: Здесь общая информация об игре.", reply_markup=keyboard)
+    elif data == "about_game_classes":
+        keyboard = create_back_menu()
+        await callback.message.edit_text("По классам: Здесь информация о классах.", reply_markup=keyboard)
 
 # Обработчик для кнопок меню
 @router.callback_query(lambda callback: callback.data.startswith("menu_"))
@@ -68,9 +93,6 @@ async def menu_callback_handler(callback: types.CallbackQuery):
     elif data == "menu_participants":
         keyboard = create_back_menu()
         await callback.message.edit_text("Участники:\n1. Дмитрий\n2. Леонид", reply_markup=keyboard)
-    elif data == "menu_about_game":
-        keyboard = create_back_menu()
-        await callback.message.edit_text("Об игре: Это текст о вашей игре.", reply_markup=keyboard)
     elif data == "menu_about_bot":
         keyboard = create_back_menu()
         await callback.message.edit_text("О боте: Этот бот помогает вам управлять задачами.", reply_markup=keyboard)
