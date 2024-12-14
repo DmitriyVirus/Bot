@@ -173,7 +173,7 @@ ABOUT_GAME = (
 ) 
 
 DETRON = (
-    "Что же такое это Свержение/Детрон\n"
+    "Что же такое этот Детрон\n"
     "Ну, давайте разбиратся. Для начала посмотрим несколько обучающих видео на YouTube:\n\n"
     '<a href="https://www.youtube.com/watch?v=XpBO_iHaoAc">Гайд по детрону\свержение</a>\n\n'
     '<a href="https://www.youtube.com/watch?v=IPEma2luoKY">Свержение в LineAge 2 main</a>\n\n'
