@@ -72,16 +72,21 @@ async def menu_commands_handler(callback: types.CallbackQuery):
         triggers_text = "\n".join(TRIGGERS.keys())
         logger.debug(f"Triggers text: {triggers_text}")  # Логирование текста триггеров
 
-        # Убедимся, что отображается сообщение с текстом "Основные триггеры"
+        # Проверка, не пуст ли список триггеров
         if triggers_text:
-            await callback.message.edit_text(
-                f"Основные команды:\n{'\n'.join(COMMANDS_LIST)}\n\n"
-                f"Основные триггеры:\n{triggers_text}",
-                reply_markup=keyboard
-            )
+            try:
+                # Используем send_message для проверки
+                await callback.message.answer(
+                    f"Основные команды:\n{'\n'.join(COMMANDS_LIST)}\n\n"
+                    f"Основные триггеры:\n{triggers_text}",
+                    reply_markup=keyboard
+                )
+                logger.debug("Сообщение отправлено успешно.")
+            except Exception as e:
+                logger.error(f"Ошибка при отправке сообщения: {e}")
         else:
             logger.warning("TRIGGERS is empty or not defined properly.")
-            await callback.message.edit_text(
+            await callback.message.answer(
                 "Основные команды:\n" + '\n'.join(COMMANDS_LIST),
                 reply_markup=keyboard
             )
@@ -90,7 +95,7 @@ async def menu_commands_handler(callback: types.CallbackQuery):
         logger.debug(f"Excluded user ID: {user_id}")
 
         keyboard = create_commands_menu(is_admin(user_id))
-        await callback.message.edit_text("Типы команд:", reply_markup=keyboard)
+        await callback.message.answer("Типы команд:", reply_markup=keyboard)
         
 # Обработчик для кнопки "Отладка"
 @router.callback_query(lambda callback: callback.data == "commands_debug")
