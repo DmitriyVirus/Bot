@@ -79,7 +79,6 @@ async def bot_command_handler(message: types.Message):
         FIRST,
         reply_markup=keyboard,
         parse_mode="HTML",  # Активируем HTML-разметку для ссылок
-        disable_web_page_preview=True  # Отключаем предпросмотр
     )
 
 # Обработчик для кнопки "Участники"
