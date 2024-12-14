@@ -9,10 +9,6 @@ from aiogram.types import Message, User, Chat, InlineKeyboardButton, InlineKeybo
 from tgbot.triggers import TRIGGERS, WELCOME_TEXT, HELP_TEXT_HEADER, COMMANDS_LIST, NAME_TABLE, ALIASES, FIRST, ABOUT, DEBUG_BOT
 from config import config  # Ваш файл конфигурации с токенами, чатами и другими параметрами
 
-# Настройка логирования
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
-
 router = Router()
 
 # Список ID администраторов
@@ -56,33 +52,19 @@ async def menu_about_bot_handler(callback: types.CallbackQuery):
 # Обработчик callback-запроса
 @router.callback_query(lambda callback: callback.data == "menu_commands")
 async def menu_commands_handler(callback: types.CallbackQuery):
-    logger.debug("Обработчик вызван.")  # Логируем начало обработки callback
-
+   
     user_id = callback.from_user.id
-    logger.debug(f"Получен запрос от пользователя с ID: {user_id}")
-
-    # Логируем данные callback
-    logger.debug(f"Callback data: {callback.data}")
-    
+   
     # Если пользователь не равен исключенному ID, сразу показываем "Основные команды" и триггеры
     if user_id != EXCLUDED_USER_ID:
         keyboard = create_back_menu()
-
-        # Логируем список триггеров
-        logger.debug(f"TRIGGERS: {TRIGGERS}")
-        
-        # Печать только ключей триггеров
-        triggers_text = "\n".join(TRIGGERS.keys())
-        logger.debug(f"Triggers text (ключи триггеров): {triggers_text}")  # Логирование текста триггеров
-
         try:
             # Используем edit_text для обновления текста сообщения
             await callback.message.edit_text(
                 f"Основные команды:\n{'\n'.join(COMMANDS_LIST)}\n\n"
-                f"Основные триггеры:\n{triggers_text}",
+                f"Основные триггеры:\n{"\n".join(TRIGGERS.keys())}",
                 reply_markup=keyboard
             )
-            logger.debug("Сообщение обновлено успешно.")
         except Exception as e:
             logger.error(f"Ошибка при обновлении текста сообщения: {e}")
     else:
