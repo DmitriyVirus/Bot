@@ -6,7 +6,7 @@ from aiogram import Router, types
 from aiogram.types import Message
 from aiogram.filters import Command
 from aiogram.types import Message, User, Chat, InlineKeyboardButton, InlineKeyboardMarkup
-from tgbot.triggers import TRIGGERS, WELCOME_TEXT, HELP_TEXT_HEADER, COMMANDS_LIST, NAME_TABLE, ALIASES, FIRST, ABOUT, DEBUG_BOT, DAREDEVILS
+from tgbot.triggers import TRIGGERS, WELCOME_TEXT, COMMANDS_LIST, NAME_TABLE, ALIASES, FIRST, ABOUT, DEBUG_BOT, DAREDEVILS
 from config import config  # Ваш файл конфигурации с токенами, чатами и другими параметрами
 
 # Настройка логирования
@@ -174,6 +174,43 @@ async def commands_main_handler(callback: types.CallbackQuery):
         logger.error(f"Ошибка при обновлении сообщения: {e}")
 
 # Обработчик для кнопки "Назад" (возвращает в главное меню)
+@router.callback_query(lambda callback: callback.data == "back_to_main")
+async def back_to_main_handler(callback: types.CallbackQuery):
+    keyboard = create_main_menu()
+    await callback.message.edit_text(FIRST, reply_markup=keyboard)
+
+# Функция для создания меню с дополнительными кнопками
+def create_game_info_menu():
+    buttons = [
+        [InlineKeyboardButton(text="Свержение", callback_data="menu_revolution")],
+        [InlineKeyboardButton(text="Макросы", callback_data="menu_macros")],
+        [InlineKeyboardButton(text="Назад", callback_data="back_to_main")]
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+# Обработчик для кнопки "Информация об игре"
+@router.callback_query(lambda callback: callback.data == "menu_about_game")
+async def menu_about_game_handler(callback: types.CallbackQuery):
+    await callback.message.edit_text(
+        ABOUT_GAME,
+        reply_markup=create_game_info_menu(),
+        parse_mode="HTML",
+        disable_web_page_preview=True  # Отключаем предпросмотр ссылок
+    )
+
+# Обработчик для кнопки "Свержение"
+@router.callback_query(lambda callback: callback.data == "menu_revolution")
+async def menu_revolution_handler(callback: types.CallbackQuery):
+    # Здесь добавьте действия, которые должны происходить при нажатии на "Свержение"
+    await callback.answer("Здесь будет информация о Свержении!")
+
+# Обработчик для кнопки "Макросы"
+@router.callback_query(lambda callback: callback.data == "menu_macros")
+async def menu_macros_handler(callback: types.CallbackQuery):
+    # Здесь добавьте действия, которые должны происходить при нажатии на "Макросы"
+    await callback.answer("Здесь будет информация о Макросах!")
+
+# Обработчик для кнопки "Назад"
 @router.callback_query(lambda callback: callback.data == "back_to_main")
 async def back_to_main_handler(callback: types.CallbackQuery):
     keyboard = create_main_menu()
