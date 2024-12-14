@@ -104,14 +104,25 @@ async def commands_debug_handler(callback: types.CallbackQuery):
     else:
         await callback.answer("У вас нет прав доступа к этой функции.", show_alert=True)
 
-# Обработчик для кнопки "Основные"
 @router.callback_query(lambda callback: callback.data == "commands_main")
 async def commands_main_handler(callback: types.CallbackQuery):
-    keyboard = create_back_menu()
-    await callback.message.edit_text(
-        "Основные команды:\n" + "\n".join(COMMANDS_LIST),
-        reply_markup=keyboard
-    )
+    logger.debug(f"Получен callback с данными: {callback.data}")
+
+    try:
+        # Генерация клавиатуры и текста
+        keyboard = create_back_menu()
+        triggers_text = "\n".join(TRIGGERS.keys())
+        commands_text = "\n".join(COMMANDS_LIST)
+
+        # Редактирование сообщения
+        await callback.message.edit_text(
+            f"Основные команды:\n{commands_text}\n\n"
+            f"Основные триггеры:\n{triggers_text}",
+            reply_markup=keyboard
+        )
+        logger.debug("Сообщение успешно обновлено.")
+    except Exception as e:
+        logger.error(f"Ошибка при обновлении сообщения: {e}")
 
 # Функция для создания подменю с одной кнопкой "Назад"
 def create_back_menu():
