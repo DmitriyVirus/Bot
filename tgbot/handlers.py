@@ -79,7 +79,7 @@ async def bot_command_handler(message: types.Message):
     await message.answer(
         FIRST,
         reply_markup=keyboard,
-        parse_mode="MarkdownV2",  # Используем MarkdownV2 для правильного форматирования
+        parse_mode="Markdown",  # Используем MarkdownV2 для правильного форматирования
     )
 
 # Обработчик для кнопки "DareDevils"
@@ -205,7 +205,7 @@ async def menu_revolution_handler(callback: types.CallbackQuery):
     await callback.message.edit_text(
         DETRON,
         reply_markup=create_back_menu(),
-        parse_mode="MarkdownV2",  # Используем MarkdownV2 для форматирования ссылок
+        parse_mode="Markdown",  # Используем MarkdownV2 для форматирования ссылок
         disable_web_page_preview=True  # Отключаем предпросмотр ссылок
     )
 
@@ -216,7 +216,7 @@ async def menu_macros_handler(callback: types.CallbackQuery):
     await callback.message.edit_text(
         MACROS,
         reply_markup=create_back_menu(),
-        parse_mode="MarkdownV2",  # Используем MarkdownV2 для форматирования ссылок
+        parse_mode="Markdown",  # Используем MarkdownV2 для форматирования ссылок
         disable_web_page_preview=True  # Отключаем предпросмотр ссылок
     )
     
