@@ -76,11 +76,11 @@ def is_admin(user_id: int) -> bool:
 async def bot_command_handler(message: types.Message):
     keyboard = create_main_menu()
     await message.answer(
-        FIRST,
-        disable_web_page_preview=True
-        reply_markup=keyboard,
-        parse_mode="HTML",  # Активируем HTML-разметку для ссылок
-    )
+    FIRST,
+    reply_markup=keyboard,
+    parse_mode="HTML",  # Активируем HTML-разметку для ссылок
+    disable_web_page_preview=True  # Отключаем предпросмотр
+)
 
 # Обработчик для кнопки "Участники"
 @router.callback_query(lambda callback: callback.data == "menu_participants")
