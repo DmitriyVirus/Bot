@@ -53,6 +53,7 @@ async def menu_participants_handler(callback: types.CallbackQuery):
 async def menu_about_bot_handler(callback: types.CallbackQuery):
     await callback.message.edit_text(ABOUT, reply_markup=create_back_menu(), parse_mode="HTML")
 
+# Обработчик callback-запроса
 @router.callback_query(lambda callback: callback.data == "menu_commands")
 async def menu_commands_handler(callback: types.CallbackQuery):
     user_id = callback.from_user.id
@@ -70,19 +71,27 @@ async def menu_commands_handler(callback: types.CallbackQuery):
         # Печать только ключей триггеров
         triggers_text = "\n".join(TRIGGERS.keys())
         logger.debug(f"Triggers text: {triggers_text}")  # Логирование текста триггеров
-        
-        await callback.message.edit_text(
-            f"Основные команды:\n{'\n'.join(COMMANDS_LIST)}\n\n"
-            f"Основные триггеры:\n{triggers_text}",
-            reply_markup=keyboard
-        )
+
+        # Убедимся, что отображается сообщение с текстом "Основные триггеры"
+        if triggers_text:
+            await callback.message.edit_text(
+                f"Основные команды:\n{'\n'.join(COMMANDS_LIST)}\n\n"
+                f"Основные триггеры:\n{triggers_text}",
+                reply_markup=keyboard
+            )
+        else:
+            logger.warning("TRIGGERS is empty or not defined properly.")
+            await callback.message.edit_text(
+                "Основные команды:\n" + '\n'.join(COMMANDS_LIST),
+                reply_markup=keyboard
+            )
     else:
         # Логируем исключённого пользователя
         logger.debug(f"Excluded user ID: {user_id}")
 
         keyboard = create_commands_menu(is_admin(user_id))
         await callback.message.edit_text("Типы команд:", reply_markup=keyboard)
-
+        
 # Обработчик для кнопки "Отладка"
 @router.callback_query(lambda callback: callback.data == "commands_debug")
 async def commands_debug_handler(callback: types.CallbackQuery):
