@@ -56,46 +56,41 @@ async def menu_about_bot_handler(callback: types.CallbackQuery):
 # Обработчик callback-запроса
 @router.callback_query(lambda callback: callback.data == "menu_commands")
 async def menu_commands_handler(callback: types.CallbackQuery):
+    logger.debug("Обработчик вызван.")  # Логируем начало обработки callback
+
     user_id = callback.from_user.id
-    
-    # Логирование ID пользователя
-    logger.debug(f"User ID: {user_id}")
+    logger.debug(f"Получен запрос от пользователя с ID: {user_id}")
+
+    # Логируем данные callback
+    logger.debug(f"Callback data: {callback.data}")
     
     # Если пользователь не равен исключенному ID, сразу показываем "Основные команды" и триггеры
     if user_id != EXCLUDED_USER_ID:
         keyboard = create_back_menu()
 
-        # Логируем данные триггеров
+        # Логируем список триггеров
         logger.debug(f"TRIGGERS: {TRIGGERS}")
         
         # Печать только ключей триггеров
         triggers_text = "\n".join(TRIGGERS.keys())
-        logger.debug(f"Triggers text: {triggers_text}")  # Логирование текста триггеров
+        logger.debug(f"Triggers text (ключи триггеров): {triggers_text}")  # Логирование текста триггеров
 
-        # Проверка, не пуст ли список триггеров
-        if triggers_text:
-            try:
-                # Используем send_message для проверки
-                await callback.message.answer(
-                    f"Основные команды:\n{'\n'.join(COMMANDS_LIST)}\n\n"
-                    f"Основные триггеры:\n{triggers_text}",
-                    reply_markup=keyboard
-                )
-                logger.debug("Сообщение отправлено успешно.")
-            except Exception as e:
-                logger.error(f"Ошибка при отправке сообщения: {e}")
-        else:
-            logger.warning("TRIGGERS is empty or not defined properly.")
-            await callback.message.answer(
-                "Основные команды:\n" + '\n'.join(COMMANDS_LIST),
+        try:
+            # Используем edit_text для обновления текста сообщения
+            await callback.message.edit_text(
+                f"Основные команды:\n{'\n'.join(COMMANDS_LIST)}\n\n"
+                f"Основные триггеры:\n{triggers_text}",
                 reply_markup=keyboard
             )
+            logger.debug("Сообщение обновлено успешно.")
+        except Exception as e:
+            logger.error(f"Ошибка при обновлении текста сообщения: {e}")
     else:
         # Логируем исключённого пользователя
-        logger.debug(f"Excluded user ID: {user_id}")
+        logger.debug(f"Исключённый пользователь с ID: {user_id}")
 
         keyboard = create_commands_menu(is_admin(user_id))
-        await callback.message.answer("Типы команд:", reply_markup=keyboard)
+        await callback.message.edit_text("Типы команд:", reply_markup=keyboard)
         
 # Обработчик для кнопки "Отладка"
 @router.callback_query(lambda callback: callback.data == "commands_debug")
