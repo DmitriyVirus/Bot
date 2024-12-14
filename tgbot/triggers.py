@@ -116,7 +116,7 @@ ALIASES = {
     "Artem Yakovlev": ["Артем", "DeathDior", "Artem"],
     "Андрей🍅": ["Андрей", "Greshnyy",],
     "Sergey None": ["Sergey", "Сергей", "Butchery"],
-    "Михаил [Remorse]": ["Михаил", "Remorse" "[Remorse]"]
+    "Михаил [Remorse]": ["Михаил", "Remorse", "[Remorse]"]
 }
 
 # Словарь соответствия id -> имя
