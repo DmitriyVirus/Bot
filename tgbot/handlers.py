@@ -56,9 +56,9 @@ async def menu_commands_handler(callback: types.CallbackQuery):
     # Если пользователь не равен исключенному ID, сразу показываем "Основные команды" и триггеры
     if user_id != EXCLUDED_USER_ID:
         keyboard = create_back_menu()
-        
-        # Печать триггеров как строки
-        triggers_text = "\n".join([f"{trigger}: {TRIGGERS[trigger]}" for trigger in TRIGGERS])
+
+        # Печать только ключей триггеров
+        triggers_text = "\n".join(TRIGGERS.keys())
         
         await callback.message.edit_text(
             f"Основные команды:\n{'\n'.join(COMMANDS_LIST)}\n\n"
