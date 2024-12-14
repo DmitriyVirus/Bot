@@ -205,7 +205,7 @@ async def menu_revolution_handler(callback: types.CallbackQuery):
     await callback.message.edit_text(
         DETRON,
         reply_markup=create_back_menu(),
-        parse_mode="Markdown",  # Используем MarkdownV2 для форматирования ссылок
+        parse_mode="HTML",  # Используем MarkdownV2 для форматирования ссылок
         disable_web_page_preview=True  # Отключаем предпросмотр ссылок
     )
 
@@ -216,7 +216,7 @@ async def menu_macros_handler(callback: types.CallbackQuery):
     await callback.message.edit_text(
         MACROS,
         reply_markup=create_back_menu(),
-        parse_mode="Markdown",  # Используем MarkdownV2 для форматирования ссылок
+        parse_mode="HTML",  # Используем MarkdownV2 для форматирования ссылок
         disable_web_page_preview=True  # Отключаем предпросмотр ссылок
     )
     
