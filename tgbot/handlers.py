@@ -383,7 +383,7 @@ async def dno_handler(message: Message):
 
 # Обработчик команды /klaar
 @router.message(Command(commands=["klaar"]))  # Используем фильтр Command
-async def dno_handler(message: Message):
+async def klaar_handler(message: Message):
     video_file_id = "BAACAgIAAxkBAAIDgWdar1ZHi4Baas954WdvLHCKOv35AAIlYAAC3ejZSvIFDXGe8drUNgQ"  # Ваш file_id
     try:
         # Отправляем видео с использованием file_id
@@ -411,7 +411,16 @@ async def help_handler(message: Message):
     for command in COMMANDS_LIST:
         help_text += f"{command}\n"
     await message.answer(help_text, parse_mode="Markdown")
-        
+
+# Хендлер для команды /detron
+@router.message(Command(commands=["detron"]))
+async def detron_handler(message: Message):
+    await message.answer(DETRON, parse_mode="HTML")
+
+@router.message(Command(commands=["macros"]))
+async def macros_handler(message: Message):
+    await message.answer(MACROS, parse_mode="HTML")
+
 # Обрабатываем Триггеры
 @router.message(lambda message: message.text and any(trigger in message.text.lower() for trigger in TRIGGERS))
 async def trigger_handler(message: Message):
