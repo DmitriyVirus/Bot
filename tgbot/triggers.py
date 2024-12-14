@@ -134,19 +134,19 @@ USER_MAPPING = {
 }
 
 FIRST = (
-    "😎😎Привет, я бот-помощник клана DareDevils!😎😎\n"
-    "🙌Я приветствую новичков, слежу за порядком и делаю рассылки по активностям.🙌\n\n"
-    "📚🤓Также меня есть некоторая база данных по игре, я могу рассказать о нас и отвечать на некоторые команды.\n\n"
-    "👇👇👇Нажимай на кнопки внизу, чтобы получить больше информации.👇👇👇"
+    "😎Привет, я бот-помощник клана DareDevils!😎\n"
+    "🙌Я приветствую новичков, слежу за порядком и делаю рассылки по активностям.\n\n"
+    "📚Также меня есть некоторая база данных по игре, я могу рассказать о нас и отвечать на некоторые команды.\n\n"
+    "👇Нажимай на кнопки внизу, чтобы получить больше информации.👇"
 )
 
 DAREDEVILS = (
-    "🐵🦧🐒Мы дружный и веселый клан, который играет в Lineage II на сервере Айрин.\n"
-    "👇👇👇Вот несколько полезных ссылок, рассказывающих о нас:\n\n"
+    "Мы дружный и веселый клан, который играет в Lineage II на сервере Айрин.\n"
+    "👇Вот несколько полезных ссылок, рассказывающих о нас:\n\n"
     '<a href="https://docs.google.com/spreadsheets/d/1YVuchkaFxnK6swm2n8W4Syy0nM2WqgmlhrBQ8WHxqvY/edit?gid=977389999#gid=977389999">Структура клана</a>\n\n'
     '🧛<a href="https://docs.google.com/spreadsheets/d/1YVuchkaFxnK6swm2n8W4Syy0nM2WqgmlhrBQ8WHxqvY/edit?gid=1017631947#gid=1017631947">Состав клана</a>🧙\n\n'
     '🗺️<a href="https://www.google.com/maps/d/viewer?mid=129ywh4oGGwPzaB-hhszzZqh2iG7JPzM&ll=54.49364624759098%2C71.6847242&z=4">География клана</a>🗺️\n\n'
-    '🏆🏆🏆<a href="https://docs.google.com/spreadsheets/d/1YVuchkaFxnK6swm2n8W4Syy0nM2WqgmlhrBQ8WHxqvY/edit?gid=833263188#gid=833263188">Ранги и привилегии</a>🏆🏆🏆\n\n'
+    '🏆<a href="https://docs.google.com/spreadsheets/d/1YVuchkaFxnK6swm2n8W4Syy0nM2WqgmlhrBQ8WHxqvY/edit?gid=833263188#gid=833263188">Ранги и привилегии</a>🏆\n\n'
     '🌐<a href="https://bot-virus-l2.vercel.app/">Наш сайт</a>'
 )
 
@@ -159,7 +159,7 @@ ABOUT = (
 
 ABOUT_GAME = (
     "✍️Здесь записанны основные данные которые есть у нас об игре:\n\n"
-    '📔<a href="https://docs.google.com/spreadsheets/d/1YVuchkaFxnK6swm2n8W4Syy0nM2WqgmlhrBQ8WHxqvY/edit?gid=1945579481#gid=1945579481">Базовая полезная информация по бусту персонажа и по созданию аккаунтов с твинами</a>📔\n\n'
+    '🧑‍🎓<a href="https://docs.google.com/spreadsheets/d/1YVuchkaFxnK6swm2n8W4Syy0nM2WqgmlhrBQ8WHxqvY/edit?gid=1945579481#gid=1945579481">Базовая полезная информация по бусту персонажа и по созданию аккаунтов с твинами</a>🧑‍🎓\n\n'
     '📔<a href="https://l2central.info/main/guides/1350.html#:~:text=%D0%A0%D0%B0%D0%B7%D0%B1%D0%BE%D0%B9%D0%BD%D0%B8%D0%BA%D0%B8%20%D0%9E%D0%B4%D0%B0%D0%BB%D0%B0%20%E2%80%93%20%D0%BB%D0%BE%D0%B2%D0%BA%D0%B8%D0%B5%20%D0%B8%20%D0%BE%D1%87%D0%B5%D0%BD%D1%8C,%D0%BF%D0%BE%20%D0%BE%D0%B4%D0%BD%D0%BE%D0%B9%20%D1%86%D0%B5%D0%BB%D0%B8%20%D0%B2%20%D0%B8%D0%B3%D1%80%D0%B5.">Библия любого ножа</a>📔\n\n'
     '📊<a href="https://docs.google.com/spreadsheets/d/11zzBp2SOl8gXw2fcTR07fOqm3aiyO-MXG6IbILdRZTU/edit?pli=1&gid=934369758#gid=934369758">Таблица необходимого атрибута атаки/защиты</a>📊\n\n'
     '🤑💰💸<a href="https://docs.google.com/spreadsheets/d/1YVuchkaFxnK6swm2n8W4Syy0nM2WqgmlhrBQ8WHxqvY/edit?gid=423847096#gid=423847096">Информация по акциям и ивентам</a>💸💰🤑\n\n'
