@@ -59,8 +59,9 @@ def create_game_info_menu():
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 # Функция для создания подменю с одной кнопкой "Назад"
-def create_back_menu():
-    back_button = InlineKeyboardButton(text="🏃Назад", callback_data="back_to_main")
+def create_back_menu(back_callback: str = "back_to_main"):
+    """Создает меню с одной кнопкой 'Назад', указывающей на заданный callback."""
+    back_button = InlineKeyboardButton(text="🏃Назад", callback_data=back_callback)
     return InlineKeyboardMarkup(inline_keyboard=[[back_button]])
 
 # Функция для создания меню команд
@@ -182,11 +183,20 @@ async def commands_main_handler(callback: types.CallbackQuery):
     except Exception as e:
         logger.error(f"Ошибка при обновлении сообщения: {e}")
 
-# Обработчик для кнопки "Назад" (возвращает в главное меню)
-@router.callback_query(lambda callback: callback.data == "back_to_main")
+# Обработчик для кнопки "Назад"
+@router.callback_query(lambda callback: callback.data in {"back_to_main", "menu_about_game"})
 async def back_to_main_handler(callback: types.CallbackQuery):
-    keyboard = create_main_menu()
-    await callback.message.edit_text(FIRST, reply_markup=keyboard)
+    if callback.data == "menu_about_game":
+        keyboard = create_game_info_menu()
+        await callback.message.edit_text(
+            ABOUT_GAME,
+            reply_markup=keyboard,
+            parse_mode="HTML",
+            disable_web_page_preview=True
+        )
+    else:
+        keyboard = create_main_menu()
+        await callback.message.edit_text(FIRST, reply_markup=keyboard)
 
 # Обработчик для кнопки "Информация об игре"
 @router.callback_query(lambda callback: callback.data == "menu_about_game")
@@ -201,22 +211,22 @@ async def menu_about_game_handler(callback: types.CallbackQuery):
 # Обработчик для кнопки "Свержение"
 @router.callback_query(lambda callback: callback.data == "menu_revolution")
 async def menu_revolution_handler(callback: types.CallbackQuery):
-    # Отправляем текст о Свержении и кнопку "Назад"
+    # Отправляем текст о Свержении и кнопку "Назад" к меню "Информация об игре"
     await callback.message.edit_text(
         DETRON,
-        reply_markup=create_back_menu(),
-        parse_mode="HTML",  # Используем MarkdownV2 для форматирования ссылок
+        reply_markup=create_back_menu(back_callback="menu_about_game"),
+        parse_mode="HTML",  # Используем Markdown для форматирования
         disable_web_page_preview=True  # Отключаем предпросмотр ссылок
     )
 
 # Обработчик для кнопки "Макросы"
 @router.callback_query(lambda callback: callback.data == "menu_macros")
 async def menu_macros_handler(callback: types.CallbackQuery):
-    # Отправляем текст о макросах и кнопку "Назад"
+    # Отправляем текст о Макросах и кнопку "Назад" к меню "Информация об игре"
     await callback.message.edit_text(
         MACROS,
-        reply_markup=create_back_menu(),
-        parse_mode="HTML",  # Используем MarkdownV2 для форматирования ссылок
+        reply_markup=create_back_menu(back_callback="menu_about_game"),
+        parse_mode="HTML",  # Используем Markdown для форматирования
         disable_web_page_preview=True  # Отключаем предпросмотр ссылок
     )
         
