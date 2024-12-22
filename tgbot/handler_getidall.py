@@ -50,14 +50,15 @@ async def update_message_text(message: types.Message):
         user_name = message.from_user.full_name
         user_info = f"{user_id} - {user_name}"
 
-        # Получаем текст конкретного сообщения по заданному ID
-        pinned_message_text = await get_message_text(message.bot, CHAT_ID, PINNED_MESSAGE_ID)
-        
-        # Проверяем, нужно ли добавлять новую информацию
-        if user_info not in pinned_message_text:
-            updated_text = f"{pinned_message_text}\n{user_info}".strip()
-            
-            # Обновляем текст сообщения
+        # Получаем текст сообщения с указанным ID
+        current_text = await get_message_text(message.bot, CHAT_ID, PINNED_MESSAGE_ID)
+
+        # Проверяем, есть ли информация о пользователе
+        if user_info not in current_text:
+            # Добавляем информацию о пользователе в текст
+            updated_text = f"{current_text}\n{user_info}".strip()
+
+            # Обновляем сообщение только если текст изменился
             await message.bot.edit_message_text(
                 chat_id=CHAT_ID,
                 message_id=PINNED_MESSAGE_ID,
@@ -65,8 +66,8 @@ async def update_message_text(message: types.Message):
             )
             logging.info("Текст сообщения обновлен.")
         else:
-            logging.info("Текст уже содержит эту информацию. Обновление не требуется.")
-    
+            logging.info("Информация уже есть в сообщении. Обновление не требуется.")
+
     except TelegramBadRequest as e:
         logging.error(f"Ошибка Telegram: {e}")
     except Exception as e:
@@ -74,19 +75,17 @@ async def update_message_text(message: types.Message):
 
 
 async def get_message_text(bot, chat_id, message_id):
-    """Получает текст сообщения по его ID."""
+    """
+    Получает текст сообщения с указанным ID.
+    """
     try:
-        message = await bot.edit_message_text(
-            chat_id=chat_id,
-            message_id=message_id,
-            text="placeholder",  # Временный текст
-        )
-        await bot.edit_message_text(
-            chat_id=chat_id,
-            message_id=message_id,
-            text=message.text,  # Возвращаем оригинальный текст
-        )
+        # Попытка временного обновления текста для получения текущего текста
+        placeholder = "placeholder"
+        await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=placeholder)
+        message = await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=placeholder)
+        # Восстанавливаем оригинальный текст
+        await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=message.text)
         return message.text
     except TelegramBadRequest:
-        logging.error("Сообщение не найдено или доступ к нему ограничен.")
+        logging.error("Не удалось получить текст сообщения.")
         return ""
