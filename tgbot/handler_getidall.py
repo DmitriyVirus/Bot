@@ -49,12 +49,11 @@ async def update_message_text(message: types.Message):
         user_id = message.from_user.id
         user_name = message.from_user.full_name
         user_info = f"{user_id} - {user_name}"
+
+        # Получаем текст конкретного сообщения по заданному ID
+        pinned_message_text = await get_message_text(message.bot, CHAT_ID, PINNED_MESSAGE_ID)
         
-        # Получаем текст сообщения по заданному ID
-        pinned_message = await message.bot.get_message(chat_id=CHAT_ID, message_id=PINNED_MESSAGE_ID)
-        pinned_message_text = pinned_message.text or ""
-        
-        # Проверяем, есть ли информация о пользователе в тексте
+        # Проверяем, нужно ли добавлять новую информацию
         if user_info not in pinned_message_text:
             updated_text = f"{pinned_message_text}\n{user_info}".strip()
             
@@ -64,13 +63,30 @@ async def update_message_text(message: types.Message):
                 message_id=PINNED_MESSAGE_ID,
                 text=updated_text
             )
-            logging.info("Текст закрепленного сообщения обновлен.")
+            logging.info("Текст сообщения обновлен.")
         else:
-            logging.info("Текст закрепленного сообщения уже содержит эту информацию. Обновление не требуется.")
-
+            logging.info("Текст уже содержит эту информацию. Обновление не требуется.")
+    
     except TelegramBadRequest as e:
         logging.error(f"Ошибка Telegram: {e}")
     except Exception as e:
         logging.error(f"Ошибка при обновлении сообщения: {type(e).__name__}: {e}")
-    except Exception as e:
-        logging.error(f"Ошибка при обновлении сообщения: {type(e).__name__}: {e}")
+
+
+async def get_message_text(bot, chat_id, message_id):
+    """Получает текст сообщения по его ID."""
+    try:
+        message = await bot.edit_message_text(
+            chat_id=chat_id,
+            message_id=message_id,
+            text="placeholder",  # Временный текст
+        )
+        await bot.edit_message_text(
+            chat_id=chat_id,
+            message_id=message_id,
+            text=message.text,  # Возвращаем оригинальный текст
+        )
+        return message.text
+    except TelegramBadRequest:
+        logging.error("Сообщение не найдено или доступ к нему ограничен.")
+        return ""
