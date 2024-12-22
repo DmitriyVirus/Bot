@@ -4,6 +4,7 @@ from aiogram.types import Message
 from aiogram import types, Router
 from aiogram.filters import Command
 from aiogram.exceptions import TelegramBadRequest
+from google_sheets import add_user_to_sheet
 
 # Настройка логирования
 logging.basicConfig(level=logging.DEBUG)
@@ -101,3 +102,15 @@ async def get_pinned_message_by_id(bot, chat_id, pinned_message_id):
     except TelegramBadRequest as e:
         logging.error(f"Ошибка при получении закрепленных сообщений: {e}")
         return None
+
+@router.message()
+async def handle_message(message: types.Message):
+    # Получаем ID и имя пользователя
+    user_id = message.from_user.id
+    username = message.from_user.username
+    
+    # Добавляем пользователя в Google Sheets
+    await add_user_to_sheet(user_id, username)
+
+    print(f"User {username} with ID {user_id} added to Google Sheets.")
+    
