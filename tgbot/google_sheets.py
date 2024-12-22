@@ -64,9 +64,10 @@ def add_user_to_sheet(user_id: int, username: str):
     except Exception as e:
         logging.error(f"An error occurred while adding the user: {e}")
 
-@router.message()
-async def send_welcome(message: types.Message, state: FSMContext):
+@dp.message_handler()
+async def handle_message(message: types.Message):
     user_id = message.from_user.id
     username = message.from_user.username
+    
     # Добавляем пользователя в Google Sheets
     add_user_to_sheet(user_id, username)
