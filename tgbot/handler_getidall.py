@@ -51,18 +51,22 @@ async def update_message_text(message: types.Message):
         user_name = message.from_user.full_name
         user_info = f"{user_id} - {user_name}"
 
-        # Получаем текст сообщения
-        current_text = await get_message_text(message.bot, CHAT_ID, PINNED_MESSAGE_ID)
+        # Получаем текст нужного закрепленного сообщения
+        current_text = await get_pinned_message_by_id(message.bot, CHAT_ID, PINNED_MESSAGE_ID)
 
-        # Используем регулярное выражение для анализа текущего текста
+        if current_text is None:
+            logging.error("Не удалось найти сообщение с указанным ID.")
+            return
+
+        # Проверяем, есть ли пользователь в тексте
         user_pattern = re.compile(r"\d+ - .+")
         users_in_message = user_pattern.findall(current_text)
 
-        # Проверяем, есть ли пользователь в тексте
         if user_info not in users_in_message:
+            # Дописываем информацию о пользователе
             updated_text = f"{current_text}\n{user_info}".strip()
 
-            # Обновляем сообщение только если текст изменился
+            # Обновляем текст сообщения
             await message.bot.edit_message_text(
                 chat_id=CHAT_ID,
                 message_id=PINNED_MESSAGE_ID,
@@ -78,18 +82,23 @@ async def update_message_text(message: types.Message):
         logging.error(f"Ошибка при обновлении сообщения: {type(e).__name__}: {e}")
 
 
-async def get_message_text(bot, chat_id, message_id):
+async def get_pinned_message_by_id(bot, chat_id, pinned_message_id):
     """
-    Получает текущий текст сообщения с использованием edit_message_text,
-    но не изменяет фактически текст.
+    Ищет закрепленное сообщение с указанным ID и возвращает его текст.
     """
     try:
-        # Получаем текст сообщения, временно изменяя его
-        placeholder = "placeholder"
-        response = await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=placeholder)
-        # Восстанавливаем оригинальный текст
-        await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=response.text)
-        return response.text
-    except TelegramBadRequest:
-        logging.error("Не удалось получить текст сообщения.")
-        return ""
+        chat = await bot.get_chat(chat_id)
+        if chat.pinned_message and chat.pinned_message.message_id == pinned_message_id:
+            return chat.pinned_message.text
+
+        # Если закреплено несколько сообщений, пробуем проверить их ID
+        messages = await bot.get_chat_pinned_messages(chat_id)
+        for message in messages:
+            if message.message_id == pinned_message_id:
+                return message.text
+
+        logging.error("Сообщение с указанным ID не найдено среди закрепленных.")
+        return None
+    except TelegramBadRequest as e:
+        logging.error(f"Ошибка при получении закрепленных сообщений: {e}")
+        return None
