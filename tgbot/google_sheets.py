@@ -5,6 +5,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 from googleapiclient.errors import HttpError
 from aiogram import Bot, Dispatcher, types
 from aiogram.utils import executor
+from aiogram.types import ParseMode
 
 # Настроим логирование
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -69,4 +70,4 @@ async def handle_message(message: types.Message):
     username = message.from_user.username
     # Добавляем пользователя в Google Sheets, если он еще не добавлен
     add_user_to_sheet(user_id, username)
-
+    await message.answer(f"Привет, {username}! Вы добавлены в список.")
