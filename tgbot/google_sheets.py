@@ -71,7 +71,5 @@ async def handle_message(message: Message):
     username = message.from_user.username or "Unknown"  # Используем "Unknown" если username отсутствует
     try:
         add_user_to_sheet(user_id, username)
-        await message.reply("Your data has been added to Google Sheets!")
     except Exception as e:
         logging.error(f"Error while processing message: {e}")
-        await message.reply("An error occurred while processing your request.")
