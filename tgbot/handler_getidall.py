@@ -4,7 +4,7 @@ from aiogram.types import Message
 from aiogram import types, Router
 from aiogram.filters import Command
 from aiogram.exceptions import TelegramBadRequest
-from google_sheets import add_user_to_sheet
+from tgbot.google_sheets import add_user_to_sheet
 
 # Настройка логирования
 logging.basicConfig(level=logging.DEBUG)
