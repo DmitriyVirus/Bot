@@ -2,6 +2,8 @@ import logging
 from aiogram.types import Message
 from aiogram import types, Router
 from aiogram.filters import Command
+from aiogram.exceptions import TelegramBadRequest
+
 
 # Настройка логирования
 logging.basicConfig(level=logging.DEBUG)
