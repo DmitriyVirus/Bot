@@ -6,3 +6,5 @@ pytz
 celery
 redis
 kombu
+gspread 
+oauth2client 
