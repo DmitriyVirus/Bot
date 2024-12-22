@@ -18,7 +18,6 @@ router = Router()
 creds_json = os.getenv('GOOGLE_SHEET_KEY')
 logging.info(f"GOOGLE_SHEET_KEY: {creds_json}")
 
-
 if creds_json is None:
     logging.error("Google Sheets API key is missing. Make sure to set the GOOGLE_SHEET_KEY environment variable on Vercel.")
 else:
@@ -61,7 +60,7 @@ def is_user_exists(client, user_id: int) -> bool:
         return False
 
 # Функция для добавления пользователя в таблицу
-def add_user_to_sheet(user_id: int, username: str):
+def add_user_to_sheet(user_id: int, username: str, first_name: str, last_name: str):
     logging.info(f"Started adding user {username} ({user_id}) to Google Sheets.")
     client = get_gspread_client()
     if client is None:
@@ -71,13 +70,12 @@ def add_user_to_sheet(user_id: int, username: str):
         sheet = client.open("ourid").sheet1
         if not is_user_exists(client, user_id):
             logging.info("User does not exist. Adding to sheet...")
-            sheet.append_row([user_id, username])
+            sheet.append_row([user_id, username, first_name, last_name])
             logging.info(f"User {username} ({user_id}) successfully added.")
         else:
             logging.info(f"User {username} ({user_id}) already exists.")
     except Exception as e:
         logging.error(f"An error occurred while adding the user: {e}")
-
 
 # Обработчик для сообщений
 @router.message()
@@ -85,8 +83,11 @@ async def handle_message(message: Message):
     logging.info("Received a new message.")
     user_id = message.from_user.id
     username = message.from_user.username or "Unknown"
+    first_name = message.from_user.first_name or "Unknown"
+    last_name = message.from_user.last_name or "Unknown"
+    
     logging.info(f"Processing message from user {username} ({user_id}).")
     try:
-        add_user_to_sheet(user_id, username)
+        add_user_to_sheet(user_id, username, first_name, last_name)
     except Exception as e:
         logging.error(f"Error while processing message: {e}")
