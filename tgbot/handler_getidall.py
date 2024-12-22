@@ -8,7 +8,7 @@ import json
 from decouple import config
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
-from tgbot import tgbot
+from tgbot.__init__ import tgbot  # Импортируем объект бота из bot_init.py
 
 # Инициализация Google Sheets
 creds_json = config('GOOGLE_SHEETS_CREDENTIALS')
