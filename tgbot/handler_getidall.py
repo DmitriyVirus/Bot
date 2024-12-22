@@ -8,8 +8,8 @@ logging.basicConfig(level=logging.DEBUG)
 
 router = Router()
 
-CHAT_ID = -1002388880478  # Замените на ID вашего чата
-PINNED_MESSAGE_ID = 3686  # Замените на ID закрепленного сообщения
+CHAT_ID = -1001408912941  # Замените на ID вашего чата
+PINNED_MESSAGE_ID = 280471  # Замените на ID закрепленного сообщения
 
 @router.message(Command(commands=["getidbot"]))
 async def send_message_with_id(message: types.Message):
