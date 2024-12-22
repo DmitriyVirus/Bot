@@ -4,12 +4,16 @@ from aiogram import Bot, Dispatcher, Router
 from tgbot.handlers import router as handlers_router # Убедитесь, что импортируете router из handlers
 from tgbot.handler_sbor import router as handler_sbor_router
 from tgbot.handler_getidall import router as handler_getidall_router
+from tgbot.google_sheets import router as add_user_to_sheet_router  # Импорт функции добавления пользователя
 from tgbot.google_sheets import add_user_to_sheet  # Импорт функции добавления пользователя
+
 
 router = Router()
 router.include_router(handlers_router)  # Подключаем хендлеры
 router.include_router(handler_sbor_router)
 router.include_router(handler_getidall_router)
+router.include_router(add_user_to_sheet_router)
+
 
 class TGBot:
     def __init__(self, router: Router) -> None:
