@@ -3,7 +3,8 @@ import logging
 from aiogram import Bot, Router, types
 from aiogram.types import Message
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
+from google.auth.transport.requests import Request
+from google.oauth2.service_account import Credentials
 
 # Настроим логирование
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -30,9 +31,11 @@ creds_json = '''{
 def get_gspread_client():
     try:
         logging.info("Attempting to authenticate with Google Sheets API.")
-        scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
-        creds = ServiceAccountCredentials.from_json_keyfile_dict(json.loads(creds_json), scope)
-        client = gspread.authorize(creds)
+        credentials = Credentials.from_service_account_info(
+            json.loads(creds_json),
+            scopes=["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+        )
+        client = gspread.authorize(credentials)
         logging.info("Google Sheets API authentication successful.")
         return client
     except Exception as e:
