@@ -4,7 +4,7 @@ import logging
 from oauth2client.service_account import ServiceAccountCredentials
 from googleapiclient.errors import HttpError
 from aiogram import Bot, Dispatcher, types
-from aiogram.types import ParseMode
+from aiogram import types
 
 # Настроим логирование
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
