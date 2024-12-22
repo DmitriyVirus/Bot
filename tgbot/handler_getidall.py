@@ -4,42 +4,6 @@ from aiogram.types import Message
 from aiogram import types, Router
 from aiogram.filters import Command
 from aiogram.exceptions import TelegramBadRequest
-import json
-from decouple import config
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
-from tgbot.__init__ import tgbot  # Импортируем объект бота из bot_init.py
-
-# Инициализация Google Sheets
-creds_json = config('GOOGLE_SHEETS_CREDENTIALS')
-creds_dict = json.loads(creds_json)
-
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
-client = gspread.authorize(creds)
-sheet = client.open('ourid').sheet1  # Укажите название вашей таблицы
-
-# Функция для добавления строки в таблицу Google Sheets
-def append_row_to_sheet(user_id, user_name):
-    sheet.append_row([user_id, user_name])
-
-# Обработчик сообщений
-@router.message()
-async def handle_message(message: types.Message):
-    try:
-        user_id = message.from_user.id
-        user_name = message.from_user.full_name
-
-        # Записываем информацию в Google Sheets синхронно
-        append_row_to_sheet(user_id, user_name)
-
-        # Логируем информацию
-        print(f"Added user {user_name} (ID: {user_id}) to Google Sheets.")
-
-        # Ответ в чат
-        await message.reply(f"Спасибо, {user_name}, за сообщение!")
-    except Exception as e:
-        print(f"Error adding user to Google Sheets: {e}")
 
 # Настройка логирования
 logging.basicConfig(level=logging.DEBUG)
