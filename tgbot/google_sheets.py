@@ -47,6 +47,7 @@ def is_user_exists(client, user_id: int) -> bool:
     return False
 
 # Функция добавления пользователя в таблицу
+@router.message()
 def add_user_to_sheet(user_id: int, username: str):
     client = get_gspread_client()
     if client is None:
@@ -63,11 +64,3 @@ def add_user_to_sheet(user_id: int, username: str):
         logging.error(f"API Error: {e}")
     except Exception as e:
         logging.error(f"An error occurred while adding the user: {e}")
-
-@router.message()
-async def handle_message(message: types.Message):
-    user_id = message.from_user.id
-    username = message.from_user.username
-    
-    # Добавляем пользователя в Google Sheets
-    add_user_to_sheet(user_id, username)
