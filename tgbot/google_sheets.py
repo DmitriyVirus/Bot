@@ -3,11 +3,13 @@ import gspread
 import logging
 from oauth2client.service_account import ServiceAccountCredentials
 from googleapiclient.errors import HttpError
-from aiogram import Bot, Dispatcher, types
-from aiogram import types
+from aiogram import Bot, types
+from aiogram import Router, types
 
 # Настроим логирование
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+router = Router()
 
 # JSON-строка с данными учетных записей для Google Sheets
 creds_json = '''{
@@ -62,7 +64,7 @@ def add_user_to_sheet(user_id: int, username: str):
     except Exception as e:
         logging.error(f"An error occurred while adding the user: {e}")
 
-@dp.message_handler()
+@router.message()
 async def handle_message(message: types.Message):
     user_id = message.from_user.id
     username = message.from_user.username
