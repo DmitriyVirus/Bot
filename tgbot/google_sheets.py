@@ -61,12 +61,3 @@ def add_user_to_sheet(user_id: int, username: str):
         logging.error(f"API Error: {e}")
     except Exception as e:
         logging.error(f"An error occurred while adding the user: {e}")
-
-# Обработчик для любых сообщений (кроме команд)
-@router.message()
-async def handle_message(message: types.Message):
-    user_id = message.from_user.id
-    username = message.from_user.username
-    # Добавляем пользователя в Google Sheets, если он еще не добавлен
-    add_user_to_sheet(user_id, username)
-    await message.answer(f"Привет, {username}! Вы добавлены в список.")
