@@ -22,51 +22,30 @@ creds_json = '''{
   "universe_domain": "googleapis.com"
 }'''
 
-# Преобразуем JSON-строку в словарь
-creds_dict = json.loads(creds_json)
-
-# Подключаемся к Google Sheets с использованием сервисного аккаунта
-def connect_to_google_sheets():
+# Конфигурация для Google Sheets API
+def get_gspread_client():
     try:
         scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-        creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+        creds = ServiceAccountCredentials.from_json_keyfile_dict(json.loads(creds_json), scope)
         client = gspread.authorize(creds)
         return client
-    except HttpError as err:
-        logging.error(f"Failed to connect to Google Sheets: {err}")
+    except Exception as e:
+        logging.error(f"Error while authenticating with Google Sheets API: {e}")
         return None
 
-# Функция для добавления пользователя в таблицу
+# Функция добавления пользователя в таблицу
 def add_user_to_sheet(user_id: int, username: str):
-    logging.debug(f"Attempting to add user {username} (ID: {user_id}) to Google Sheets.")
-    
-    client = connect_to_google_sheets()
-    
+    client = get_gspread_client()
     if client is None:
-        logging.error("Google Sheets connection failed.")
+        logging.error("Failed to authenticate with Google Sheets.")
         return
-    
     try:
-        logging.debug("Opening spreadsheet 'ourid'...")
-        sheet = client.open("ourid").sheet1
-        logging.debug("Successfully opened spreadsheet.")
-        
-        logging.debug(f"Appending row: [{user_id}, {username}]")
+        # Открываем таблицу
+        sheet = client.open("ourid").sheet1  # Здесь замените на имя вашей таблицы
+        # Добавляем новую строку с данными пользователя
         sheet.append_row([user_id, username])
-        logging.info(f"User {username} (ID: {user_id}) successfully added to Google Sheets.")
-    except gspread.exceptions.SpreadsheetNotFound as e:
-        logging.error(f"Spreadsheet not found: {e}")
+        logging.info(f"User {username} ({user_id}) added to Google Sheets.")
     except gspread.exceptions.APIError as e:
-        logging.error(f"API Error occurred while writing to the sheet: {e}")
-
-# Обработчик сообщений
-@dp.message(F.text)
-async def handle_message(message: Message):
-    user_id = message.from_user.id
-    username = message.from_user.username
-    
-    logging.debug(f"Received message from user {username} (ID: {user_id}).")
-    
-    add_user_to_sheet(user_id, username)
-    
-    await message.reply(f"Hello, {username}! Your ID has been added to the database.")
+        logging.error(f"API Error: {e}")
+    except Exception as e:
+        logging.error(f"An error occurred while adding the user: {e}")
