@@ -241,7 +241,7 @@ async def greet_new_members(message: Message):
         logging.info(f"Формируется приветствие для {new_member.first_name} (ID: {new_member.id})")
         
         # Используем текст из triggers.py и подставляем имя пользователя
-        welcome_text = f"⚡⚡⚡Привет, *{new_member.first_name}*! Теперь ты часть команды.⚡⚡⚡ {WELCOME_TEXT}"
+        welcome_text = f"⚡⚡⚡Привет, *{new_member.first_name}*! Теперь ты часть команды.⚡⚡⚡ {WELCOME_TEXT}\n\nЯ Бот клана DaraDevils и если ты хочешь узнать больше информации о нас используй команду /bot."
         try:
             await message.answer(welcome_text, parse_mode="Markdown")  # Указываем режим Markdown
             logging.info(f"Отправлено приветствие для {new_member.first_name} (ID: {new_member.id})")
