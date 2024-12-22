@@ -1,7 +1,11 @@
 import json
 import gspread
+import logging
 from oauth2client.service_account import ServiceAccountCredentials
 from googleapiclient.errors import HttpError
+
+# Настроим логирование
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # JSON-строка с данными учетных записей для Google Sheets
 creds_json = '''{
@@ -28,17 +32,19 @@ def connect_to_google_sheets():
         scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
         creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
         client = gspread.authorize(creds)
+        logging.info("Successfully connected to Google Sheets.")
         return client
     except HttpError as err:
-        print(f"Failed to connect to Google Sheets: {err}")
+        logging.error(f"Failed to connect to Google Sheets: {err}")
         return None
 
 def add_user_to_sheet(user_id: int, username: str):
     # Подключаемся к Google Sheets
+    logging.info(f"Attempting to add user {username} (ID: {user_id}) to Google Sheets.")
     client = connect_to_google_sheets()
     
     if client is None:
-        print("Google Sheets connection failed.")
+        logging.error("Google Sheets connection failed.")
         return
     
     try:
@@ -47,8 +53,8 @@ def add_user_to_sheet(user_id: int, username: str):
         
         # Добавляем данные в таблицу
         sheet.append_row([user_id, username])
-        print(f"User {username} (ID: {user_id}) added to Google Sheets.")
+        logging.info(f"User {username} (ID: {user_id}) successfully added to Google Sheets.")
     except gspread.exceptions.SpreadsheetNotFound as e:
-        print(f"Spreadsheet not found: {e}")
+        logging.error(f"Spreadsheet not found: {e}")
     except gspread.exceptions.APIError as e:
-        print(f"API Error occurred while writing to the sheet: {e}")
+        logging.error(f"API Error occurred while writing to the sheet: {e}")
