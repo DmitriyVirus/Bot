@@ -45,14 +45,18 @@ def get_gspread_client():
 # Проверка, существует ли пользователь в таблице
 def is_user_exists(client, user_id: int) -> bool:
     logging.info(f"Checking if user {user_id} exists in the sheet.")
-    sheet = client.open("ourid").sheet1
-    records = sheet.get_all_records()
-    for record in records:
-        if record.get('user_id') == user_id:
-            logging.info(f"User {user_id} exists in the sheet.")
-            return True
-    logging.info(f"User {user_id} does not exist in the sheet.")
-    return False
+    try:
+        sheet = client.open("ourid").sheet1
+        records = sheet.get_all_records()
+        for record in records:
+            if record.get('user_id') == user_id:
+                logging.info(f"User {user_id} exists in the sheet.")
+                return True
+        logging.info(f"User {user_id} does not exist in the sheet.")
+        return False
+    except Exception as e:
+        logging.error(f"Error while checking if user exists: {e}")
+        return False
 
 # Функция для добавления пользователя в таблицу
 def add_user_to_sheet(user_id: int, username: str):
@@ -71,6 +75,7 @@ def add_user_to_sheet(user_id: int, username: str):
             logging.info(f"User {username} ({user_id}) already exists.")
     except Exception as e:
         logging.error(f"An error occurred while adding the user: {e}")
+
 
 # Обработчик для сообщений
 @router.message()
