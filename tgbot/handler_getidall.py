@@ -48,18 +48,15 @@ async def update_message_text(message: types.Message):
         user_name = message.from_user.full_name
         user_info = f"{user_id} - {user_name}"
         
-        chat = await message.bot.get_chat(CHAT_ID)
+        # Получаем текст сообщения по заданному ID
+        pinned_message = await message.bot.get_message(chat_id=CHAT_ID, message_id=PINNED_MESSAGE_ID)
+        pinned_message_text = pinned_message.text or ""
         
-        if chat.pinned_message:
-            pinned_message_text = chat.pinned_message.text or ""
-        else:
-            pinned_message_text = ""
-            
+        # Проверяем, есть ли информация о пользователе в тексте
         if user_info not in pinned_message_text:
-            updated_text = f"{pinned_message_text}\n{user_info}"
-        else:
-            updated_text = pinned_message_text
-        if updated_text != pinned_message_text:
+            updated_text = f"{pinned_message_text}\n{user_info}".strip()
+            
+            # Обновляем текст сообщения
             await message.bot.edit_message_text(
                 chat_id=CHAT_ID,
                 message_id=PINNED_MESSAGE_ID,
@@ -67,7 +64,11 @@ async def update_message_text(message: types.Message):
             )
             logging.info("Текст закрепленного сообщения обновлен.")
         else:
-            logging.info("Текст закрепленного сообщения не изменился. Обновление не требуется.")
+            logging.info("Текст закрепленного сообщения уже содержит эту информацию. Обновление не требуется.")
 
+    except TelegramBadRequest as e:
+        logging.error(f"Ошибка Telegram: {e}")
+    except Exception as e:
+        logging.error(f"Ошибка при обновлении сообщения: {type(e).__name__}: {e}")
     except Exception as e:
         logging.error(f"Ошибка при обновлении сообщения: {type(e).__name__}: {e}")
