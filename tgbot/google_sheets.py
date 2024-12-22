@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+from dotenv import load_dotenv
 from aiogram import Bot, Router, types
 from aiogram.types import Message
 import gspread
