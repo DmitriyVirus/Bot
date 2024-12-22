@@ -28,19 +28,18 @@ creds_dict = json.loads(creds_json)
 # Подключаемся к Google Sheets с использованием сервисного аккаунта
 def connect_to_google_sheets():
     try:
-        # Используем OAuth2 для подключения к Google API
         scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
         creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
         client = gspread.authorize(creds)
-        logging.info("Successfully connected to Google Sheets.")
         return client
     except HttpError as err:
         logging.error(f"Failed to connect to Google Sheets: {err}")
         return None
 
+# Функция для добавления пользователя в таблицу
 def add_user_to_sheet(user_id: int, username: str):
-    # Подключаемся к Google Sheets
-    logging.info(f"Attempting to add user {username} (ID: {user_id}) to Google Sheets.")
+    logging.debug(f"Attempting to add user {username} (ID: {user_id}) to Google Sheets.")
+    
     client = connect_to_google_sheets()
     
     if client is None:
@@ -48,13 +47,26 @@ def add_user_to_sheet(user_id: int, username: str):
         return
     
     try:
-        # Открываем таблицу по имени (например, "ourid")
+        logging.debug("Opening spreadsheet 'ourid'...")
         sheet = client.open("ourid").sheet1
+        logging.debug("Successfully opened spreadsheet.")
         
-        # Добавляем данные в таблицу
+        logging.debug(f"Appending row: [{user_id}, {username}]")
         sheet.append_row([user_id, username])
         logging.info(f"User {username} (ID: {user_id}) successfully added to Google Sheets.")
     except gspread.exceptions.SpreadsheetNotFound as e:
         logging.error(f"Spreadsheet not found: {e}")
     except gspread.exceptions.APIError as e:
         logging.error(f"API Error occurred while writing to the sheet: {e}")
+
+# Обработчик сообщений
+@dp.message(F.text)
+async def handle_message(message: Message):
+    user_id = message.from_user.id
+    username = message.from_user.username
+    
+    logging.debug(f"Received message from user {username} (ID: {user_id}).")
+    
+    add_user_to_sheet(user_id, username)
+    
+    await message.reply(f"Hello, {username}! Your ID has been added to the database.")
