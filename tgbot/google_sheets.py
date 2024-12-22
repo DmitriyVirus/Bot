@@ -29,7 +29,7 @@ creds_json = '''{
 # Конфигурация для Google Sheets API
 def get_gspread_client():
     try:
-        scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+        scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
         creds = ServiceAccountCredentials.from_json_keyfile_dict(json.loads(creds_json), scope)
         client = gspread.authorize(creds)
         return client
