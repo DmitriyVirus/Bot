@@ -3,6 +3,8 @@ import gspread
 import logging
 from oauth2client.service_account import ServiceAccountCredentials
 from googleapiclient.errors import HttpError
+from aiogram import Bot, Dispatcher, types
+from aiogram.utils import executor
 
 # Настроим логирование
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -33,6 +35,15 @@ def get_gspread_client():
         logging.error(f"Error while authenticating with Google Sheets API: {e}")
         return None
 
+# Проверка, существует ли пользователь в таблице
+def is_user_exists(client, user_id: int) -> bool:
+    sheet = client.open("ourid").sheet1
+    records = sheet.get_all_records()
+    for record in records:
+        if record['user_id'] == user_id:
+            return True
+    return False
+
 # Функция добавления пользователя в таблицу
 def add_user_to_sheet(user_id: int, username: str):
     client = get_gspread_client()
@@ -40,12 +51,22 @@ def add_user_to_sheet(user_id: int, username: str):
         logging.error("Failed to authenticate with Google Sheets.")
         return
     try:
-        # Открываем таблицу
-        sheet = client.open("ourid").sheet1  # Здесь замените на имя вашей таблицы
-        # Добавляем новую строку с данными пользователя
-        sheet.append_row([user_id, username])
-        logging.info(f"User {username} ({user_id}) added to Google Sheets.")
+        sheet = client.open("ourid").sheet1
+        if not is_user_exists(client, user_id):
+            sheet.append_row([user_id, username])
+            logging.info(f"User {username} ({user_id}) added to Google Sheets.")
+        else:
+            logging.info(f"User {username} ({user_id}) already exists.")
     except gspread.exceptions.APIError as e:
         logging.error(f"API Error: {e}")
     except Exception as e:
         logging.error(f"An error occurred while adding the user: {e}")
+
+# Обработчик для любых сообщений (кроме команд)
+@router.message()
+async def handle_message(message: types.Message):
+    user_id = message.from_user.id
+    username = message.from_user.username
+    # Добавляем пользователя в Google Sheets, если он еще не добавлен
+    add_user_to_sheet(user_id, username)
+
