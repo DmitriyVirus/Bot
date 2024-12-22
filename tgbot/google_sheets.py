@@ -15,6 +15,8 @@ router = Router()
 
 # Получаем ключ из переменной окружения
 creds_json = os.getenv('GOOGLE_SHEET_KEY')
+logging.info(f"GOOGLE_SHEET_KEY: {creds_json}")
+
 
 if creds_json is None:
     logging.error("Google Sheets API key is missing. Make sure to set the GOOGLE_SHEET_KEY environment variable on Vercel.")
