@@ -50,12 +50,15 @@ async def update_message_text(message: types.Message):
         user_name = message.from_user.full_name
         user_info = f"{user_id} - {user_name}"
 
-        # Получаем текст сообщения через вызов edit_message_text (без изменения текста)
+        # Получаем текст сообщения
         current_text = await get_message_text(message.bot, CHAT_ID, PINNED_MESSAGE_ID)
 
-        # Проверяем, есть ли информация о пользователе
-        if user_info not in current_text:
-            # Добавляем информацию о пользователе в текст
+        # Используем регулярное выражение для анализа текущего текста
+        user_pattern = re.compile(r"\d+ - .+")
+        users_in_message = user_pattern.findall(current_text)
+
+        # Проверяем, есть ли пользователь в тексте
+        if user_info not in users_in_message:
             updated_text = f"{current_text}\n{user_info}".strip()
 
             # Обновляем сообщение только если текст изменился
@@ -76,22 +79,15 @@ async def update_message_text(message: types.Message):
 
 async def get_message_text(bot, chat_id, message_id):
     """
-    Получает текущий текст сообщения через вызов edit_message_text,
+    Получает текущий текст сообщения с использованием edit_message_text,
     но не изменяет фактически текст.
     """
     try:
-        # Получаем сообщение с вызовом edit_message_text (без изменения текста)
-        response = await bot.edit_message_text(
-            chat_id=chat_id,
-            message_id=message_id,
-            text="placeholder"
-        )
-        # Восстанавливаем исходный текст
-        await bot.edit_message_text(
-            chat_id=chat_id,
-            message_id=message_id,
-            text=response.text
-        )
+        # Получаем текст сообщения, временно изменяя его
+        placeholder = "placeholder"
+        response = await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=placeholder)
+        # Восстанавливаем оригинальный текст
+        await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=response.text)
         return response.text
     except TelegramBadRequest:
         logging.error("Не удалось получить текст сообщения.")
