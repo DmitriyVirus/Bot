@@ -4,7 +4,6 @@ import logging
 from oauth2client.service_account import ServiceAccountCredentials
 from googleapiclient.errors import HttpError
 from aiogram import Bot, Dispatcher, types
-from aiogram.utils import executor
 from aiogram.types import ParseMode
 
 # Настроим логирование
