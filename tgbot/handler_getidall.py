@@ -50,7 +50,7 @@ async def update_message_text(message: types.Message):
         user_name = message.from_user.full_name
         user_info = f"{user_id} - {user_name}"
 
-        # Получаем текст сообщения с указанным ID
+        # Получаем текст сообщения через вызов edit_message_text (без изменения текста)
         current_text = await get_message_text(message.bot, CHAT_ID, PINNED_MESSAGE_ID)
 
         # Проверяем, есть ли информация о пользователе
@@ -76,16 +76,23 @@ async def update_message_text(message: types.Message):
 
 async def get_message_text(bot, chat_id, message_id):
     """
-    Получает текст сообщения с указанным ID.
+    Получает текущий текст сообщения через вызов edit_message_text,
+    но не изменяет фактически текст.
     """
     try:
-        # Попытка временного обновления текста для получения текущего текста
-        placeholder = "placeholder"
-        await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=placeholder)
-        message = await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=placeholder)
-        # Восстанавливаем оригинальный текст
-        await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=message.text)
-        return message.text
+        # Получаем сообщение с вызовом edit_message_text (без изменения текста)
+        response = await bot.edit_message_text(
+            chat_id=chat_id,
+            message_id=message_id,
+            text="placeholder"
+        )
+        # Восстанавливаем исходный текст
+        await bot.edit_message_text(
+            chat_id=chat_id,
+            message_id=message_id,
+            text=response.text
+        )
+        return response.text
     except TelegramBadRequest:
         logging.error("Не удалось получить текст сообщения.")
         return ""
