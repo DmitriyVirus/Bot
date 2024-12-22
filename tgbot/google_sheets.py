@@ -9,8 +9,6 @@ from aiogram import types
 # Настроим логирование
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-router = Router()
-
 # JSON-строка с данными учетных записей для Google Sheets
 creds_json = '''{
   "type": "service_account",
