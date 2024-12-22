@@ -5,6 +5,8 @@ from oauth2client.service_account import ServiceAccountCredentials
 from googleapiclient.errors import HttpError
 from aiogram import Bot, types
 from aiogram import Router, types
+from aiogram.types import Message
+
 
 # Настроим логирование
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -46,8 +48,7 @@ def is_user_exists(client, user_id: int) -> bool:
             return True
     return False
 
-# Функция добавления пользователя в таблицу
-@router.message()
+# Функция для добавления пользователя в таблицу
 def add_user_to_sheet(user_id: int, username: str):
     client = get_gspread_client()
     if client is None:
@@ -60,7 +61,17 @@ def add_user_to_sheet(user_id: int, username: str):
             logging.info(f"User {username} ({user_id}) added to Google Sheets.")
         else:
             logging.info(f"User {username} ({user_id}) already exists.")
-    except gspread.exceptions.APIError as e:
-        logging.error(f"API Error: {e}")
     except Exception as e:
         logging.error(f"An error occurred while adding the user: {e}")
+
+# Обработчик для сообщений
+@router.message()
+async def handle_message(message: Message):
+    user_id = message.from_user.id
+    username = message.from_user.username or "Unknown"  # Используем "Unknown" если username отсутствует
+    try:
+        add_user_to_sheet(user_id, username)
+        await message.reply("Your data has been added to Google Sheets!")
+    except Exception as e:
+        logging.error(f"Error while processing message: {e}")
+        await message.reply("An error occurred while processing your request.")
