@@ -395,7 +395,20 @@ async def klaar_handler(message: Message):
         print(f"Видео отправлено пользователю {message.from_user.id}")
     except Exception as e:
         await message.answer(f"Ошибка при отправке видео: {e}")
-        print(f"Ошибка при отправке видео: {e}")
+        print(f"Ошибка при отправке видео: {e}"),
+
+# Обработчик команды /kris
+@router.message(Command(commands=["kris"]))  # Используем фильтр Command
+async def kris_handler(message: Message):
+    photo_url = "https://i.redd.it/xces20zltm3b1.jpg"  # Укажите URL картинки
+    caption = "Спасайтесь, это Крис!"  # Подпись к изображению
+    try:
+        # Отправляем изображение с использованием URL и добавляем подпись
+        await message.answer_photo(photo_url, caption=caption)
+        print(f"Изображение отправлено пользователю {message.from_user.id}")
+    except Exception as e:
+        await message.answer(f"Ошибка при отправке изображения: {e}")
+        print(f"Ошибка при отправке изображения: {e}")
 
 # Обработчик команды /hi
 @router.message(Command(commands=["hi"]))
