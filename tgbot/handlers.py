@@ -410,6 +410,18 @@ async def kris_handler(message: Message):
         await message.answer(f"Ошибка при отправке изображения: {e}")
         print(f"Ошибка при отправке изображения: {e}")
 
+# Обработчик команды /gg1
+@router.message(Command(commands=["gg1"]))
+async def gg1_handler(message: Message):
+    audio_file_id = "CQACAgIAAxkBAAIDzGdsa0j4JJe2uwXyuyHo51E1fhMJAAJOeQACSQJgS1-ShfwhpjcyNgQ"
+    try:
+        # Отправляем аудиофайл с использованием file_id
+        await message.answer_audio(audio_file_id)
+        print(f"Мелодия отправлена пользователю {message.from_user.id}")
+    except Exception as e:
+        await message.answer(f"Ошибка при отправке аудио: {e}")
+        print(f"Ошибка при отправке аудио: {e}")
+
 # Обработчик команды /hi
 @router.message(Command(commands=["hi"]))
 async def send_welcome(message: Message):
