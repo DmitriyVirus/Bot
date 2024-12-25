@@ -413,7 +413,7 @@ async def kris_handler(message: Message):
 # Обработчик команды /gg1
 @router.message(Command(commands=["gg1"]))
 async def gg1_handler(message: Message):
-    audio_file_id = "CQACAgIAAxkBAAIDzGdsa0j4JJe2uwXyuyHo51E1fhMJAAJOeQACSQJgS1-ShfwhpjcyNgQ"
+    audio_file_id = "CQACAgIAAxkBAAIDz2dsbKGQt2QI0cekxKLevS0twoS5AAJZeQACSQJgS_3cy6cxtBIDNgQ"
     try:
         # Отправляем аудиофайл с использованием file_id
         await message.answer_audio(audio_file_id)
