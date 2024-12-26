@@ -67,6 +67,7 @@ def add_user_to_sheet(user_id: int, username: str, first_name: str, last_name: s
         logging.error(f"An error occurred while adding the user: {e}")
 
 # Функция для получения данных из Google Таблицы
+# Функция для получения данных из Google Таблицы
 def fetch_data_from_sheet(client):
     """
     Загружает данные из Google Sheets и преобразует их в таблицу с алиасами.
@@ -77,10 +78,18 @@ def fetch_data_from_sheet(client):
         expanded_table = {}
 
         for record in records:
-            # Генерируем tgnick
+            # Генерируем tgnick: если first_name или last_name unknown, то не выводим их
             first_name = record["first_name"]
             last_name = record["last_name"]
-            tgnick = f"{first_name} {last_name}".strip() if first_name.lower() != "unknown" or last_name.lower() != "unknown" else "Unknown"
+            
+            if first_name.lower() == "unknown" and last_name.lower() == "unknown":
+                tgnick = "Unknown"
+            elif first_name.lower() == "unknown":
+                tgnick = last_name.strip()
+            elif last_name.lower() == "unknown":
+                tgnick = first_name.strip()
+            else:
+                tgnick = f"{first_name} {last_name}".strip()
 
             # Собираем данные для пользователя
             user_data = {
