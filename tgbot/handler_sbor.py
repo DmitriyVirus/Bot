@@ -3,7 +3,6 @@ import re
 import logging
 from aiogram import types, Router
 from aiogram.filters import Command
-from tgbot.triggers import USER_MAPPING
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from tgbot.gspread_client import get_gspread_client
 
