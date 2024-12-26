@@ -158,7 +158,7 @@ async def who_is_this(message: Message):
                 response += (
                     f"\nИмя: {user_info['name']}\n"
                     f"{f'Имя в телеграмм: {user_info["tgnick"]}\n' if user_info['tgnick'] != 'Unknown' else ''}"
-                    f"{f'Ник: {user_info["nick"]}\n' if user_info['nick'] != 'Unknown' else ''}"
+                    f"{f'Ник: @{user_info["nick"]}\n' if user_info['nick'] != 'Unknown' else ''}"
                     f"Инфо: {user_info['about']}\n"
                 )
         await message.answer(response)
@@ -169,7 +169,7 @@ async def who_is_this(message: Message):
             response = (
                 f"Имя: {user_info['name']}\n"
                 f"{f'Имя в телеграмм: {user_info["tgnick"]}\n' if user_info['tgnick'] != 'Unknown' else ''}"
-                f"{f'Ник: {user_info["nick"]}\n' if user_info['nick'] != 'Unknown' else ''}"
+                f"{f'Ник: @{user_info["nick"]}\n' if user_info['nick'] != 'Unknown' else ''}"
                 f"Инфо: {user_info['about']}"
             )
             await message.answer(response)
