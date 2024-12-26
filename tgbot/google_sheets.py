@@ -8,6 +8,7 @@ from aiogram.types import Message
 import gspread
 from google.auth.transport.requests import Request
 from google.oauth2.service_account import Credentials
+from gspread_client import get_gspread_client
 
 # Настроим логирование
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(asctime)s - %(message)s')
@@ -15,35 +16,11 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(asctime)s - %(me
 # Инициализация роутера
 router = Router()
 
-# Получаем ключ из переменной окружения
-creds_json = os.getenv('GOOGLE_SHEET_KEY')
-logging.info(f"GOOGLE_SHEET_KEY: {creds_json}")
-
-if creds_json is None:
-    logging.error("Google Sheets API key is missing. Make sure to set the GOOGLE_SHEET_KEY environment variable on Vercel.")
-else:
-    logging.info("Google Sheets API key found in environment variables.")
-
-# Конфигурация для Google Sheets API
-def get_gspread_client():
-    try:
-        logging.info("Attempting to authenticate with Google Sheets API.")
-        
-        if creds_json is None:
-            logging.error("Google Sheets API key is missing.")
-            return None
-        
-        credentials = Credentials.from_service_account_info(
-            json.loads(creds_json),
-            scopes=["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
-        )
-        client = gspread.authorize(credentials)
-        logging.info("Google Sheets API authentication successful.")
-        return client
-    except Exception as e:
-        logging.error(f"Error while authenticating with Google Sheets API: {e}")
-        return None
-
+# Использование клиента
+client = get_gspread_client()
+if client:
+    sheet = client.open("ourid").sheet1
+    
 # Проверка, существует ли пользователь в таблице
 def is_user_exists(client, user_id: int) -> bool:
     logging.info(f"Checking if user {user_id} exists in the sheet.")
