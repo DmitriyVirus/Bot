@@ -8,6 +8,12 @@ from aiogram.types import Message
 from aiogram.filters import Command
 from aiogram.types import Message, User, Chat, InlineKeyboardButton, InlineKeyboardMarkup
 from tgbot.triggers import TRIGGERS, WELCOME_TEXT, COMMANDS_LIST, NAME_TABLE, ALIASES, FIRST, ABOUT, DEBUG_BOT, DAREDEVILS, ABOUT_GAME, DETRON, MACROS
+from tgbot.gspread_client import get_gspread_client
+
+# Использование клиента
+client = get_gspread_client()
+if client:
+    sheet = client.open("ourid").sheet1
 
 # Настройка логирования
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -102,17 +108,39 @@ async def menu_daredevils_handler(callback: types.CallbackQuery):
         disable_web_page_preview=True  # Отключаем предпросмотр ссылок
     )
     
-# Обработчик для кнопки "Участники"
 @router.callback_query(lambda callback: callback.data == "menu_participants")
 async def menu_participants_handler(callback: types.CallbackQuery):
-    response = "Список всех пользователей:\n"
-    for user_name, user_info in NAME_TABLE.items():
-        response += (
-            f"\nИмя: {user_info['name']}\n"
-            f"Имя в телеграмм: {user_info['tgnick']}\n"
-            f"Ник: {user_info['nick']}\n"
-            f"Инфо: {user_info['about']}\n"
-        )
+    # Подключаемся к Google Sheets или другой базе данных
+    client = get_gspread_client()  # Подключаемся к Google Sheets
+    if not client:
+        await callback.answer("Ошибка подключения к Google Sheets.", show_alert=True)
+        return
+
+    expanded_table = fetch_data_from_sheet(client)  # Получаем данные из таблицы
+    if not expanded_table:
+        await callback.answer("Ошибка загрузки данных из Google Sheets.", show_alert=True)
+        return
+    
+    # Формируем список участников
+    response = "Список всех участников:\n"
+    for user_name, user_info in expanded_table.items():
+        # Формируем информацию о каждом пользователе
+        first_name = user_info.get("name", "Не указано")
+        last_name = user_info.get("about", "Не указано")
+        if last_name == "unknown":  # Не показывать "unknown"
+            last_name = None
+        if first_name == "unknown":  # Не показывать "unknown"
+            first_name = None
+        
+        # Если обе информации отсутствуют, пропускаем этого пользователя
+        if first_name or last_name:
+            response += (
+                f"\nИмя: {first_name or ''} {last_name or ''}\n"
+                f"Ник в Telegram: @{user_info['nick']}\n"
+                f"Информация: {user_info['about']}\n"
+            )
+
+    # Отправляем результат в ответ
     await callback.message.edit_text(response, reply_markup=create_back_menu())
 
 # Обработчик для кнопки "О боте"
