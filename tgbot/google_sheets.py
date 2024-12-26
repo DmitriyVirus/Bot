@@ -3,13 +3,14 @@ import logging
 import os
 from dotenv import load_dotenv
 from aiogram import Bot, Router, types
+from aiogram.filters import Command
 from aiogram.types import Message
 import gspread
 from google.auth.transport.requests import Request
 from google.oauth2.service_account import Credentials
 
 # Настроим логирование
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(asctime)s - %(message)s')
 
 # Инициализация роутера
 router = Router()
@@ -87,6 +88,95 @@ def add_user_to_sheet(user_id: int, username: str, first_name: str, last_name: s
         logging.info(f"User {username} ({user_id}) successfully added with default data.")
     except Exception as e:
         logging.error(f"An error occurred while adding the user: {e}")
+
+# Функция для получения данных из Google Таблицы
+def fetch_data_from_sheet(client):
+    """
+    Загружает данные из Google Sheets и преобразует их в таблицу с алиасами.
+    """
+    try:
+        sheet = client.open("ourid").sheet1
+        records = sheet.get_all_records()
+        expanded_table = {}
+
+        for record in records:
+            # Генерируем tgnick
+            first_name = record["first_name"]
+            last_name = record["last_name"]
+            tgnick = f"{first_name} {last_name}".strip() if first_name.lower() != "unknown" or last_name.lower() != "unknown" else "Unknown"
+
+            # Собираем данные для пользователя
+            user_data = {
+                "name": record["name"],
+                "tgnick": tgnick,
+                "nick": record["username"],
+                "about": record["about"]
+            }
+
+            # Добавляем данные в таблицу
+            expanded_table[record["name"].lower()] = user_data
+
+            # Если у пользователя есть алиасы, добавляем их
+            if record["aliases"]:
+                aliases = [alias.strip().lower() for alias in record["aliases"].split(",")]
+                for alias in aliases:
+                    expanded_table[alias] = user_data
+
+        return expanded_table
+    except Exception as e:
+        logging.error(f"Error while fetching data from Google Sheets: {e}")
+        return {}
+
+# Обработчик команды /kto
+@router.message(Command(commands=["kto"]))
+async def who_is_this(message: Message):
+    client = get_gspread_client()
+    if not client:
+        await message.answer("Ошибка подключения к Google Sheets.")
+        return
+
+    # Загружаем данные из Google Sheets
+    expanded_table = fetch_data_from_sheet(client)
+    if not expanded_table:
+        await message.answer("Ошибка загрузки данных из Google Sheets.")
+        return
+
+    # Разделяем команду и аргумент
+    args = message.text.split(' ', 1)
+
+    # Если аргумент не указан
+    if len(args) < 2:
+        await message.answer("Пожалуйста, укажите имя после команды или 'all' для всех.")
+        return
+
+    name = args[1].strip().lower()
+
+    # Если введено 'all', показываем информацию о всех пользователях
+    if name == "all":
+        response = "Список всех пользователей:\n"
+        for user_name, user_info in expanded_table.items():
+            # Выводим только уникальные записи (без алиасов)
+            if user_name == user_info["name"].lower():
+                response += (
+                    f"\nИмя: {user_info['name']}\n"
+                    f"Имя в телеграмм: {user_info['tgnick']}\n"
+                    f"Ник: {user_info['nick']}\n"
+                    f"Инфо: {user_info['about']}\n"
+                )
+        await message.answer(response)
+    else:
+        # Ищем конкретного пользователя
+        user_info = expanded_table.get(name)
+        if user_info:
+            response = (
+                f"Имя: {user_info['name']}\n"
+                f"Имя в телеграмм: {user_info['tgnick']}\n"
+                f"Ник: {user_info['nick']}\n"
+                f"Инфо: {user_info['about']}"
+            )
+            await message.answer(response)
+        else:
+            await message.answer(f"Информация о пользователе '{args[1]}' не найдена.")
 
 # Обработчик для сообщений
 @router.message()
