@@ -5,11 +5,27 @@ from aiogram import types, Router
 from aiogram.filters import Command
 from tgbot.triggers import USER_MAPPING
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from tgbot.gspread_client import get_gspread_client
 
 # Настройка логирования
 logging.basicConfig(level=logging.DEBUG)
 
 router = Router()
+
+def get_user_from_sheet(user_id: int):
+    client = get_gspread_client()  # Получаем клиент для Google Sheets
+    if not client:
+        return None
+
+    sheet = client.open("YourSpreadsheetName").sheet1  # Получаем первую таблицу
+    data = sheet.get_all_records()  # Получаем все данные из таблицы
+
+    # Ищем пользователя по user_id
+    for row in data:
+        if row.get('user_id') == user_id:
+            return row.get('name')  # Возвращаем имя из столбца 'name'
+
+    return None  # Если пользователя не нашли
 
 # Хендлер для команды /inst
 @router.message(Command(commands=["inst"]))
@@ -104,13 +120,14 @@ async def update_caption(photo_message: types.Message, participants: list, callb
 @router.callback_query(lambda callback: callback.data == "join_plus")
 async def handle_plus_reaction(callback: types.CallbackQuery):
     user_id = callback.from_user.id
-    username = callback.from_user.first_name
+    username = callback.from_user.first_name  # По умолчанию, используем first_name
     message = callback.message
 
     participants = parse_participants(message.caption)
     logging.debug(f"[До добавления] Участники: {participants}")
 
-    display_name = USER_MAPPING.get(user_id, username)
+    # Получаем имя пользователя из Google Sheets
+    display_name = get_user_from_sheet(user_id) or username  # Используем Google Sheets, если не нашли - fallback на first_name
 
     if display_name in participants:
         await callback.answer(f"Вы уже участвуете, {display_name}!")
@@ -127,13 +144,14 @@ async def handle_plus_reaction(callback: types.CallbackQuery):
 @router.callback_query(lambda callback: callback.data == "join_minus")
 async def handle_minus_reaction(callback: types.CallbackQuery):
     user_id = callback.from_user.id
-    username = callback.from_user.first_name
+    username = callback.from_user.first_name  # По умолчанию, используем first_name
     message = callback.message
 
     participants = parse_participants(message.caption)
     logging.debug(f"[До удаления] Участники: {participants}")
 
-    display_name = USER_MAPPING.get(user_id, username)
+    # Получаем имя пользователя из Google Sheets
+    display_name = get_user_from_sheet(user_id) or username  # Используем Google Sheets, если не нашли - fallback на first_name
 
     if display_name in participants:
         participants.remove(display_name)
