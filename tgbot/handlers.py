@@ -112,37 +112,40 @@ async def menu_daredevils_handler(callback: types.CallbackQuery):
 # Обработчик для кнопки "Участники"
 @router.callback_query(lambda callback: callback.data == "menu_participants")
 async def menu_participants_handler(callback: types.CallbackQuery):
-    # Получаем клиент Google Sheets
     client = get_gspread_client()
     if not client:
         await callback.message.edit_text("Ошибка подключения к Google Sheets.")
         return
 
-    # Загружаем данные из таблицы
+    # Загружаем данные из Google Sheets
     expanded_table = fetch_data_from_sheet(client)
     if not expanded_table:
         await callback.message.edit_text("Ошибка загрузки данных из Google Sheets.")
         return
 
-    # Формируем ответ с данными пользователей
     response = "Список всех пользователей:\n"
+    
+    # Формируем строку с данными пользователей
     for user_name, user_info in expanded_table.items():
-        response += (
-            f"\nИмя: {user_info['name']}\n"
-            f"{f'Имя в телеграмм: {user_info['tgnick']}\n' if user_info['tgnick'] != 'Unknown' else ''}"
-            f"{f'Ник: @{user_info['nick']}\n' if user_info['nick'] != 'Unknown' else ''}"
-            f"Инфо: {user_info['about']}\n"
-        )
+        if user_name == user_info["name"].lower():  # Уникальные записи
+            response += (
+                f"\nИмя: {user_info['name']}\n"
+                f"{f'Имя в телеграмм: {user_info['tgnick']}\n' if user_info['tgnick'] != 'Unknown' else ''}"
+                f"{f'Ник: @{user_info['nick']}\n' if user_info['nick'] != 'Unknown' else ''}"
+                f"Инфо: {user_info['about']}\n"
+            )
 
-    # Если сообщение слишком длинное, разделим его на части
+    # Ограничение на длину сообщения
     MAX_MESSAGE_LENGTH = 4096
+    
+    # Если сообщение слишком длинное, разделим его на части
     if len(response) > MAX_MESSAGE_LENGTH:
-        # Разделим сообщение на несколько частей
         for i in range(0, len(response), MAX_MESSAGE_LENGTH):
             await callback.message.edit_text(response[i:i + MAX_MESSAGE_LENGTH], reply_markup=create_back_menu())
     else:
         # Отправляем сообщение целиком
         await callback.message.edit_text(response, reply_markup=create_back_menu())
+
 
 # Обработчик для кнопки "О боте"
 @router.callback_query(lambda callback: callback.data == "menu_about_bot")
