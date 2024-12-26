@@ -264,49 +264,6 @@ async def say_goodbye(message: Message):
     except Exception as e:
         logging.error(f"Ошибка при отправке прощания для {left_member.first_name}: {e}")
 
-def build_expanded_table(name_table, aliases):
-    expanded_table = {}
-    for key, value in name_table.items():
-        expanded_table[key] = value
-        if key in aliases:
-            for alias in aliases[key]:
-                expanded_table[alias] = value
-    return expanded_table
-
-@router.message(Command(commands=["kto"]))
-async def who_is_this(message: types.Message):
-    # Расширяем таблицу с алиасами для поиска
-    expanded_table = build_expanded_table(NAME_TABLE, ALIASES)
-    
-    # Разделяем команду и аргумент
-    args = message.text.split(' ', 1)
-
-    # Если аргумент не указан
-    if len(args) < 2:
-        await message.answer("Пожалуйста, укажите имя после команды или 'all' для всех.")
-        return
-
-    # Получаем введённое имя в нижнем регистре
-    name = args[1].strip().lower()
-
-    # Если введено 'all', показываем информацию о всех пользователях (без алиасов)
-    if name == "all":
-        response = "Список всех пользователей:\n"
-        for user_name, user_info in NAME_TABLE.items():  # Используем исходную таблицу без алиасов
-            response += f"\nИмя: {user_info['name']}\nИмя в телеграмм: {user_info['tgnick']}\nНик: {user_info['nick']}\nИнфо: {user_info['about']}\n"
-        await message.answer(response)
-    else:
-        # Преобразуем ключи в таблице в нижний регистр для удобства поиска
-        expanded_table_lower = {key.lower(): value for key, value in expanded_table.items()}
-        
-        # Ищем конкретного пользователя в расширенной таблице с алиасами, используя таблицу с нижним регистром
-        user_info = expanded_table_lower.get(name)  # Используем таблицу с алиасами в нижнем регистре
-        if user_info:
-            response = f"Имя: {user_info['name']}\nНик: {user_info['nick']}\nИнфо: {user_info['about']}"
-            await message.answer(response)
-        else:
-            await message.answer(f"Информация о пользователе '{args[1]}' не найдена.")
-
 # Обработчик команды /fu
 @router.message(Command(commands=["fu"]))  # Используем фильтр Command
 async def fu_handler(message: Message):
