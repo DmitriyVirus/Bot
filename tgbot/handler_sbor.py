@@ -17,7 +17,7 @@ def get_user_from_sheet(user_id: int):
     if not client:
         return None
 
-    sheet = client.open("YourSpreadsheetName").sheet1  # Получаем первую таблицу
+    sheet = client.open("ourid").sheet1  # Получаем первую таблицу
     data = sheet.get_all_records()  # Получаем все данные из таблицы
 
     # Ищем пользователя по user_id
