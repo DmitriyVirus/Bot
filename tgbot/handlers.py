@@ -9,6 +9,7 @@ from aiogram.filters import Command
 from aiogram.types import Message, User, Chat, InlineKeyboardButton, InlineKeyboardMarkup
 from tgbot.triggers import TRIGGERS, WELCOME_TEXT, COMMANDS_LIST, NAME_TABLE, ALIASES, FIRST, ABOUT, DEBUG_BOT, DAREDEVILS, ABOUT_GAME, DETRON, MACROS
 from tgbot.gspread_client import get_gspread_client
+from tgbot.google_sheets import fetch_data_from_sheet
 
 # Использование клиента
 client = get_gspread_client()
