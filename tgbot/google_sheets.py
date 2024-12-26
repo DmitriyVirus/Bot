@@ -68,12 +68,23 @@ def add_user_to_sheet(user_id: int, username: str, first_name: str, last_name: s
         return
     try:
         sheet = client.open("ourid").sheet1
-        if not is_user_exists(client, user_id):
-            logging.info("User does not exist. Adding to sheet...")
-            sheet.append_row([user_id, username, first_name, last_name])
-            logging.info(f"User {username} ({user_id}) successfully added.")
-        else:
-            logging.info(f"User {username} ({user_id}) already exists.")
+        # Проверяем, существует ли пользователь
+        if is_user_exists(client, user_id):
+            logging.info(f"User {user_id} already exists. No action needed.")
+            return  # Никаких действий не требуется
+        
+        # Если пользователь не существует, добавляем его с дефолтными значениями
+        logging.info("User does not exist. Adding to sheet...")
+        sheet.append_row([
+            user_id,         # user_id
+            username,        # username
+            first_name,      # first_name
+            last_name,       # last_name
+            "выясняем",      # name
+            "выясняем",      # aliases
+            "выясняем"       # about
+        ])
+        logging.info(f"User {username} ({user_id}) successfully added with default data.")
     except Exception as e:
         logging.error(f"An error occurred while adding the user: {e}")
 
