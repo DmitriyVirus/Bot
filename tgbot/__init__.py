@@ -6,7 +6,7 @@ from tgbot.handler_sbor import router as handler_sbor_router
 from tgbot.handler_getidall import router as handler_getidall_router
 from tgbot.google_sheets import router as google_sheets_router  # Импорт функции добавления пользователя
 from tgbot.google_sheets import add_user_to_sheet  # Импорт функции добавления пользователя
-
+from tgbot.gspread_client import get_gspread_client
 
 router = Router()
 router.include_router(handlers_router)  # Подключаем хендлеры
