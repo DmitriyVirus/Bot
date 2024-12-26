@@ -134,8 +134,15 @@ async def menu_participants_handler(callback: types.CallbackQuery):
             f"Инфо: {user_info['about']}\n"
         )
 
-    # Отправляем ответ с данными
-    await callback.message.edit_text(response, reply_markup=create_back_menu())
+    # Если сообщение слишком длинное, разделим его на части
+    MAX_MESSAGE_LENGTH = 4096
+    if len(response) > MAX_MESSAGE_LENGTH:
+        # Разделим сообщение на несколько частей
+        for i in range(0, len(response), MAX_MESSAGE_LENGTH):
+            await callback.message.edit_text(response[i:i + MAX_MESSAGE_LENGTH], reply_markup=create_back_menu())
+    else:
+        # Отправляем сообщение целиком
+        await callback.message.edit_text(response, reply_markup=create_back_menu())
 
 # Обработчик для кнопки "О боте"
 @router.callback_query(lambda callback: callback.data == "menu_about_bot")
