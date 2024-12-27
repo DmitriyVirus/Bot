@@ -319,7 +319,7 @@ async def fu_handler(message: Message):
 
 # Обработчик команды /bye1
 @router.message(Command(commands=["bye1"]))  # Используем фильтр Command
-async def dno_handler(message: Message):
+async def bye1_handler(message: Message):
     video_file_id = "BAACAgIAAxkBAAIDIGdK0OJwj31wUKdAUgxygDBJs2IdAAL3WAACVk5YSsQhdK_UudsRNgQ"  # Ваш file_id
     try:
         # Отправляем видео с использованием file_id
@@ -331,8 +331,20 @@ async def dno_handler(message: Message):
 
 # Обработчик команды /bye2
 @router.message(Command(commands=["bye2"]))  # Используем фильтр Command
-async def dno_handler(message: Message):
+async def bye2_handler(message: Message):
     video_file_id = "BAACAgIAAxkBAAIDI2dLDIjfeiMQ55Ae8yv-GzRHfSnZAAIzXAACVk5YSlsGnAdQnVQ7NgQ"  # Ваш file_id
+    try:
+        # Отправляем видео с использованием file_id
+        await message.answer_video(video_file_id)
+        print(f"Видео отправлено пользователю {message.from_user.id}")
+    except Exception as e:
+        await message.answer(f"Ошибка при отправке видео: {e}")
+        print(f"Ошибка при отправке видео: {e}")
+
+# Обработчик команды /leo
+@router.message(Command(commands=["leo"]))  # Используем фильтр Command
+async def leo_handler(message: Message):
+    video_file_id = "BAACAgIAAxkBAAID7Gduy9JTCQKSgMJhi5Py2oUJjUHQAAIwYAACVVt4S58U06_aKUcxNgQ"  # Ваш file_id
     try:
         # Отправляем видео с использованием file_id
         await message.answer_video(video_file_id)
