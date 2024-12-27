@@ -7,7 +7,7 @@ from aiogram import Router, types
 from aiogram.types import Message
 from aiogram.filters import Command
 from aiogram.types import Message, User, Chat, InlineKeyboardButton, InlineKeyboardMarkup
-from tgbot.triggers import TRIGGERS, WELCOME_TEXT, COMMANDS_LIST, FIRST, ABOUT, DEBUG_BOT, DAREDEVILS, ABOUT_GAME, DETRON, MACROS, NAME_TABLE
+from tgbot.triggers import TRIGGERS, WELCOME_TEXT, COMMANDS_LIST, FIRST, ABOUT, DEBUG_BOT, DAREDEVILS, ABOUT_GAME, DETRON, MACROS
 from tgbot.gspread_client import get_gspread_client
 from tgbot.google_sheets import fetch_data_from_sheet
 
