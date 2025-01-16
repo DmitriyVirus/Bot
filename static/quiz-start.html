@@ -9,14 +9,15 @@
     </style>
 </head>
 <body>
-    <h1>Викторина начинается!</h1>
-    <p id="question-text">Загружается вопрос...</p>
-    <div id="options"></div>
+    <h1 id="user-name">Привет, {name}!</h1>  <!-- Имя пользователя будет вставлено через JavaScript -->
+    <div id="question-container">
+        <h2 id="question-text"></h2>
+        <div id="options"></div>
+    </div>
 
     <script>
         async function loadQuestion() {
-            const name = localStorage.getItem("userName"); // Получаем имя пользователя из localStorage
-            console.log("User name: ", name);  // Добавляем лог для проверки
+            const name = localStorage.getItem("userName");  // Получаем имя из localStorage
 
             if (!name) {
                 document.body.innerHTML = "<h1>Ошибка: имя пользователя не найдено.</h1>";
@@ -29,7 +30,7 @@
             if (data.status === "success") {
                 document.getElementById("question-text").textContent = `Вопрос ${data.question_id}: ${data.question}`;
                 const optionsContainer = document.getElementById("options");
-                optionsContainer.innerHTML = ""; // Очистить старые варианты
+                optionsContainer.innerHTML = "";  // Очистить старые варианты
 
                 data.options.forEach(option => {
                     const button = document.createElement("button");
@@ -44,7 +45,7 @@
             }
         }
 
-        // Вызов функции для загрузки первого вопроса
+        // Загружаем вопрос при загрузке страницы
         loadQuestion();
     </script>
 </body>
