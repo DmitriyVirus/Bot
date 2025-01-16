@@ -91,20 +91,26 @@ async def quiz_start_page(request: Request):
     return FileResponse(os.path.join(os.getcwd(), "static", "quiz-start.html"))
 
 @app.get("/api/get-question")
-async def get_question(user_name: str):
+async def get_question():
     try:
         client = get_gspread_client()  # Получаем клиент для работы с Google Sheets
         if not client:
             raise HTTPException(status_code=500, detail="Не удалось подключиться к Google Sheets.")
 
-        # Получаем второй лист, где хранятся данные о пользователях и их сложности
+        # Получаем второй лист, где хранятся настройки сложности
         settings_sheet = client.open("quiz").get_worksheet(1)  # Второй лист
         all_settings = settings_sheet.get_all_values()
 
         if not all_settings:
             raise HTTPException(status_code=500, detail="Нет данных о сложности в таблице.")
 
-        # Ищем сложность для текущего пользователя
+        # Получаем последнюю строку данных (последнего пользователя)
+        last_row = all_settings[-1]  # Получаем последнюю строку
+
+        # Получаем сложность из последней строки (предполагается, что она в 2-м столбце)
+        difficulty = last_row[1]  # Сложность во втором столбце
+
+        # Маппинг сложности
         difficulty_dict = {
             "Легко": 2,        # 2 неправильных ответа
             "Нормально": 3,    # 3 неправильных ответа
@@ -112,12 +118,6 @@ async def get_question(user_name: str):
             "Апокалипсис": 0   # Требуется вручную вводить ответ
         }
 
-        # Поиск сложности пользователя в таблице
-        user_row = next((row for row in all_settings if row[0] == user_name), None)
-        if not user_row:
-            raise HTTPException(status_code=400, detail="Пользователь не найден в таблице.")
-
-        difficulty = user_row[1]  # Сложность из таблицы
         wrong_answer_count = difficulty_dict.get(difficulty, 3)  # Если сложность не найдена, берем 3
 
         # Получаем первый лист с вопросами
