@@ -63,7 +63,7 @@
 
         async function checkAnswer(questionText, userAnswer) {
             try {
-                const response = await fetch("/api/check-answer-and-update", {
+                const response = await fetch("/api/check-answer", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
@@ -73,12 +73,7 @@
 
                 const result = await response.json();
                 if (result.status === "success") {
-                    if (result.finished) {
-                        alert(`Игра завершена! Итоговый результат: ${result.final_score}`);
-                    } else {
-                        alert(result.is_correct ? "Правильный ответ!" : `Неправильно! Правильный ответ: ${result.correct_answer}`);
-                        await loadQuestion(); // Загружаем следующий вопрос
-                    }
+                    alert(result.is_correct ? "Правильный ответ!" : `Неправильно! Правильный ответ: ${result.correct_answer}`);
                 } else {
                     alert("Ошибка проверки ответа: " + result.message);
                 }
