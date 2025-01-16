@@ -198,3 +198,58 @@ async def check_answer(answer_check: AnswerCheck):
     except Exception as e:
         print(f"Error: {e}")
         return {"status": "error", "message": str(e)}
+
+@app.post("/api/check-answer-and-update")
+async def check_answer_and_update(data: dict):
+    try:
+        question = data.get("question")
+        user_answer = data.get("user_answer")
+
+        if not question or not user_answer:
+            raise HTTPException(status_code=400, detail="Некорректные данные.")
+
+        client = get_gspread_client()
+        if not client:
+            raise HTTPException(status_code=500, detail="Не удалось подключиться к Google Sheets.")
+
+        # Получаем первый лист с вопросами
+        question_sheet = client.open("quiz").sheet1
+        all_rows = question_sheet.get_all_values()[1:]  # Пропускаем заголовок
+
+        # Ищем строку с текстом вопроса
+        question_row = next((row for row in all_rows if row[1] == question), None)
+        if not question_row:
+            return {"status": "error", "message": "Вопрос не найден."}
+
+        correct_answer = question_row[2]  # Третий столбец - правильный ответ
+        is_correct = (user_answer == correct_answer)
+
+        # Работаем с таблицей пользователя
+        user_sheet = client.open("quiz").get_worksheet(1)
+        user_rows = user_sheet.get_all_values()
+
+        if not user_rows:
+            raise HTTPException(status_code=500, detail="Нет данных о пользователях.")
+
+        last_user_row = user_rows[-1]  # Последняя строка
+        for i in range(2, 12):  # Проверяем столбцы 3-12
+            if last_user_row[i] == "":
+                user_sheet.update_cell(len(user_rows), i + 1, 1 if is_correct else 0)  # Обновляем значение
+                return {
+                    "status": "success",
+                    "is_correct": is_correct,
+                    "correct_answer": correct_answer
+                }
+
+        # Если все столбцы заполнены, возвращаем итоговый результат
+        final_score = last_user_row[12]  # 13-й столбец
+        return {
+            "status": "success",
+            "finished": True,
+            "final_score": final_score
+        }
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return {"status": "error", "message": str(e)}
+
