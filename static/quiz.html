@@ -3,73 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Викторина</title>
+    <title>Викторина по Химии на кухне</title>
     <style>
         body { font-family: Arial, sans-serif; }
-        #question { font-size: 20px; margin-bottom: 10px; }
-        #answers { margin-bottom: 20px; }
-        .answer { cursor: pointer; }
+        #form { margin-top: 20px; }
+        label, select, input, button { margin-bottom: 10px; }
     </style>
 </head>
 <body>
-    <h1>Викторина</h1>
-    <div id="question"></div>
-    <div id="answers"></div>
-    <button id="next" style="display:none;">Следующий вопрос</button>
+    <h1>Это викторина по Химии на кухне</h1>
+    <div id="form">
+        <label for="name">Введите свое имя:</label>
+        <input type="text" id="name" required>
+        <br>
+        <label for="difficulty">Выберите сложность:</label>
+        <select id="difficulty">
+            <option value="Легко">Легко</option>
+            <option value="Нормально">Нормально</option>
+            <option value="Сложно">Сложно</option>
+            <option value="Апокалипсис">Апокалипсис</option>
+        </select>
+        <br>
+        <button onclick="startQuiz()">Начать викторину</button>
+    </div>
 
     <script>
-        let currentQuestionId = 1;
-        let score = 0;
+        // Функция для отправки данных на сервер
+        async function startQuiz() {
+            const name = document.getElementById('name').value;
+            const difficulty = document.getElementById('difficulty').value;
 
-        // Функция для загрузки вопроса
-        async function loadQuestion() {
-            const response = await fetch(`/api/quiz?question_id=${currentQuestionId}`);
-            const question = await response.json();
+            if (!name) {
+                alert('Пожалуйста, введите свое имя.');
+                return;
+            }
 
-            document.getElementById('question').textContent = question.question;
-            const answersDiv = document.getElementById('answers');
-            answersDiv.innerHTML = '';
-            question.answers.forEach(answer => {
-                const button = document.createElement('button');
-                button.textContent = answer;
-                button.classList.add('answer');
-                button.onclick = () => submitAnswer(answer);
-                answersDiv.appendChild(button);
-            });
-        }
-
-        // Функция для отправки ответа
-        async function submitAnswer(userAnswer) {
-            const response = await fetch('/api/quiz/answer', {
+            // Отправка данных на сервер
+            const response = await fetch('/api/start-quiz', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ question_id: currentQuestionId, user_answer: userAnswer })
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name: name, difficulty: difficulty })
             });
-            const result = await response.json();
 
-            if (result.is_correct) {
-                score++;
-                alert('Правильный ответ!');
+            if (response.ok) {
+                window.location.href = "/quiz"; // Переход на страницу викторины
             } else {
-                alert('Неправильный ответ.');
-            }
-
-            document.getElementById('next').style.display = 'block';
-        }
-
-        // Функция для перехода к следующему вопросу
-        document.getElementById('next').onclick = () => {
-            currentQuestionId++;
-            if (currentQuestionId <= 2) {
-                loadQuestion();
-                document.getElementById('next').style.display = 'none';
-            } else {
-                alert(`Вы завершили викторину! Ваши баллы: ${score}`);
+                alert('Ошибка при начале викторины.');
             }
         }
-
-        // Загрузка первого вопроса при загрузке страницы
-        loadQuestion();
     </script>
 </body>
 </html>
