@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="uk">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Викторина</title>
+    <title>Вікторина</title>
 </head>
 <body>
-    <h1>Привет!</h1>
+    <h1>Перевіримо ваші знання!</h1>
     <div id="question-container">
         <h2 id="question-text"></h2>
         <div id="options"></div>
@@ -34,7 +34,7 @@
                     });
                 } else if (data.status === "manual_input") {
                     // Вопрос с ручным вводом ответа
-                    document.getElementById("question-text").textContent = `Вопрос: ${data.question}`;
+                    document.getElementById("question-text").textContent = `Дайте відповідь на питання: ${data.question}`;
                     const optionsContainer = document.getElementById("options");
                     optionsContainer.innerHTML = "";  // Очистить старые варианты
 
@@ -43,7 +43,7 @@
                     input.type = "text";
                     input.placeholder = "Введите ваш ответ";
                     const submitButton = document.createElement("button");
-                    submitButton.textContent = "Отправить ответ";
+                    submitButton.textContent = "Відповісти";
                     submitButton.onclick = async () => {
                         const userAnswer = input.value;
                         await checkAnswer(data.question, userAnswer);  // Проверка ответа
@@ -53,11 +53,11 @@
                     optionsContainer.appendChild(submitButton);
                 } else {
                     // Ошибка загрузки вопроса
-                    document.body.innerHTML = "<h1>Ошибка загрузки вопроса. Попробуйте позже.</h1>";
+                    document.body.innerHTML = "<h1>Зачекайте пару секунд і перезавантажте.</h1>";
                 }
             } catch (error) {
-                console.error("Ошибка при загрузке вопроса:", error);
-                document.body.innerHTML = "<h1>Ошибка загрузки вопроса. Попробуйте позже.</h1>";
+                console.error("Зачекайте пару секунд і перезавантажте. Помилка:", error);
+                document.body.innerHTML = "<h1>З</h1>";
             }
         }
 
@@ -76,15 +76,15 @@
                     if (result.finished) {
                         alert(`Игра завершена! Итоговый результат: ${result.final_score}`);
                     } else {
-                        alert(result.is_correct ? "Правильный ответ!" : `Неправильно! Правильный ответ: ${result.correct_answer}`);
+                        alert(result.is_correct ? "Все вірно!" : `Неправильно! Правильна відповідь: ${result.correct_answer}`);
                         await loadQuestion(); // Загружаем следующий вопрос
                     }
                 } else {
-                    alert("Ошибка проверки ответа: " + result.message);
+                    alert("Помилка перевірки..." + result.message);
                 }
             } catch (error) {
-                console.error("Ошибка при проверке ответа:", error);
-                alert("Произошла ошибка при проверке ответа.");
+                console.error("Помилка:", error);
+                alert("Щось пішло не так...");
             }
         }
 
