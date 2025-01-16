@@ -6,35 +6,14 @@ from fastapi import FastAPI, Request, HTTPException
 from aiogram import Bot, Router, types
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
+from api.quiz import get_question, check_answer
+
 
 app = FastAPI()
 
 # Монтируем директорию для статических файлов
 app.mount("/static", StaticFiles(directory="static"), name="static")
-
-# Пример вопросов викторины
-quiz_questions = [
-    {"id": 1, "question": "Какой язык программирования является самым популярным?", "answers": ["Python", "Java", "C++"], "correct": "Python"},
-    {"id": 2, "question": "Какой год был основан Google?", "answers": ["1998", "2000", "2005"], "correct": "1998"},
-]
-
-@app.get("/api/quiz", response_class=JSONResponse)
-async def get_question(question_id: int):
-    question = next((q for q in quiz_questions if q["id"] == question_id), None)
-    if question:
-        return question
-    else:
-        raise HTTPException(status_code=404, detail="Question not found")
-
-@app.post("/api/quiz/answer", response_class=JSONResponse)
-async def check_answer(question_id: int, user_answer: str):
-    question = next((q for q in quiz_questions if q["id"] == question_id), None)
-    if question:
-        is_correct = user_answer == question["correct"]
-        return {"is_correct": is_correct}
-    else:
-        raise HTTPException(status_code=404, detail="Question not found")
-        
+      
 # Установка webhook при старте
 @app.on_event("startup")
 async def on_startup():
@@ -67,7 +46,12 @@ async def tgbot_webhook_route(request: Request):
         print(f"Error processing update: {e}")
         return {"error": str(e)}
 
-# api/bot.py
-@app.get("/quiz", include_in_schema=False)
-async def quiz_page():
-    return FileResponse(os.path.join(os.getcwd(), "static", "quiz.html"))
+# Эндпоинт для получения вопроса викторины
+@app.get("/api/quiz", response_class=JSONResponse)
+async def get_question_endpoint(question_id: int):
+    return await get_question(question_id)
+
+# Эндпоинт для проверки ответа
+@app.post("/api/quiz/answer", response_class=JSONResponse)
+async def check_answer_endpoint(question_id: int, user_answer: str):
+    return await check_answer(question_id, user_answer)
