@@ -97,6 +97,26 @@ async def get_question():
         if not client:
             raise HTTPException(status_code=500, detail="Не удалось подключиться к Google Sheets.")
 
+        # Получаем второй лист, где хранятся настройки сложности
+        settings_sheet = client.open("quiz").get_worksheet(1)  # Второй лист
+        all_settings = settings_sheet.get_all_values()
+
+        if not all_settings:
+            raise HTTPException(status_code=500, detail="Нет данных о сложности в таблице.")
+
+        # Получаем сложности для каждого уровня
+        difficulty_dict = {
+            "Легко": 2,        # 2 неправильных ответа
+            "Нормально": 3,    # 3 неправильных ответа
+            "Сложно": 5,       # 5 неправильных ответов
+            "Апокалипсис": 0   # Требуется вручную вводить ответ
+        }
+
+        # Получаем текущую сложность (например, из данных, переданных на сервер)
+        difficulty = "Нормально"  # Пример. Здесь может быть значение, получаемое от пользователя или из таблицы
+        wrong_answer_count = difficulty_dict.get(difficulty, 3)  # Если сложность не найдена, берем 3
+
+        # Получаем первый лист с вопросами
         question_sheet = client.open("quiz").sheet1  # Первый лист с вопросами
 
         # Получаем все строки с вопросами и ответами, начиная с 2-й строки
@@ -115,19 +135,28 @@ async def get_question():
         all_answers = random_row[2:]  # Все ответы (правильный и возможные неправильные)
         wrong_answers = [answer for answer in all_answers if answer != correct_answer]  # Убираем правильный ответ
 
-        # Ограничиваем количество неправильных вариантов (3 варианта)
-        wrong_answers = wrong_answers[:3]
+        # Ограничиваем количество неправильных вариантов в зависимости от сложности
+        wrong_answers = wrong_answers[:wrong_answer_count]
 
-        # Собираем варианты ответов
-        options = [correct_answer] + wrong_answers
-        random.shuffle(options)  # Перемешиваем варианты
+        if wrong_answer_count > 0:
+            # Собираем варианты ответов
+            options = [correct_answer] + wrong_answers
+            random.shuffle(options)  # Перемешиваем варианты
 
-        return {
-            "status": "success",
-            "question_id": 1,
-            "question": question_text,
-            "options": options
-        }
+            return {
+                "status": "success",
+                "question_id": 1,
+                "question": question_text,
+                "options": options
+            }
+        else:
+            # Для сложности "Апокалипсис" возвращаем запрос на ввод ответа вручную
+            return {
+                "status": "manual_input",
+                "question_id": 1,
+                "question": question_text,
+                "correct_answer": correct_answer
+            }
 
     except Exception as e:
         print(f"Error: {e}")
