@@ -78,3 +78,21 @@ def get_question_and_answers(client, question_id):
         "correct_answer": correct_answer
     }
 
+# Функция для сохранения ответа в Google Sheets
+def save_answer_to_sheet(client, name, difficulty, question_id, user_answer, correct_answer):
+    sheet = client.open("quiz").sheet1
+    # Найдем строку для данного пользователя и сложности
+    user_row = None
+    for i, record in enumerate(sheet.get_all_records()):
+        if record["Name"] == name and record["Difficulty"] == difficulty:
+            user_row = i + 2  # Индекс строки (с учетом заголовка)
+            break
+    
+    if not user_row:
+        raise Exception("Не найден пользователь с такой сложностью")
+
+    # Сравниваем ответ с правильным и сохраняем 1 (правильный ответ) или 0 (неправильный)
+    is_correct = 1 if user_answer == correct_answer else 0
+    question_column = str(question_id)  # Номер столбца - вопрос
+    sheet.update_cell(user_row, int(question_column) + 2, is_correct)  # Обновляем результат
+
