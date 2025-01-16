@@ -16,37 +16,42 @@
     </div>
 
     <script>
-        async function loadQuestion() {
-            const name = localStorage.getItem("userName");  // Получаем имя из localStorage
+        // Получаем имя пользователя из localStorage
+        const userName = localStorage.getItem("userName");
 
-            if (!name) {
-                document.body.innerHTML = "<h1>Ошибка: имя пользователя не найдено.</h1>";
-                return;
+        // Если имя не найдено, показываем ошибку
+        if (!userName) {
+            document.body.innerHTML = "<h1>Ошибка: имя пользователя не найдено.</h1>";
+        } else {
+            // Показать имя на странице
+            document.getElementById("user-name").textContent = `Привет, ${userName}!`;
+
+            // Функция для загрузки вопроса
+            async function loadQuestion() {
+                const response = await fetch(`/api/get-question?name=${userName}`);
+                const data = await response.json();
+
+                if (data.status === "success") {
+                    document.getElementById("question-text").textContent = `Вопрос ${data.question_id}: ${data.question}`;
+                    const optionsContainer = document.getElementById("options");
+                    optionsContainer.innerHTML = "";  // Очистить старые варианты
+
+                    data.options.forEach(option => {
+                        const button = document.createElement("button");
+                        button.textContent = option;
+                        button.onclick = () => submitAnswer(data.question_id, option);
+                        optionsContainer.appendChild(button);
+                    });
+                } else if (data.status === "completed") {
+                    document.body.innerHTML = "<h1>Викторина завершена. Спасибо за участие!</h1>";
+                } else {
+                    document.body.innerHTML = "<h1>Ошибка загрузки вопроса. Попробуйте позже.</h1>";
+                }
             }
 
-            const response = await fetch(`/api/get-question?name=${name}`);
-            const data = await response.json();
-
-            if (data.status === "success") {
-                document.getElementById("question-text").textContent = `Вопрос ${data.question_id}: ${data.question}`;
-                const optionsContainer = document.getElementById("options");
-                optionsContainer.innerHTML = "";  // Очистить старые варианты
-
-                data.options.forEach(option => {
-                    const button = document.createElement("button");
-                    button.textContent = option;
-                    button.onclick = () => submitAnswer(data.question_id, option);
-                    optionsContainer.appendChild(button);
-                });
-            } else if (data.status === "completed") {
-                document.body.innerHTML = "<h1>Викторина завершена. Спасибо за участие!</h1>";
-            } else {
-                document.body.innerHTML = "<h1>Ошибка загрузки вопроса. Попробуйте позже.</h1>";
-            }
+            // Загружаем первый вопрос при загрузке страницы
+            loadQuestion();
         }
-
-        // Загружаем вопрос при загрузке страницы
-        loadQuestion();
     </script>
 </body>
 </html>
