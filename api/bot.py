@@ -6,7 +6,6 @@ from fastapi import FastAPI, Request, HTTPException
 from aiogram import Bot, Router, types
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
-from api.quiz import get_question, check_answer
 from pydantic import BaseModel
 from tgbot.gspread_client import get_gspread_client
 
