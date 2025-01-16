@@ -169,6 +169,7 @@ async def get_question():
 @app.post("/api/save-answer", response_class=JSONResponse)
 async def save_answer(answer_data: dict):
     try:
+        print(f"Полученные данные: {answer_data}")  # Логируем полученные данные
         # Извлекаем данные из запроса
         name = answer_data['name']
         question_id = answer_data['question_id']
