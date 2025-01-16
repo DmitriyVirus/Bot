@@ -98,13 +98,23 @@ async def get_question():
     question_sheet = client.open("quiz").sheet1  # Первый лист с вопросами
     question_row = question_sheet.row_values(2)  # Получаем второй вопрос (заголовки на первой строке)
 
-    # Проверка наличия вопроса
     if not question_row:
         return {"status": "error", "message": "Ошибка загрузки вопроса. Попробуйте позже."}
 
-    question_text = question_row[0]  # Первый столбец с вопросом
-    correct_answer = question_row[1]  # Второй столбец с правильным ответом
-    options = question_row[2:]  # Остальные столбцы с вариантами ответов
+    question_text = question_row[1]  # Второй столбец с вопросом
+    correct_answer = question_row[2]  # Третий столбец с правильным ответом
+
+    # Собираем все варианты ответов (включая правильный)
+    all_answers = question_sheet.col_values(3)[1:]  # Все ответы в третьем столбце, начиная с 2-й строки
+    wrong_answers = [answer for answer in all_answers if answer != correct_answer]  # Убираем правильный ответ
+    random.shuffle(wrong_answers)  # Перемешиваем варианты
+
+    # Ограничиваем количество неправильных вариантов (3 варианта)
+    wrong_answers = wrong_answers[:3]
+
+    # Собираем варианты ответов
+    options = [correct_answer] + wrong_answers
+    random.shuffle(options)  # Перемешиваем варианты
 
     return {
         "status": "success",
