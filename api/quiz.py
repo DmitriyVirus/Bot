@@ -1,18 +1,7 @@
 import os
 import random
-import gspread
-from google.oauth2.service_account import Credentials
-
-# Подключение к Google Sheets
-def get_gspread_client():
-    # Подключаемся с использованием Google Sheets API
-    creds_json = os.getenv('GOOGLE_SHEET_KEY')
-    credentials = Credentials.from_service_account_info(
-        json.loads(creds_json),
-        scopes=["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
-    )
-    client = gspread.authorize(credentials)
-    return client
+import json
+from tgbot.gspread_client import get_gspread_client  # Импортируем функцию из gspread_client
 
 # Получаем все вопросы из таблицы
 def fetch_questions_from_sheet(client):
