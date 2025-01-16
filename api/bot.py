@@ -88,3 +88,31 @@ async def start_quiz(user_data: UserData):
 async def quiz_start_page():
     return FileResponse(os.path.join(os.getcwd(), "static", "quiz-start.html"))
 
+@app.get("/api/quiz-start")
+async def quiz_start(difficulty: str):
+    client = get_gspread_client()  # Получаем клиент для работы с Google Sheets
+    if not client:
+        raise Exception("Google Sheets client is not initialized")
+    
+    # Количество вопросов в зависимости от сложности
+    if difficulty == "Легко":
+        num_questions = 7
+    elif difficulty == "Нормально":
+        num_questions = 10
+    elif difficulty == "Сложно":
+        num_questions = 13
+    elif difficulty == "Апокалипсис":
+        num_questions = 1
+    else:
+        raise HTTPException(status_code=400, detail="Invalid difficulty")
+
+    questions = fetch_questions_from_sheet(client)
+    selected_questions = questions[:num_questions]
+    
+    # Если "Апокалипсис", вопрос будет один и без вариантов ответа
+    for question in selected_questions:
+        if difficulty == "Апокалипсис":
+            question["answers"] = []  # Ответ вводится вручную
+
+    return JSONResponse(content={"questions": selected_questions})
+
