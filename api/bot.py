@@ -46,6 +46,11 @@ async def tgbot_webhook_route(request: Request):
         print(f"Error processing update: {e}")
         return {"error": str(e)}
 
+# api/bot.py
+@app.get("/quiz", include_in_schema=False)
+async def quiz_page():
+    return FileResponse(os.path.join(os.getcwd(), "static", "quiz.html"))
+
 # Эндпоинт для получения вопроса викторины
 @app.get("/api/quiz", response_class=JSONResponse)
 async def get_question_endpoint(question_id: int):
