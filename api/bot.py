@@ -125,7 +125,7 @@ async def get_question():
         all_rows = question_sheet.get_all_values()[1:]  # Пропускаем первую строку, которая может быть заголовком
 
         if not all_rows:
-            return {"status": "error", "message": "Нет данных в таблице."}
+            return {"status": "error", "message": "Нет данных в таблице"}
 
         # Выбираем случайную строку
         random_row = random.choice(all_rows)
