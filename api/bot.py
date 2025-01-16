@@ -9,6 +9,11 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 from tgbot.gspread_client import get_gspread_client
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import RedirectResponse
+
+# Настраиваем шаблоны
+templates = Jinja2Templates(directory="templates")
 
 app = FastAPI()
 
@@ -204,11 +209,11 @@ async def check_answer_and_update(data: dict):
         user_answer = data.get("user_answer")
 
         if not question or not user_answer:
-            raise HTTPException(status_code=400, detail="Некоректні дані.")
+            raise HTTPException(status_code=400, detail="Некорректные данные.")
 
         client = get_gspread_client()
         if not client:
-            raise HTTPException(status_code=500, detail="Немає доступу до Google Sheets.")
+            raise HTTPException(status_code=500, detail="Не удалось подключиться к Google Sheets.")
 
         # Получаем первый лист с вопросами
         question_sheet = client.open("quiz").sheet1
@@ -217,7 +222,7 @@ async def check_answer_and_update(data: dict):
         # Ищем строку с текстом вопроса
         question_row = next((row for row in all_rows if row[1] == question), None)
         if not question_row:
-            return {"status": "error", "message": "Питання не знайдено..."}
+            return {"status": "error", "message": "Вопрос не найден."}
 
         correct_answer = question_row[2]  # Третий столбец - правильный ответ
         is_correct = (user_answer.strip().lower() == correct_answer.strip().lower())
@@ -226,40 +231,47 @@ async def check_answer_and_update(data: dict):
         user_sheet = client.open("quiz").get_worksheet(1)  # Второй лист (индекс 1)
         user_rows = user_sheet.get_all_values()
 
-        if not user_rows:
-            # Если лист пустой, создаем заголовок и первую строку
-            user_sheet.append_row(["Name", "Difficulty"] + [f"{i}" for i in range(1, 11)] + ["Result"])
-            user_rows = user_sheet.get_all_values()
-
         last_row_index = len(user_rows)  # Индекс последней строки
         last_row = user_rows[-1] if last_row_index > 1 else [""] * 13
 
-        # Проверяем столбцы 3-12
-        for i in range(2, 12):  # Индексы столбцов в Python
+        # Проверяем заполненность столбцов 1-10 (индексы 2-11)
+        filled_answers = [value for value in last_row[2:12] if value != ""]
+        if len(filled_answers) >= 10:
+            # Если все столбцы заполнены, пересчитываем результат и сохраняем
+            final_score = sum(int(value) for value in filled_answers if value.isdigit())
+            user_sheet.update_cell(last_row_index, 13, final_score)  # Обновляем столбец Result
+
+            # Перенаправляем на страницу с результатами
+            return RedirectResponse(url="/quiz-results", status_code=303)
+
+        # Если не все столбцы заполнены, обновляем следующий
+        for i in range(2, 12):  # Индексы столбцов 3-12
             if len(last_row) <= i or last_row[i] == "":
                 # Вставляем 1 или 0 в первый пустой столбец
                 user_sheet.update_cell(last_row_index, i + 1, 1 if is_correct else 0)
-                
-                # Пересчитываем результат
-                current_row = user_sheet.row_values(last_row_index)  # Получаем текущую строку
-                scores = [int(value) for value in current_row[2:12] if value.isdigit()]  # Значения в столбцах 3-12
-                total_score = sum(scores)  # Сумма значений
-                user_sheet.update_cell(last_row_index, 13, total_score)  # Обновляем столбец Result
-
                 return {
                     "status": "success",
                     "is_correct": is_correct,
-                    "correct_answer": correct_answer,
-                    "total_score": total_score
+                    "correct_answer": correct_answer
                 }
 
-        # Если все столбцы заполнены, возвращаем итоговый результат
-        final_score = last_row[12] if len(last_row) > 12 else "Немає результатів."
-        return {
-            "status": "success",
-            "finished": True,
-            "final_score": final_score
-        }
+    except Exception as e:
+        print(f"Error: {e}")
+        return {"status": "error", "message": str(e)}
+
+@app.get("/quiz-results", include_in_schema=False)
+async def quiz_results(request: Request):
+    try:
+        client = get_gspread_client()
+        if not client:
+            raise HTTPException(status_code=500, detail="Не удалось подключиться к Google Sheets.")
+
+        # Открываем второй лист с результатами
+        user_sheet = client.open("quiz").get_worksheet(1)  # Второй лист (индекс 1)
+        all_rows = user_sheet.get_all_values()[1:]  # Пропускаем заголовок
+
+        # Передаем данные в шаблон
+        return templates.TemplateResponse("quiz_results.html", {"request": request, "data": all_rows})
 
     except Exception as e:
         print(f"Error: {e}")
