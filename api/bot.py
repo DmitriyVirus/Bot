@@ -88,3 +88,47 @@ async def start_quiz(user_data: UserData):
 @app.get("/quiz-start", include_in_schema=False)
 async def quiz_start_page(request: Request):
     return FileResponse(os.path.join(os.getcwd(), "static", "quiz-start.html"))
+
+@app.get("/api/get-question")
+async def get_question(name: str):
+    print(f"Received request for user: {name}")
+    client = get_gspread_client()
+    question_sheet = client.open("quiz").sheet1  # Первый лист с вопросами
+    user_sheet = client.open("quiz").get_worksheet(1)  # Второй лист с пользователями
+
+    # Найти пользователя
+    user_records = user_sheet.get_all_records()
+    user_row = None
+    for i, record in enumerate(user_records):
+        if record["Name"] == name:
+            user_row = i + 2  # +2 для учета заголовков
+            break
+
+    if user_row is None:
+        return {"status": "error", "message": "User not found."}
+
+    # Найти первый незавершенный вопрос
+    for question_id in range(1, 16):  # Вопросы от 1 до 15
+        if not user_sheet.cell(user_row, question_id + 2).value:  # Проверка пустой ячейки
+            question_row = question_sheet.row_values(question_id + 1)  # +1 для учета заголовков
+            question_text = question_row[1]
+            correct_answer = question_row[2]
+
+            # Получить все ответы из столбца C (правильные ответы)
+            all_answers = question_sheet.col_values(3)[1:]  # Исключаем заголовок
+            all_answers = list(set(all_answers) - {correct_answer})  # Убираем правильный ответ
+
+            # Выбираем 3 случайных ответа
+            wrong_answers = random.sample(all_answers, min(len(all_answers), 3))
+            options = [correct_answer] + wrong_answers
+            random.shuffle(options)  # Перемешиваем варианты
+
+            return {
+                "status": "success",
+                "question_id": question_id,
+                "question": question_text,
+                "options": options
+            }
+
+    # Если вопросы закончились
+    return {"status": "completed", "message": "Викторина завершена. Спасибо за участие!"}
