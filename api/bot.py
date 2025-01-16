@@ -102,9 +102,9 @@ async def get_question():
     if not question_row:
         return {"status": "error", "message": "Ошибка загрузки вопроса. Попробуйте позже."}
 
-    question_text = question_row[0]  # Первый столбец с вопросом
-    correct_answer = question_row[1]  # Второй столбец с правильным ответом
-    options = question_row[2:]  # Остальные столбцы с вариантами ответов
+    question_text = question_row[1]  # Первый столбец с вопросом
+    correct_answer = question_row[2]  # Второй столбец с правильным ответом
+    options = question_row[3:]  # Остальные столбцы с вариантами ответов
 
     return {
         "status": "success",
