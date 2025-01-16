@@ -241,6 +241,8 @@ async def check_answer_and_update(data: dict):
             final_score = sum(int(value) for value in filled_answers if value.isdigit())
             user_sheet.update_cell(last_row_index, 13, final_score)  # Обновляем столбец Result
 
+            export_results_to_static(client)
+
             # Перенаправляем на страницу с результатами
             return RedirectResponse(url="/quiz-results", status_code=303)
 
@@ -260,19 +262,75 @@ async def check_answer_and_update(data: dict):
         return {"status": "error", "message": str(e)}
 
 @app.get("/quiz-results", include_in_schema=False)
-async def quiz_results(request: Request):
+async def quiz_results():
+    return FileResponse("static/quiz_results.html")
+
+
+def export_results_to_static(client):
     try:
-        client = get_gspread_client()
-        if not client:
-            raise HTTPException(status_code=500, detail="Не удалось подключиться к Google Sheets.")
-
         # Открываем второй лист с результатами
-        user_sheet = client.open("quiz").get_worksheet(1)  # Второй лист (индекс 1)
-        all_rows = user_sheet.get_all_values()[1:]  # Пропускаем заголовок
+        user_sheet = client.open("quiz").get_worksheet(1)  # Второй лист
+        all_rows = user_sheet.get_all_values()
 
-        # Передаем данные в шаблон
-        return templates.TemplateResponse("quiz_results.html", {"request": request, "data": all_rows})
+        # Генерируем HTML-код для таблицы
+        html_table = """
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Результаты викторины</title>
+            <style>
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                }
+                th, td {
+                    border: 1px solid #ddd;
+                    padding: 8px;
+                    text-align: left;
+                }
+                th {
+                    background-color: #f4f4f4;
+                }
+            </style>
+        </head>
+        <body>
+            <h1>Результаты викторины</h1>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Difficulty</th>
+                        <th>1</th>
+                        <th>2</th>
+                        <th>3</th>
+                        <th>4</th>
+                        <th>5</th>
+                        <th>6</th>
+                        <th>7</th>
+                        <th>8</th>
+                        <th>9</th>
+                        <th>10</th>
+                        <th>Result</th>
+                    </tr>
+                </thead>
+                <tbody>
+        """
+        for row in all_rows[1:]:  # Пропускаем заголовок
+            html_table += "<tr>" + "".join(f"<td>{cell}</td>" for cell in row) + "</tr>"
+        html_table += """
+                </tbody>
+            </table>
+        </body>
+        </html>
+        """
+
+        # Сохраняем файл в папку static
+        with open("static/quiz_results.html", "w", encoding="utf-8") as file:
+            file.write(html_table)
+
+        print("Результаты успешно экспортированы в static/quiz_results.html")
 
     except Exception as e:
-        print(f"Error: {e}")
-        return {"status": "error", "message": str(e)}
+        print(f"Ошибка экспорта результатов: {e}")
