@@ -87,6 +87,4 @@ async def start_quiz(user_data: UserData):
 
 @app.get("/quiz-start", include_in_schema=False)
 async def quiz_start_page(request: Request):
-    user_name = localStorage.getItem("userName")  # Получаем имя из localStorage
     return FileResponse(os.path.join(os.getcwd(), "static", "quiz-start.html"))
-
