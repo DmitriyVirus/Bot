@@ -72,15 +72,14 @@ def save_user_data(client, name, difficulty):
     sheet = client.open("quiz").get_worksheet(1)  # Второй лист
     sheet.append_row([name, difficulty])
 
-# Эндпоинт для начала викторины (сохранение имени и сложности)
 @app.post("/api/start-quiz", response_class=JSONResponse)
 async def start_quiz(user_data: UserData):
     client = get_gspread_client()  # Получаем клиент для работы с Google Sheets
     if not client:
         raise Exception("Google Sheets client is not initialized")
-    
+
     # Сохраняем данные пользователя на второй вкладке таблицы
     save_user_data(client, user_data.name, user_data.difficulty)
 
-    # Возвращаем успешный ответ и редиректим на страницу викторины
-    return {"message": "Данные успешно сохранены. Викторина начинается!"}
+    # Возвращаем успешный ответ с указанием маршрута
+    return {"message": "Данные успешно сохранены. Викторина начинается!", "redirect_to": "/quiz-start"}
