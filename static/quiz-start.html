@@ -20,7 +20,7 @@
 
                 if (data.status === "success") {
                     // Обычный вопрос с вариантами ответа
-                    document.getElementById("question-text").textContent = `Вопрос: ${data.question}`;
+                    document.getElementById("question-text").textContent = `Дайте відповідь на питання: ${data.question}`;
                     const optionsContainer = document.getElementById("options");
                     optionsContainer.innerHTML = "";  // Очистить старые варианты
 
