@@ -19,6 +19,7 @@
                 const data = await response.json();
 
                 if (data.status === "success") {
+                    // Обычный вопрос с вариантами
                     document.getElementById("question-text").textContent = `Вопрос: ${data.question}`;
                     const optionsContainer = document.getElementById("options");
                     optionsContainer.innerHTML = "";  // Очистить старые варианты
@@ -29,7 +30,27 @@
                         button.onclick = () => alert(`Вы выбрали: ${option}`);
                         optionsContainer.appendChild(button);
                     });
+                } else if (data.status === "manual_input") {
+                    // Вопрос "Апокалипсис", ввод ответа вручную
+                    document.getElementById("question-text").textContent = `Вопрос: ${data.question}`;
+                    const optionsContainer = document.getElementById("options");
+                    optionsContainer.innerHTML = "";  // Очистить старые варианты
+
+                    // Создаем поле для ввода ответа вручную
+                    const input = document.createElement("input");
+                    input.type = "text";
+                    input.placeholder = "Введите ваш ответ";
+                    const submitButton = document.createElement("button");
+                    submitButton.textContent = "Отправить ответ";
+                    submitButton.onclick = () => {
+                        const userAnswer = input.value;
+                        alert(`Вы ввели: ${userAnswer}`);
+                    };
+
+                    optionsContainer.appendChild(input);
+                    optionsContainer.appendChild(submitButton);
                 } else {
+                    // Ошибка при загрузке вопроса
                     document.body.innerHTML = "<h1>Ошибка загрузки вопроса. Попробуйте позже.</h1>";
                 }
             } catch (error) {
