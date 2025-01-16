@@ -87,6 +87,7 @@ import random
 
 @app.get("/api/get-question")
 async def get_question(name: str):
+    print(f"Received request for user: {name}")
     client = get_gspread_client()
     question_sheet = client.open("quiz").sheet1  # Первый лист с вопросами
     user_sheet = client.open("quiz").get_worksheet(1)  # Второй лист с пользователями
@@ -113,11 +114,17 @@ async def get_question(name: str):
             all_answers = question_sheet.col_values(3)[1:]  # Исключаем заголовок
             all_answers = list(set(all_answers) - {correct_answer})  # Убираем правильный ответ
 
+            # Проверка наличия достаточного количества неправильных ответов
+            if len(all_answers) < 3:
+                return {"status": "error", "message": "Недостаточно неправильных ответов."}
+
             # Выбираем 3 случайных ответа
-            wrong_answers = random.sample(all_answers, min(len(all_answers), 3))
+            wrong_answers = random.sample(all_answers, 3)
             options = [correct_answer] + wrong_answers
             random.shuffle(options)  # Перемешиваем варианты
 
+            print(f"Question {question_id}: {question_text}")
+            print(f"Options: {options}")
             return {
                 "status": "success",
                 "question_id": question_id,
