@@ -59,32 +59,30 @@ class UserData(BaseModel):
 
 # Функция для сохранения данных пользователя в Google Sheets
 def save_user_data(client, name, difficulty):
-    sheet = client.open("quiz").get_worksheet(1)  # Второй лист
-    sheet.append_row([name, difficulty])
+    try:
+        sheet = client.open("quiz").get_worksheet(1)  # Второй лист
+        sheet.append_row([name, difficulty])
+        print(f"Data saved: {name}, {difficulty}")
+    except Exception as e:
+        print(f"Error saving data: {e}")
+        raise
 
 @app.post("/api/start-quiz", response_class=JSONResponse)
 async def start_quiz(user_data: UserData):
-    client = get_gspread_client()  # Получаем клиент для работы с Google Sheets
-    if not client:
-        raise Exception("Google Sheets client is not initialized")
+    try:
+        client = get_gspread_client()  # Получаем клиент для работы с Google Sheets
+        if not client:
+            raise HTTPException(status_code=500, detail="Google Sheets client is not initialized")
 
-    # Сохраняем данные пользователя на второй вкладке таблицы
-    save_user_data(client, user_data.name, user_data.difficulty)
+        # Сохраняем данные пользователя на второй вкладке таблицы
+        save_user_data(client, user_data.name, user_data.difficulty)
 
-    # Возвращаем успешный ответ с указанием маршрута
-    return {"message": "Данные успешно сохранены. Викторина начинается!", "redirect_to": "/quiz-start"}
+        # Возвращаем успешный ответ с указанием маршрута
+        return {"message": "Данные успешно сохранены. Викторина начинается!", "redirect_to": "/quiz-start"}
 
-@app.post("/api/start-quiz", response_class=JSONResponse)
-async def start_quiz(user_data: UserData):
-    client = get_gspread_client()  # Получаем клиент для работы с Google Sheets
-    if not client:
-        raise Exception("Google Sheets client is not initialized")
-
-    # Сохраняем данные пользователя на второй вкладке таблицы
-    save_user_data(client, user_data.name, user_data.difficulty)
-
-    # Возвращаем успешный ответ с указанием маршрута
-    return {"message": "Данные успешно сохранены. Викторина начинается!", "redirect_to": "/quiz-start"}
+    except Exception as e:
+        print(f"Error in start_quiz: {e}")
+        return {"status": "error", "message": str(e)}
 
 @app.get("/quiz-start", include_in_schema=False)
 async def quiz_start_page(request: Request):
@@ -197,4 +195,4 @@ async def check_answer(answer_check: AnswerCheck):
         }
     except Exception as e:
         print(f"Error: {e}")
-        return {"status": "error", "message": str(e)}
+        return {"status": "error", "message": str(e)} 
