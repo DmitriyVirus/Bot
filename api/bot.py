@@ -9,11 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 from tgbot.gspread_client import get_gspread_client
-from fastapi.templating import Jinja2Templates
-from fastapi.responses import RedirectResponse
 
-# Настраиваем шаблоны
-templates = Jinja2Templates(directory="templates")
 
 app = FastAPI()
 
