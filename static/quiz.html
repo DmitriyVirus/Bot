@@ -38,6 +38,10 @@
                 return;
             }
 
+            // Сохраняем имя и сложность в localStorage
+            localStorage.setItem("userName", name);
+            localStorage.setItem("difficulty", difficulty);
+
             // Отправка данных на сервер
             const response = await fetch('/api/start-quiz', {
                 method: 'POST',
