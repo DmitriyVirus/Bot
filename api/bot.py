@@ -115,3 +115,21 @@ async def quiz_start(difficulty: str):
             question["answers"] = []  # Ответы не генерируются, пользователь вводит свой ответ
 
     return JSONResponse(content={"questions": selected_questions})
+
+# Эндпоинт для проверки ответа
+@app.post("/api/quiz/answer", response_class=JSONResponse)
+async def check_answer_endpoint(name: str, difficulty: str, question_id: int, user_answer: str):
+    client = get_gspread_client()  # Получаем клиент для работы с Google Sheets
+    if not client:
+        raise HTTPException(status_code=400, detail="Google Sheets client is not initialized")
+
+    # Получаем правильный ответ из Google Sheets
+    sheet = client.open("quiz").sheet1
+    record = next((r for r in sheet.get_all_records() if r["id"] == question_id), None)
+    if record:
+        correct_answer = record["answer"]
+        # Сохраняем ответ в Google Sheets
+        save_answer_to_sheet(client, name, difficulty, question_id, user_answer, correct_answer)
+        return {"result": "Правильный ответ!" if user_answer == correct_answer else "Неправильный ответ!"}
+    else:
+        raise HTTPException(status_code=404, detail="Question not found")
