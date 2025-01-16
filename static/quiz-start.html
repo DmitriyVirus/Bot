@@ -25,7 +25,7 @@
     <script>
         let currentQuestionIndex = 0;
         let questions = [];
-        let difficulty = 'Легко'; // Получить значение сложности (должно быть передано с бэкенда)
+        let difficulty = 'Апокалипсис'; // Получить значение сложности (должно быть передано с бэкенда)
 
         // Загрузка вопросов с сервера
         async function loadQuestions() {
@@ -50,7 +50,7 @@
             questionElement.innerText = question.question;
             questionContainer.appendChild(questionElement);
 
-            // Варианты ответов
+            // Варианты ответов или поле ввода (для Апокалипсиса)
             if (difficulty === 'Апокалипсис') {
                 const inputElement = document.createElement('input');
                 inputElement.id = 'user-answer';
