@@ -5,7 +5,7 @@ from tgbot.gspread_client import get_gspread_client  # Импортируем ф
 
 # Получаем все вопросы из таблицы
 def fetch_questions_from_sheet(client):
-    sheet = client.open("your_quiz_sheet").sheet1
+    sheet = client.open("quiz").sheet1
     records = sheet.get_all_records()
     questions = []
     for record in records:
@@ -20,7 +20,7 @@ def fetch_questions_from_sheet(client):
 # Генерация случайных вариантов ответов
 def generate_answers(client, correct_answer):
     # Получаем все возможные ответы
-    sheet = client.open("your_quiz_sheet").sheet1
+    sheet = client.open("quiz").sheet1
     all_answers = sheet.col_values(3)[1:]  # Получаем все ответы из столбца "answer", исключая заголовок
     all_answers = list(set(all_answers) - {correct_answer})  # Убираем правильный ответ
 
