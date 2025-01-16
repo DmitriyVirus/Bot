@@ -19,7 +19,7 @@
                 const data = await response.json();
 
                 if (data.status === "success") {
-                    // Обычный вопрос с вариантами
+                    // Обычный вопрос с вариантами ответа
                     document.getElementById("question-text").textContent = `Вопрос: ${data.question}`;
                     const optionsContainer = document.getElementById("options");
                     optionsContainer.innerHTML = "";  // Очистить старые варианты
@@ -27,35 +27,59 @@
                     data.options.forEach(option => {
                         const button = document.createElement("button");
                         button.textContent = option;
-                        button.onclick = () => alert(`Вы выбрали: ${option}`);
+                        button.onclick = async () => {
+                            await checkAnswer(data.question, option);  // Проверка ответа
+                        };
                         optionsContainer.appendChild(button);
                     });
                 } else if (data.status === "manual_input") {
-                    // Вопрос "Апокалипсис", ввод ответа вручную
+                    // Вопрос с ручным вводом ответа
                     document.getElementById("question-text").textContent = `Вопрос: ${data.question}`;
                     const optionsContainer = document.getElementById("options");
                     optionsContainer.innerHTML = "";  // Очистить старые варианты
 
-                    // Создаем поле для ввода ответа вручную
+                    // Поле для ввода ручного ответа
                     const input = document.createElement("input");
                     input.type = "text";
                     input.placeholder = "Введите ваш ответ";
                     const submitButton = document.createElement("button");
                     submitButton.textContent = "Отправить ответ";
-                    submitButton.onclick = () => {
+                    submitButton.onclick = async () => {
                         const userAnswer = input.value;
-                        alert(`Вы ввели: ${userAnswer}`);
+                        await checkAnswer(data.question, userAnswer);  // Проверка ответа
                     };
 
                     optionsContainer.appendChild(input);
                     optionsContainer.appendChild(submitButton);
                 } else {
-                    // Ошибка при загрузке вопроса
+                    // Ошибка загрузки вопроса
                     document.body.innerHTML = "<h1>Ошибка загрузки вопроса. Попробуйте позже.</h1>";
                 }
             } catch (error) {
                 console.error("Ошибка при загрузке вопроса:", error);
                 document.body.innerHTML = "<h1>Ошибка загрузки вопроса. Попробуйте позже.</h1>";
+            }
+        }
+
+        async function checkAnswer(questionText, userAnswer) {
+            try {
+                const response = await fetch("/api/check-answer", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ question: questionText, user_answer: userAnswer })
+                });
+
+                const result = await response.json();
+                if (result.status === "success") {
+                    alert(result.is_correct ? "Правильный ответ!" : `Неправильно! Правильный ответ: ${result.correct_answer}`);
+                } else {
+                    alert("Ошибка проверки ответа: " + result.message);
+                }
+            } catch (error) {
+                console.error("Ошибка при проверке ответа:", error);
+                alert("Произошла ошибка при проверке ответа.");
             }
         }
 
