@@ -1,5 +1,6 @@
 import os
 import json
+import random
 from tgbot import tgbot
 from decouple import config
 from fastapi import FastAPI, Request, HTTPException
@@ -91,24 +92,43 @@ async def quiz_start_page(request: Request):
 
 @app.get("/api/get-question")
 async def get_question():
-    client = get_gspread_client()  # Получаем клиент для работы с Google Sheets
-    if not client:
-        raise HTTPException(status_code=500, detail="Не удалось подключиться к Google Sheets.")
+    try:
+        client = get_gspread_client()  # Получаем клиент для работы с Google Sheets
+        if not client:
+            raise HTTPException(status_code=500, detail="Не удалось подключиться к Google Sheets.")
 
-    question_sheet = client.open("quiz").sheet1  # Первый лист с вопросами
-    question_row = question_sheet.row_values(2)  # Получаем второй вопрос (заголовки на первой строке)
+        question_sheet = client.open("quiz").sheet1  # Первый лист с вопросами
 
-    # Проверка наличия вопроса
-    if not question_row:
-        return {"status": "error", "message": "Ошибка загрузки вопроса. Попробуйте позже."}
+        # Получаем все строки с вопросами и ответами, начиная с 2-й строки
+        all_rows = question_sheet.get_all_values()[1:]  # Пропускаем первую строку, которая может быть заголовком
 
-    question_text = question_row[1]  # Первый столбец с вопросом
-    correct_answer = question_row[2]  # Второй столбец с правильным ответом
-    options = question_row[2:]  # Остальные столбцы с вариантами ответов
+        if not all_rows:
+            return {"status": "error", "message": "Нет данных в таблице."}
 
-    return {
-        "status": "success",
-        "question_id": 1,
-        "question": question_text,
-        "options": options
-    }
+        # Выбираем случайную строку
+        random_row = random.choice(all_rows)
+
+        question_text = random_row[1]  # Второй столбец - текст вопроса
+        correct_answer = random_row[2]  # Третий столбец - правильный ответ
+
+        # Собираем все варианты ответов (включая правильный)
+        all_answers = random_row[2:]  # Все ответы (правильный и возможные неправильные)
+        wrong_answers = [answer for answer in all_answers if answer != correct_answer]  # Убираем правильный ответ
+
+        # Ограничиваем количество неправильных вариантов (3 варианта)
+        wrong_answers = wrong_answers[:3]
+
+        # Собираем варианты ответов
+        options = [correct_answer] + wrong_answers
+        random.shuffle(options)  # Перемешиваем варианты
+
+        return {
+            "status": "success",
+            "question_id": 1,
+            "question": question_text,
+            "options": options
+        }
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return {"status": "error", "message": str(e)}
