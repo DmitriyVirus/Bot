@@ -165,3 +165,36 @@ async def get_question():
     except Exception as e:
         print(f"Error: {e}")
         return {"status": "error", "message": str(e)}
+
+class AnswerCheck(BaseModel):
+    question: str  # Текст вопроса
+    user_answer: str  # Ответ пользователя
+
+@app.post("/api/check-answer", response_class=JSONResponse)
+async def check_answer(answer_check: AnswerCheck):
+    try:
+        client = get_gspread_client()
+        if not client:
+            raise HTTPException(status_code=500, detail="Не удалось подключиться к Google Sheets.")
+        
+        # Открываем лист с вопросами
+        question_sheet = client.open("quiz").sheet1
+        all_rows = question_sheet.get_all_values()[1:]  # Пропускаем заголовок
+
+        # Ищем вопрос по тексту (2-й столбец)
+        matching_question = next((row for row in all_rows if row[1].strip().lower() == answer_check.question.strip().lower()), None)
+        if not matching_question:
+            return {"status": "error", "message": "Вопрос не найден."}
+        
+        # Получаем правильный ответ (3-й столбец)
+        correct_answer = matching_question[2]
+        is_correct = answer_check.user_answer.strip().lower() == correct_answer.strip().lower()
+
+        return {
+            "status": "success",
+            "is_correct": is_correct,
+            "correct_answer": correct_answer
+        }
+    except Exception as e:
+        print(f"Error: {e}")
+        return {"status": "error", "message": str(e)}
