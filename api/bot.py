@@ -3,12 +3,12 @@ import json
 import random
 from tgbot import tgbot
 from decouple import config
-from fastapi import FastAPI, Request, HTTPException
+from pydantic import BaseModel
 from aiogram import Bot, Router, types
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
-from pydantic import BaseModel
 from tgbot.gspread_client import get_gspread_client
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 
 app = FastAPI()
 
@@ -47,15 +47,15 @@ async def tgbot_webhook_route(request: Request):
         print(f"Error processing update: {e}")
         return {"error": str(e)}
 
-# Страница викторины
-@app.get("/quiz", include_in_schema=False)
-async def quiz_page():
-    return FileResponse(os.path.join(os.getcwd(), "static", "quiz.html"))
-
+#/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////#
 # Модель для данных пользователя (имя и сложность)
 class UserData(BaseModel):
     name: str
     difficulty: str
+
+class AnswerCheck(BaseModel):
+    question: str  # Текст вопроса
+    user_answer: str  # Ответ пользователя
 
 # Функция для сохранения данных пользователя в Google Sheets
 def save_user_data(client, name, difficulty):
@@ -66,6 +66,11 @@ def save_user_data(client, name, difficulty):
     except Exception as e:
         print(f"Error saving data: {e}")
         raise
+          
+# Страница викторины
+@app.get("/quiz", include_in_schema=False)
+async def quiz_page():
+    return FileResponse(os.path.join(os.getcwd(), "static", "quiz.html"))
 
 @app.post("/api/start-quiz", response_class=JSONResponse)
 async def start_quiz(user_data: UserData):
@@ -163,10 +168,6 @@ async def get_question():
     except Exception as e:
         print(f"Error: {e}")
         return {"status": "error", "message": str(e)}
-
-class AnswerCheck(BaseModel):
-    question: str  # Текст вопроса
-    user_answer: str  # Ответ пользователя
 
 @app.post("/api/check-answer-and-update")
 async def check_answer_and_update(data: dict):
