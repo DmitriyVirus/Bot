@@ -9,6 +9,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 from tgbot.gspread_client import get_gspread_client
+from fastapi.responses import RedirectResponse
+
 
 app = FastAPI()
 
