@@ -6,14 +6,14 @@
     <title>Викторина</title>
     <style>
         body { font-family: Arial, sans-serif; }
-        #question-container { margin-top: 20px; }
-        #options button { margin: 5px; }
+        #options { margin-top: 20px; }
+        button { margin: 5px; }
     </style>
 </head>
 <body>
-    <h1>Викторина начинается!</h1>
+    <h1>Викторина</h1>
     <div id="question-container">
-        <p id="question-text">Загрузка вопроса...</p>
+        <p id="question-text"></p>
         <div id="options"></div>
     </div>
 
@@ -42,16 +42,23 @@
             }
         }
 
-        // Заглушка для отправки ответа
-        async function submitAnswer(questionId, selectedAnswer) {
-            alert(`Вы выбрали: ${selectedAnswer}`); // Уведомление о выборе (временно)
-            loadQuestion(); // Загрузить следующий вопрос
+        // Функция для отправки ответа на сервер
+        async function submitAnswer(question_id, answer) {
+            const response = await fetch(`/api/check-answer`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ question_id, answer })
+            });
+
+            const result = await response.json();
+            alert(result.message);  // Показать результат (правильный/неправильный ответ)
+            loadQuestion();  // Загрузить следующий вопрос
         }
 
-        // Загружаем первый вопрос при загрузке страницы
-        document.addEventListener("DOMContentLoaded", () => {
-            loadQuestion();
-        });
+        // Загрузить первый вопрос при загрузке страницы
+        loadQuestion();
     </script>
 </body>
 </html>
