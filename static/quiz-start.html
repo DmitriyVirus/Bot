@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Викторина по Химии на кухне</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        #form { margin-top: 20px; }
+        label, select, input, button { margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Викторина по Химии на кухне</h1>
+    <div id="question-container">
+        <!-- Вопрос и ответы будут вставляться сюда -->
+    </div>
+    <div id="next-button-container">
+        <button onclick="nextQuestion()">Следующий вопрос</button>
+    </div>
+    <div id="answer-container">
+        <!-- Для сложного уровня будет поле для ввода ответа -->
+    </div>
+
+    <script>
+        let currentQuestionIndex = 0;
+        let questions = [];
+        let difficulty = 'Легко'; // Получить значение сложности (должно быть передано с бэкенда)
+
+        // Загрузка вопросов с сервера
+        async function loadQuestions() {
+            const response = await fetch(`/api/quiz-start?difficulty=${difficulty}`);
+            const data = await response.json();
+            questions = data.questions;
+            displayQuestion();
+        }
+
+        // Отображение вопроса
+        function displayQuestion() {
+            const question = questions[currentQuestionIndex];
+            const questionContainer = document.getElementById('question-container');
+            const answerContainer = document.getElementById('answer-container');
+
+            // Очистить контейнеры
+            questionContainer.innerHTML = '';
+            answerContainer.innerHTML = '';
+
+            // Вопрос
+            const questionElement = document.createElement('h3');
+            questionElement.innerText = question.question;
+            questionContainer.appendChild(questionElement);
+
+            // Варианты ответов
+            if (difficulty === 'Апокалипсис') {
+                const inputElement = document.createElement('input');
+                inputElement.id = 'user-answer';
+                inputElement.placeholder = 'Введите ваш ответ';
+                answerContainer.appendChild(inputElement);
+            } else {
+                question.answers.forEach(answer => {
+                    const label = document.createElement('label');
+                    label.innerHTML = `<input type="radio" name="answer" value="${answer}"> ${answer}`;
+                    questionContainer.appendChild(label);
+                    questionContainer.appendChild(document.createElement('br'));
+                });
+            }
+        }
+
+        // Переход к следующему вопросу
+        async function nextQuestion() {
+            const selectedAnswer = document.querySelector('input[name="answer"]:checked');
+            const userAnswer = difficulty === 'Апокалипсис' ? document.getElementById('user-answer').value : selectedAnswer?.value;
+
+            if (!userAnswer) {
+                alert('Пожалуйста, выберите или введите ответ.');
+                return;
+            }
+
+            const response = await fetch(`/api/quiz/answer`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    question_id: questions[currentQuestionIndex].id,
+                    user_answer: userAnswer
+                })
+            });
+
+            const result = await response.json();
+            alert(result.result); // Выводим результат
+
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                displayQuestion(); // Показать следующий вопрос
+            } else {
+                alert('Вы завершили викторину!');
+            }
+        }
+
+        // Загрузка вопросов при старте
+        loadQuestions();
+    </script>
+</body>
+</html>
