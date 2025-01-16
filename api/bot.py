@@ -91,34 +91,42 @@ async def quiz_start_page(request: Request):
 
 @app.get("/api/get-question")
 async def get_question():
-    client = get_gspread_client()  # Получаем клиент для работы с Google Sheets
-    if not client:
-        raise HTTPException(status_code=500, detail="Не удалось подключиться к Google Sheets.")
+    try:
+        client = get_gspread_client()  # Получаем клиент для работы с Google Sheets
+        if not client:
+            raise HTTPException(status_code=500, detail="Не удалось подключиться к Google Sheets.")
 
-    question_sheet = client.open("quiz").sheet1  # Первый лист с вопросами
-    question_row = question_sheet.row_values(2)  # Получаем второй вопрос (заголовки на первой строке)
+        question_sheet = client.open("quiz").sheet1  # Первый лист с вопросами
+        question_row = question_sheet.row_values(2)  # Получаем второй вопрос (заголовки на первой строке)
+        print(f"Question row: {question_row}")  # Логирование строки с вопросом
 
-    if not question_row:
-        return {"status": "error", "message": "Ошибка загрузки вопроса. Попробуйте позже."}
+        if not question_row:
+            return {"status": "error", "message": "Ошибка загрузки вопроса. Попробуйте позже."}
 
-    question_text = question_row[1]  # Второй столбец с вопросом
-    correct_answer = question_row[2]  # Третий столбец с правильным ответом
+        question_text = question_row[0]  # Первый столбец с вопросом
+        correct_answer = question_row[1]  # Второй столбец с правильным ответом
+        print(f"Question: {question_text}, Correct answer: {correct_answer}")  # Логирование текста вопроса и правильного ответа
 
-    # Собираем все варианты ответов (включая правильный)
-    all_answers = question_sheet.col_values(3)[1:]  # Все ответы в третьем столбце, начиная с 2-й строки
-    wrong_answers = [answer for answer in all_answers if answer != correct_answer]  # Убираем правильный ответ
-    random.shuffle(wrong_answers)  # Перемешиваем варианты
+        # Собираем все варианты ответов (включая правильный)
+        all_answers = question_sheet.col_values(3)[1:]  # Все ответы в третьем столбце, начиная с 2-й строки
+        print(f"All answers: {all_answers}")  # Логирование всех вариантов ответов
 
-    # Ограничиваем количество неправильных вариантов (3 варианта)
-    wrong_answers = wrong_answers[:3]
+        wrong_answers = [answer for answer in all_answers if answer != correct_answer]  # Убираем правильный ответ
+        random.shuffle(wrong_answers)  # Перемешиваем варианты
 
-    # Собираем варианты ответов
-    options = [correct_answer] + wrong_answers
-    random.shuffle(options)  # Перемешиваем варианты
+        # Ограничиваем количество неправильных вариантов (3 варианта)
+        wrong_answers = wrong_answers[:3]
 
-    return {
-        "status": "success",
-        "question_id": 1,
-        "question": question_text,
-        "options": options
-    }
+        # Собираем варианты ответов
+        options = [correct_answer] + wrong_answers
+        random.shuffle(options)  # Перемешиваем варианты
+
+        return {
+            "status": "success",
+            "question_id": 1,
+            "question": question_text,
+            "options": options
+        }
+    except Exception as e:
+        print(f"Error: {e}")
+        return {"status": "error", "message": str(e)}
