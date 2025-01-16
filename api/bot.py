@@ -74,12 +74,21 @@ async def start_quiz(user_data: UserData):
     # Возвращаем успешный ответ с указанием маршрута
     return {"message": "Данные успешно сохранены. Викторина начинается!", "redirect_to": "/quiz-start"}
 
+@app.post("/api/start-quiz", response_class=JSONResponse)
+async def start_quiz(user_data: UserData):
+    client = get_gspread_client()  # Получаем клиент для работы с Google Sheets
+    if not client:
+        raise Exception("Google Sheets client is not initialized")
+
+    # Сохраняем данные пользователя на второй вкладке таблицы
+    save_user_data(client, user_data.name, user_data.difficulty)
+
+    # Возвращаем успешный ответ с указанием маршрута
+    return {"message": "Данные успешно сохранены. Викторина начинается!", "redirect_to": "/quiz-start"}
+
 @app.get("/quiz-start", include_in_schema=False)
 async def quiz_start_page(request: Request):
-    file_path = os.path.join(os.getcwd(), "static", "quiz-start.html")
-    if not os.path.exists(file_path):
-        return {"status": "error", "message": "Файл quiz-start.html не найден."}
-    return FileResponse(file_path)
+    return FileResponse(os.path.join(os.getcwd(), "static", "quiz-start.html"))
 
 @app.get("/api/get-question")
 async def get_question():
@@ -99,7 +108,7 @@ async def get_question():
         last_row = all_settings[-1]  # Получаем последнюю строку
 
         # Получаем сложность из последней строки (предполагается, что она в 2-м столбце)
-        difficulty = last_row[2]  # Сложность во втором столбце
+        difficulty = last_row[1]  # Сложность во втором столбце
 
         # Маппинг сложности
         difficulty_dict = {
@@ -157,57 +166,35 @@ async def get_question():
         print(f"Error: {e}")
         return {"status": "error", "message": str(e)}
 
-@app.post("/api/check-answer-and-update")
-async def check_answer_and_update(data: dict):
+class AnswerCheck(BaseModel):
+    question: str  # Текст вопроса
+    user_answer: str  # Ответ пользователя
+
+@app.post("/api/check-answer", response_class=JSONResponse)
+async def check_answer(answer_check: AnswerCheck):
     try:
-        question = data.get("question")
-        user_answer = data.get("user_answer")
-
-        if not question or not user_answer:
-            raise HTTPException(status_code=400, detail="Некорректные данные.")
-
         client = get_gspread_client()
         if not client:
             raise HTTPException(status_code=500, detail="Не удалось подключиться к Google Sheets.")
-
-        # Получаем первый лист с вопросами
+        
+        # Открываем лист с вопросами
         question_sheet = client.open("quiz").sheet1
         all_rows = question_sheet.get_all_values()[1:]  # Пропускаем заголовок
 
-        # Ищем строку с текстом вопроса
-        question_row = next((row for row in all_rows if row[1] == question), None)
-        if not question_row:
+        # Ищем вопрос по тексту (2-й столбец)
+        matching_question = next((row for row in all_rows if row[1].strip().lower() == answer_check.question.strip().lower()), None)
+        if not matching_question:
             return {"status": "error", "message": "Вопрос не найден."}
+        
+        # Получаем правильный ответ (3-й столбец)
+        correct_answer = matching_question[2]
+        is_correct = answer_check.user_answer.strip().lower() == correct_answer.strip().lower()
 
-        correct_answer = question_row[2]  # Третий столбец - правильный ответ
-        is_correct = (user_answer.strip().lower() == correct_answer.strip().lower())
-
-        # Работаем с таблицей пользователя
-        user_sheet = client.open("quiz").get_worksheet(1)  # Второй лист
-        user_rows = user_sheet.get_all_values()
-
-        # Проверяем, есть ли данные в таблице
-        if not user_rows:
-            user_sheet.append_row(["Дата", "Имя пользователя"] + [f"Ответ {i}" for i in range(1, 11)] + ["Результат"])
-            user_rows = user_sheet.get_all_values()
-
-        last_row_index = len(user_rows)
-        last_row = user_rows[-1] if last_row_index > 1 else [""] * 13
-
-        # Проверяем столбцы 3-12
-        for i in range(2, 12):
-            if len(last_row) <= i or not last_row[i]:
-                user_sheet.update_cell(last_row_index, i + 1, 1 if is_correct else 0)
-                return {"status": "success", "is_correct": is_correct, "correct_answer": correct_answer}
-
-        # Если все столбцы заполнены, возвращаем итоговый результат
-        final_score = last_row[12] if len(last_row) > 12 else "Результат отсутствует"
         return {
             "status": "success",
-            "finished": True,
-            "final_score": final_score
+            "is_correct": is_correct,
+            "correct_answer": correct_answer
         }
-
     except Exception as e:
         print(f"Error: {e}")
         return {"status": "error", "message": str(e)}
