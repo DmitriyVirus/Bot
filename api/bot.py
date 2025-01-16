@@ -52,16 +52,6 @@ async def tgbot_webhook_route(request: Request):
 async def quiz_page():
     return FileResponse(os.path.join(os.getcwd(), "static", "quiz.html"))
 
-# Эндпоинт для получения вопроса викторины
-@app.get("/api/quiz", response_class=JSONResponse)
-async def get_question_endpoint(question_id: int):
-    return await get_question(question_id)
-
-# Эндпоинт для проверки ответа
-@app.post("/api/quiz/answer", response_class=JSONResponse)
-async def check_answer_endpoint(question_id: int, user_answer: str):
-    return await check_answer(question_id, user_answer)
-
 # Модель для данных пользователя (имя и сложность)
 class UserData(BaseModel):
     name: str
@@ -87,49 +77,3 @@ async def start_quiz(user_data: UserData):
 @app.get("/quiz-start", include_in_schema=False)
 async def quiz_start_page():
     return FileResponse(os.path.join(os.getcwd(), "static", "quiz-start.html"))
-
-@app.get("/api/quiz-start")
-async def quiz_start(difficulty: str):
-    client = get_gspread_client()  # Получаем клиент для работы с Google Sheets
-    if not client:
-        raise Exception("Google Sheets client is not initialized")
-    
-    # Количество вопросов в зависимости от сложности
-    if difficulty == "Легко":
-        num_questions = 7
-    elif difficulty == "Нормально":
-        num_questions = 10
-    elif difficulty == "Сложно":
-        num_questions = 13
-    elif difficulty == "Апокалипсис":
-        num_questions = 10  # 10 вопросов для уровня Апокалипсис
-    else:
-        raise HTTPException(status_code=400, detail="Invalid difficulty")
-
-    questions = fetch_questions_from_sheet(client)
-    selected_questions = questions[:num_questions]
-    
-    # Если "Апокалипсис", для каждого вопроса нет вариантов ответов — нужно вводить ответ вручную
-    for question in selected_questions:
-        if difficulty == "Апокалипсис":
-            question["answers"] = []  # Ответы не генерируются, пользователь вводит свой ответ
-
-    return JSONResponse(content={"questions": selected_questions})
-
-# Эндпоинт для проверки ответа
-@app.post("/api/quiz/answer", response_class=JSONResponse)
-async def check_answer_endpoint(name: str, difficulty: str, question_id: int, user_answer: str):
-    client = get_gspread_client()  # Получаем клиент для работы с Google Sheets
-    if not client:
-        raise HTTPException(status_code=400, detail="Google Sheets client is not initialized")
-
-    # Получаем правильный ответ из Google Sheets
-    sheet = client.open("quiz").sheet1
-    record = next((r for r in sheet.get_all_records() if r["id"] == question_id), None)
-    if record:
-        correct_answer = record["answer"]
-        # Сохраняем ответ в Google Sheets
-        save_answer_to_sheet(client, name, difficulty, question_id, user_answer, correct_answer)
-        return {"result": "Правильный ответ!" if user_answer == correct_answer else "Неправильный ответ!"}
-    else:
-        raise HTTPException(status_code=404, detail="Question not found")
