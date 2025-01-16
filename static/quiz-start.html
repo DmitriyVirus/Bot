@@ -19,7 +19,10 @@
                 const data = await response.json();
 
                 if (data.status === "success") {
+                    // Показать вопрос
                     document.getElementById("question-text").textContent = `Вопрос: ${data.question}`;
+
+                    // Показать варианты ответов
                     const optionsContainer = document.getElementById("options");
                     optionsContainer.innerHTML = "";  // Очистить старые варианты
 
