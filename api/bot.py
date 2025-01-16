@@ -102,17 +102,16 @@ async def quiz_start(difficulty: str):
     elif difficulty == "Сложно":
         num_questions = 13
     elif difficulty == "Апокалипсис":
-        num_questions = 1
+        num_questions = 10  # 10 вопросов для уровня Апокалипсис
     else:
         raise HTTPException(status_code=400, detail="Invalid difficulty")
 
     questions = fetch_questions_from_sheet(client)
     selected_questions = questions[:num_questions]
     
-    # Если "Апокалипсис", вопрос будет один и без вариантов ответа
+    # Если "Апокалипсис", для каждого вопроса нет вариантов ответов — нужно вводить ответ вручную
     for question in selected_questions:
         if difficulty == "Апокалипсис":
-            question["answers"] = []  # Ответ вводится вручную
+            question["answers"] = []  # Ответы не генерируются, пользователь вводит свой ответ
 
     return JSONResponse(content={"questions": selected_questions})
-
