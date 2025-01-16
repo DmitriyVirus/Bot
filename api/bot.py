@@ -6,10 +6,9 @@ from decouple import config
 from fastapi import FastAPI, Request, HTTPException
 from aiogram import Bot, Router, types
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 from tgbot.gspread_client import get_gspread_client
-
 
 app = FastAPI()
 
@@ -196,7 +195,7 @@ async def check_answer(answer_check: AnswerCheck):
         }
     except Exception as e:
         print(f"Error: {e}")
-        return {"status": "error", "message": str(e)}
+        return {"status": "error", "message": str(e)} 
 
 @app.post("/api/check-answer-and-update")
 async def check_answer_and_update(data: dict):
@@ -234,13 +233,23 @@ async def check_answer_and_update(data: dict):
         filled_answers = [value for value in last_row[2:12] if value != ""]
         if len(filled_answers) >= 10:
             # Если все столбцы заполнены, пересчитываем результат и сохраняем
-            user_sheet.update("N1", "Завершено")  # Подтверждаем, что все вопросы были отвечены
-            return {"status": "completed"}
+            final_score = sum(int(value) for value in filled_answers if value.isdigit())
+            user_sheet.update_cell(last_row_index, 13, final_score)  # Обновляем столбец Result
 
-        # Перезаписываем ответ пользователя в строку
-        user_sheet.update_cell(last_row_index + 1, len(filled_answers) + 2, user_answer)
-        return {"status": "success", "correct_answer": correct_answer, "is_correct": is_correct}
+            # Перенаправляем на страницу с результатами
+            return RedirectResponse(url="/quiz-results", status_code=303)
+
+        # Если не все столбцы заполнены, обновляем следующий
+        for i in range(2, 12):  # Индексы столбцов 3-12
+            if len(last_row) <= i or last_row[i] == "":
+                # Вставляем 1 или 0 в первый пустой столбец
+                user_sheet.update_cell(last_row_index, i + 1, 1 if is_correct else 0)
+                return {
+                    "status": "success",
+                    "is_correct": is_correct,
+                    "correct_answer": correct_answer
+                }
 
     except Exception as e:
+        print(f"Error: {e}")
         return {"status": "error", "message": str(e)}
-
