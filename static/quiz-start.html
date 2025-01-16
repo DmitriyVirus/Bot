@@ -6,86 +6,10 @@
     <title>Викторина</title>
     <style>
         body { font-family: Arial, sans-serif; }
-        #question-container { margin-top: 20px; }
-        label, input { display: block; margin-bottom: 10px; }
     </style>
 </head>
 <body>
-    <h1>Викторина</h1>
-    <div id="question-container"></div>
-    <div id="answer-container"></div>
-    <button id="next-button" onclick="submitAnswer()">Следующий вопрос</button>
-
-    <script>
-        let currentQuestionIndex = 0;
-        let questions = [];
-        let difficulty = "Апокалипсис";  // Сложность должна быть передана с сервера
-
-        async function loadQuestions() {
-            const response = await fetch(`/api/quiz-start?difficulty=${difficulty}`);
-            const data = await response.json();
-            questions = data.questions;
-            displayQuestion();
-        }
-
-        function displayQuestion() {
-            const questionContainer = document.getElementById('question-container');
-            const answerContainer = document.getElementById('answer-container');
-            const question = questions[currentQuestionIndex];
-
-            questionContainer.innerHTML = `<h3>Вопрос ${currentQuestionIndex + 1}: ${question.question}</h3>`;
-
-            if (question.answers.length > 0) {
-                // Если есть варианты ответа
-                question.answers.forEach(answer => {
-                    const label = document.createElement('label');
-                    label.innerHTML = `<input type="radio" name="answer" value="${answer}"> ${answer}`;
-                    answerContainer.appendChild(label);
-                });
-            } else {
-                // Если вопросов с вводом ответа
-                const inputElement = document.createElement('input');
-                inputElement.id = 'user-answer';
-                inputElement.placeholder = 'Введите ваш ответ';
-                answerContainer.appendChild(inputElement);
-            }
-        }
-
-        // Функция для отправки ответа
-        async function submitAnswer() {
-            let userAnswer = document.getElementById('user-answer')?.value;
-            const selectedAnswer = document.querySelector('input[name="answer"]:checked');
-            userAnswer = selectedAnswer?.value || userAnswer;
-
-            if (!userAnswer) {
-                alert('Пожалуйста, выберите или введите ответ.');
-                return;
-            }
-
-            // Отправка данных на сервер для проверки ответа
-            const response = await fetch(`/api/quiz/answer`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    question_id: questions[currentQuestionIndex].id,
-                    user_answer: userAnswer
-                })
-            });
-
-            const result = await response.json();
-            alert(result.result); // Выводим результат
-
-            currentQuestionIndex++;
-            if (currentQuestionIndex < questions.length) {
-                displayQuestion(); // Показать следующий вопрос
-            } else {
-                alert('Вы завершили викторину!');
-            }
-        }
-
-        loadQuestions();  // Загрузка вопросов при старте
-    </script>
+    <h1>Викторина начинается!</h1>
+    <p>Выберите сложность и начните викторину.</p>
 </body>
 </html>
