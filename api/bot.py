@@ -104,7 +104,7 @@ async def get_question():
 
     question_text = question_row[1]  # Первый столбец с вопросом
     correct_answer = question_row[2]  # Второй столбец с правильным ответом
-    options = question_row[3:]  # Остальные столбцы с вариантами ответов
+    options = question_row[2:]  # Остальные столбцы с вариантами ответов
 
     return {
         "status": "success",
