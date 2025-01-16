@@ -60,7 +60,7 @@ class UserData(BaseModel):
 # Функция для сохранения данных пользователя в Google Sheets
 def save_user_data(client, name, difficulty):
     try:
-        sheet = client.open("quiz").get_worksheet(1)  # Второй лист
+        sheet = client.open("quiz").sheet2    # Второй лист
         sheet.append_row([name, difficulty])
         print(f"Data saved: {name}, {difficulty}")
     except Exception as e:
