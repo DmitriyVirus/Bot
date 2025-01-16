@@ -168,35 +168,6 @@ class AnswerCheck(BaseModel):
     question: str  # Текст вопроса
     user_answer: str  # Ответ пользователя
 
-@app.post("/api/check-answer", response_class=JSONResponse)
-async def check_answer(answer_check: AnswerCheck):
-    try:
-        client = get_gspread_client()
-        if not client:
-            raise HTTPException(status_code=500, detail="Не удалось подключиться к Google Sheets.")
-        
-        # Открываем лист с вопросами
-        question_sheet = client.open("quiz").sheet1
-        all_rows = question_sheet.get_all_values()[1:]  # Пропускаем заголовок
-
-        # Ищем вопрос по тексту (2-й столбец)
-        matching_question = next((row for row in all_rows if row[1].strip().lower() == answer_check.question.strip().lower()), None)
-        if not matching_question:
-            return {"status": "error", "message": "Вопрос не найден."}
-        
-        # Получаем правильный ответ (3-й столбец)
-        correct_answer = matching_question[2]
-        is_correct = answer_check.user_answer.strip().lower() == correct_answer.strip().lower()
-
-        return {
-            "status": "success",
-            "is_correct": is_correct,
-            "correct_answer": correct_answer
-        }
-    except Exception as e:
-        print(f"Error: {e}")
-        return {"status": "error", "message": str(e)} 
-
 @app.post("/api/check-answer-and-update")
 async def check_answer_and_update(data: dict):
     try:
@@ -236,8 +207,19 @@ async def check_answer_and_update(data: dict):
             final_score = sum(int(value) for value in filled_answers if value.isdigit())
             user_sheet.update_cell(last_row_index, 13, final_score)  # Обновляем столбец Result
 
-            # Перенаправляем на страницу с результатами
-            return RedirectResponse(url="/quiz-results", status_code=303)
+            # Генерация HTML-таблицы с результатами (последние 5 пользователей)
+            result_html = "<table border='1'><tr><th>Имя</th><th>Сложность</th><th>Результат</th></tr>"
+
+            # Срезаем последние 5 строк и переворачиваем их
+            last_5_rows = user_rows[-5:]
+            last_5_rows.reverse()  # Переворачиваем порядок строк
+            for row in last_5_rows[1:]:  # Пропускаем первую строку с заголовками
+                name, difficulty, result = row[0], row[1], row[12]  # Имя, сложность, результат
+                result_html += f"<tr><td>{name}</td><td>{difficulty}</td><td>{result}</td></tr>"
+            result_html += "</table>"
+
+            # Возвращаем HTML-таблицу
+            return HTMLResponse(content=result_html, status_code=200)
 
         # Если не все столбцы заполнены, обновляем следующий
         for i in range(2, 12):  # Индексы столбцов 3-12
