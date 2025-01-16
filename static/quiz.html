@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Викторина</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        #question { font-size: 20px; margin-bottom: 10px; }
+        #answers { margin-bottom: 20px; }
+        .answer { cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Викторина</h1>
+    <div id="question"></div>
+    <div id="answers"></div>
+    <button id="next" style="display:none;">Следующий вопрос</button>
+
+    <script>
+        let currentQuestionId = 1;
+        let score = 0;
+
+        // Функция для загрузки вопроса
+        async function loadQuestion() {
+            const response = await fetch(`/api/quiz?question_id=${currentQuestionId}`);
+            const question = await response.json();
+
+            document.getElementById('question').textContent = question.question;
+            const answersDiv = document.getElementById('answers');
+            answersDiv.innerHTML = '';
+            question.answers.forEach(answer => {
+                const button = document.createElement('button');
+                button.textContent = answer;
+                button.classList.add('answer');
+                button.onclick = () => submitAnswer(answer);
+                answersDiv.appendChild(button);
+            });
+        }
+
+        // Функция для отправки ответа
+        async function submitAnswer(userAnswer) {
+            const response = await fetch('/api/quiz/answer', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question_id: currentQuestionId, user_answer: userAnswer })
+            });
+            const result = await response.json();
+
+            if (result.is_correct) {
+                score++;
+                alert('Правильный ответ!');
+            } else {
+                alert('Неправильный ответ.');
+            }
+
+            document.getElementById('next').style.display = 'block';
+        }
+
+        // Функция для перехода к следующему вопросу
+        document.getElementById('next').onclick = () => {
+            currentQuestionId++;
+            if (currentQuestionId <= 2) {
+                loadQuestion();
+                document.getElementById('next').style.display = 'none';
+            } else {
+                alert(`Вы завершили викторину! Ваши баллы: ${score}`);
+            }
+        }
+
+        // Загрузка первого вопроса при загрузке страницы
+        loadQuestion();
+    </script>
+</body>
+</html>
