@@ -234,7 +234,7 @@ async def check_answer_and_update(data: dict):
         last_row_index = len(user_rows)  # Индекс последней строки
         last_row = user_rows[-1] if last_row_index > 1 else [""] * 13
 
-        # Проверяем, заполнены ли все столбцы 1-10
+        # Проверяем заполненность столбцов 1-10 (индексы 2-11)
         filled_answers = [value for value in last_row[2:12] if value != ""]
         if len(filled_answers) >= 10:
             # Если все столбцы заполнены, возвращаем итоговый результат
@@ -246,7 +246,7 @@ async def check_answer_and_update(data: dict):
                 "final_score": final_score
             }
 
-        # Если есть пустые столбцы, обновляем следующий
+        # Если не все столбцы заполнены, обновляем следующий
         for i in range(2, 12):  # Индексы столбцов 3-12
             if len(last_row) <= i or last_row[i] == "":
                 # Вставляем 1 или 0 в первый пустой столбец
