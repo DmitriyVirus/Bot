@@ -27,7 +27,7 @@
                     data.options.forEach(option => {
                         const button = document.createElement("button");
                         button.textContent = option;
-                        button.onclick = () => handleAnswer(option, data.correct_answer);  // Передаем выбранный ответ
+                        button.onclick = () => handleAnswer(option, data.correct_answer, data.question_id);  // Передаем ID вопроса
                         optionsContainer.appendChild(button);
                     });
                 } else if (data.status === "manual_input") {
@@ -42,7 +42,7 @@
                     input.placeholder = "Введите ваш ответ";
                     const submitButton = document.createElement("button");
                     submitButton.textContent = "Отправить ответ";
-                    submitButton.onclick = () => handleManualAnswer(input.value, data.correct_answer);  // Передаем введенный ответ
+                    submitButton.onclick = () => handleManualAnswer(input.value, data.correct_answer, data.question_id);  // Передаем ID вопроса
 
                     optionsContainer.appendChild(input);
                     optionsContainer.appendChild(submitButton);
@@ -57,7 +57,7 @@
         }
 
         // Обработчик для обычного вопроса
-        async function handleAnswer(selectedAnswer, correctAnswer) {
+        async function handleAnswer(selectedAnswer, correctAnswer, questionId) {
             console.log("Выбранный ответ:", selectedAnswer);  // Логируем выбранный ответ
             console.log("Правильный ответ:", correctAnswer);  // Логируем правильный ответ
 
@@ -71,7 +71,7 @@
                 },
                 body: JSON.stringify({
                     name: localStorage.getItem("userName"),
-                    question_id: 1,  // ID вопроса, для примера
+                    question_id: questionId,  // Используем правильный ID вопроса
                     is_correct: isCorrect
                 })
             });
@@ -81,7 +81,7 @@
         }
 
         // Обработчик для ответа вручную
-        async function handleManualAnswer(userAnswer, correctAnswer) {
+        async function handleManualAnswer(userAnswer, correctAnswer, questionId) {
             console.log("Введенный ответ:", userAnswer);  // Логируем введенный ответ
             console.log("Правильный ответ:", correctAnswer);  // Логируем правильный ответ
 
@@ -95,7 +95,7 @@
                 },
                 body: JSON.stringify({
                     name: localStorage.getItem("userName"),
-                    question_id: 1,  // ID вопроса, для примера
+                    question_id: questionId,  // Используем правильный ID вопроса
                     is_correct: isCorrect
                 })
             });
