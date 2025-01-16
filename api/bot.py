@@ -78,7 +78,7 @@ async def start_quiz(user_data: UserData):
         save_user_data(client, user_data.name, user_data.difficulty)
 
         # Возвращаем успешный ответ с указанием маршрута
-        return {"message": "Данные успешно сохранены. Викторина начинается!", "redirect_to": "/quiz-start"}
+        return {"message": "Починаємо!", "redirect_to": "/quiz-start"}
 
     except Exception as e:
         print(f"Error in start_quiz: {e}")
@@ -100,7 +100,7 @@ async def get_question():
         all_settings = settings_sheet.get_all_values()
 
         if not all_settings:
-            raise HTTPException(status_code=500, detail="Нет данных о сложности в таблице.")
+            raise HTTPException(status_code=500, detail="Невизначений рівень.")
 
         # Получаем последнюю строку данных (последнего пользователя)
         last_row = all_settings[-1]  # Получаем последнюю строку
@@ -112,8 +112,8 @@ async def get_question():
         difficulty_dict = {
             "Легко": 2,        # 2 неправильных ответа
             "Нормально": 3,    # 3 неправильных ответа
-            "Сложно": 5,       # 5 неправильных ответов
-            "Апокалипсис": 0   # Требуется вручную вводить ответ
+            "Важко": 5,       # 5 неправильных ответов
+            "Serious": 0   # Требуется вручную вводить ответ
         }
 
         wrong_answer_count = difficulty_dict.get(difficulty, 3)  # Если сложность не найдена, берем 3
@@ -204,11 +204,11 @@ async def check_answer_and_update(data: dict):
         user_answer = data.get("user_answer")
 
         if not question or not user_answer:
-            raise HTTPException(status_code=400, detail="Некорректные данные.")
+            raise HTTPException(status_code=400, detail="Некоректні дані.")
 
         client = get_gspread_client()
         if not client:
-            raise HTTPException(status_code=500, detail="Не удалось подключиться к Google Sheets.")
+            raise HTTPException(status_code=500, detail="Немає доступу до Google Sheets.")
 
         # Получаем первый лист с вопросами
         question_sheet = client.open("quiz").sheet1
@@ -217,7 +217,7 @@ async def check_answer_and_update(data: dict):
         # Ищем строку с текстом вопроса
         question_row = next((row for row in all_rows if row[1] == question), None)
         if not question_row:
-            return {"status": "error", "message": "Вопрос не найден."}
+            return {"status": "error", "message": "Питання не знайдено..."}
 
         correct_answer = question_row[2]  # Третий столбец - правильный ответ
         is_correct = (user_answer.strip().lower() == correct_answer.strip().lower())
@@ -254,7 +254,7 @@ async def check_answer_and_update(data: dict):
                 }
 
         # Если все столбцы заполнены, возвращаем итоговый результат
-        final_score = last_row[12] if len(last_row) > 12 else "Результат отсутствует"
+        final_score = last_row[12] if len(last_row) > 12 else "Немає результатів."
         return {
             "status": "success",
             "finished": True,
