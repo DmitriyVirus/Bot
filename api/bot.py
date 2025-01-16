@@ -50,10 +50,7 @@ async def tgbot_webhook_route(request: Request):
 # Страница викторины
 @app.get("/quiz", include_in_schema=False)
 async def quiz_page():
-    file_path = os.path.join(os.getcwd(), "static", "quiz.html")
-    if not os.path.exists(file_path):
-        return {"status": "error", "message": "Файл quiz.html не найден."}
-    return FileResponse(file_path)
+    return FileResponse(os.path.join(os.getcwd(), "static", "quiz.html"))
 
 # Модель для данных пользователя (имя и сложность)
 class UserData(BaseModel):
@@ -63,14 +60,7 @@ class UserData(BaseModel):
 # Функция для сохранения данных пользователя в Google Sheets
 def save_user_data(client, name, difficulty):
     sheet = client.open("quiz").get_worksheet(1)  # Второй лист
-    rows = sheet.get_all_values()
-
-    # Проверяем, есть ли данные, если нет - добавляем заголовки
-    if not rows:
-        sheet.append_row(["Дата", "Имя пользователя", "Сложность"])
-
-    # Добавляем данные пользователя
-    sheet.append_row([datetime.now().strftime("%Y-%m-%d %H:%M:%S"), name, difficulty])
+    sheet.append_row([name, difficulty])
 
 @app.post("/api/start-quiz", response_class=JSONResponse)
 async def start_quiz(user_data: UserData):
