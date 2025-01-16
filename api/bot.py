@@ -234,17 +234,28 @@ async def check_answer_and_update(data: dict):
         last_row_index = len(user_rows)  # Индекс последней строки
         last_row = user_rows[-1] if last_row_index > 1 else [""] * 13
 
-        # Проверяем столбцы 3-12
-        for i in range(2, 12):  # Индексы столбцов в Python
+        # Проверяем, заполнены ли все столбцы 1-10
+        filled_answers = [value for value in last_row[2:12] if value != ""]
+        if len(filled_answers) >= 10:
+            # Если все столбцы заполнены, возвращаем итоговый результат
+            final_score = sum(int(value) for value in filled_answers if value.isdigit())
+            user_sheet.update_cell(last_row_index, 13, final_score)  # Обновляем столбец Result
+            return {
+                "status": "finished",
+                "message": "Викторина завершена!",
+                "final_score": final_score
+            }
+
+        # Если есть пустые столбцы, обновляем следующий
+        for i in range(2, 12):  # Индексы столбцов 3-12
             if len(last_row) <= i or last_row[i] == "":
                 # Вставляем 1 или 0 в первый пустой столбец
                 user_sheet.update_cell(last_row_index, i + 1, 1 if is_correct else 0)
-                
+
                 # Пересчитываем результат
                 current_row = user_sheet.row_values(last_row_index)  # Получаем текущую строку
                 scores = [int(value) for value in current_row[2:12] if value.isdigit()]  # Значения в столбцах 3-12
                 total_score = sum(scores)  # Сумма значений
-                user_sheet.update_cell(last_row_index, 13, total_score)  # Обновляем столбец Result
 
                 return {
                     "status": "success",
@@ -252,14 +263,6 @@ async def check_answer_and_update(data: dict):
                     "correct_answer": correct_answer,
                     "total_score": total_score
                 }
-
-        # Если все столбцы заполнены, возвращаем итоговый результат
-        final_score = last_row[12] if len(last_row) > 12 else "Результат отсутствует"
-        return {
-            "status": "success",
-            "finished": True,
-            "final_score": final_score
-        }
 
     except Exception as e:
         print(f"Error: {e}")
