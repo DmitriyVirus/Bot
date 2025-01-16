@@ -6,10 +6,56 @@
     <title>Викторина</title>
     <style>
         body { font-family: Arial, sans-serif; }
+        button { margin: 5px; }
     </style>
 </head>
 <body>
-    <h1>Викторина начинается!</h1>
-    <p>Выберите сложность и начните викторину.</p>
+    <h1 id="question-number"></h1>
+    <p id="question-text"></p>
+    <div id="answers"></div>
+
+    <script>
+        const username = "Введите имя пользователя"; // Должно быть передано с сервера или введено ранее
+        const apiBaseUrl = "/api";
+
+        async function loadQuestion() {
+            const response = await fetch(`${apiBaseUrl}/get-question?name=${username}`);
+            if (response.ok) {
+                const data = await response.json();
+                document.getElementById("question-number").innerText = `Вопрос #${data.question_id}`;
+                document.getElementById("question-text").innerText = data.question;
+
+                const answersDiv = document.getElementById("answers");
+                answersDiv.innerHTML = "";
+
+                data.options.forEach(option => {
+                    const button = document.createElement("button");
+                    button.innerText = option;
+                    button.onclick = () => submitAnswer(data.question_id, option);
+                    answersDiv.appendChild(button);
+                });
+            } else {
+                alert("Викторина завершена или ошибка загрузки вопроса.");
+            }
+        }
+
+        async function submitAnswer(questionId, answer) {
+            const response = await fetch(`${apiBaseUrl}/submit-answer`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: username, question_id: questionId, user_answer: answer })
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                alert(result.result);
+                loadQuestion();
+            } else {
+                alert("Ошибка при отправке ответа.");
+            }
+        }
+
+        loadQuestion();
+    </script>
 </body>
 </html>
