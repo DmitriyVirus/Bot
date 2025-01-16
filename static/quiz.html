@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Викторина по Химии на кухне</title>
+    <title>Хімія + Кухня?</title>
     <style>
         body { font-family: Arial, sans-serif; }
         #form { margin-top: 20px; }
@@ -11,20 +11,20 @@
     </style>
 </head>
 <body>
-    <h1>Это викторина по Химии на кухне</h1>
+    <h1>Це онлайн-вікторина в якій ми перевіримо, як ви розумієте процеси, що проходять під час приготування їжі та користування пуботовими приладами.</h1>
     <div id="form">
-        <label for="name">Введите свое имя:</label>
+        <label for="name">Введіть своє ім'я:</label>
         <input type="text" id="name" required>
         <br>
-        <label for="difficulty">Выберите сложность:</label>
+        <label for="difficulty">Виберіть свій рівень:</label>
         <select id="difficulty">
             <option value="Легко">Легко</option>
             <option value="Нормально">Нормально</option>
-            <option value="Сложно">Сложно</option>
-            <option value="Апокалипсис">Апокалипсис</option>
+            <option value="Сложно">Тяжко</option>
+            <option value="Serious"></option>
         </select>
         <br>
-        <button onclick="startQuiz()">Начать викторину</button>
+        <button onclick="startQuiz()">Почати!</button>
     </div>
 
     <script>
@@ -34,7 +34,7 @@
             const difficulty = document.getElementById('difficulty').value;
 
             if (!name) {
-                alert('Пожалуйста, введите свое имя.');
+                alert('Ім"я не було вказано!');
                 return;
             }
 
@@ -55,7 +55,7 @@
                 const result = await response.json();
                 window.location.href = result.redirect_to; // Перенаправить на новый маршрут
             } else {
-                alert('Ошибка при начале викторины.');
+                alert('Упс... Щось пішло не так =(');
             }
         }
     </script>
