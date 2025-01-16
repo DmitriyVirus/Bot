@@ -27,7 +27,7 @@
                     data.options.forEach(option => {
                         const button = document.createElement("button");
                         button.textContent = option;
-                        button.onclick = () => alert(`Вы выбрали: ${option}`);
+                        button.onclick = () => handleAnswer(option, data.correct_answer);  // Передаем выбранный ответ
                         optionsContainer.appendChild(button);
                     });
                 } else if (data.status === "manual_input") {
@@ -42,10 +42,7 @@
                     input.placeholder = "Введите ваш ответ";
                     const submitButton = document.createElement("button");
                     submitButton.textContent = "Отправить ответ";
-                    submitButton.onclick = () => {
-                        const userAnswer = input.value;
-                        alert(`Вы ввели: ${userAnswer}`);
-                    };
+                    submitButton.onclick = () => handleManualAnswer(input.value, data.correct_answer);  // Передаем введенный ответ
 
                     optionsContainer.appendChild(input);
                     optionsContainer.appendChild(submitButton);
@@ -57,6 +54,48 @@
                 console.error("Ошибка при загрузке вопроса:", error);
                 document.body.innerHTML = "<h1>Ошибка загрузки вопроса. Попробуйте позже.</h1>";
             }
+        }
+
+        // Обработчик для обычного вопроса
+        async function handleAnswer(selectedAnswer, correctAnswer) {
+            const isCorrect = selectedAnswer === correctAnswer ? 1 : 0;  // Проверяем правильность ответа
+
+            // Отправляем ответ на сервер
+            await fetch("/api/save-answer", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: localStorage.getItem("userName"),
+                    question_id: 1,  // ID вопроса, для примера
+                    is_correct: isCorrect
+                })
+            });
+
+            alert(isCorrect === 1 ? "Правильный ответ!" : "Неправильный ответ!");
+            loadQuestion();  // Загружаем следующий вопрос
+        }
+
+        // Обработчик для ответа вручную
+        async function handleManualAnswer(userAnswer, correctAnswer) {
+            const isCorrect = userAnswer === correctAnswer ? 1 : 0;  // Проверяем правильность ответа
+
+            // Отправляем ответ на сервер
+            await fetch("/api/save-answer", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: localStorage.getItem("userName"),
+                    question_id: 1,  // ID вопроса, для примера
+                    is_correct: isCorrect
+                })
+            });
+
+            alert(isCorrect === 1 ? "Правильный ответ!" : "Неправильный ответ!");
+            loadQuestion();  // Загружаем следующий вопрос
         }
 
         loadQuestion();  // Загружаем первый вопрос при загрузке страницы
