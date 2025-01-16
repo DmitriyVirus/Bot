@@ -15,8 +15,10 @@
     <script>
         async function loadQuestion() {
             try {
+                console.log("Загружаем вопрос...");  // Логирование в Vercel
                 const response = await fetch("/api/get-question");
                 const data = await response.json();
+                console.log("Получены данные:", data);  // Логируем ответ сервера
 
                 if (data.status === "success") {
                     // Обычный вопрос с вариантами
@@ -27,7 +29,10 @@
                     data.options.forEach(option => {
                         const button = document.createElement("button");
                         button.textContent = option;
-                        button.onclick = () => handleAnswer(option, data.correct_answer, data.question_id);  // Передаем ID вопроса
+                        button.onclick = () => {
+                            console.log("Кнопка нажата: ", option);  // Логируем нажатие кнопки
+                            handleAnswer(option, data.correct_answer, data.question_id);  // Передаем ID вопроса
+                        };
                         optionsContainer.appendChild(button);
                     });
                 } else if (data.status === "manual_input") {
@@ -42,28 +47,31 @@
                     input.placeholder = "Введите ваш ответ";
                     const submitButton = document.createElement("button");
                     submitButton.textContent = "Отправить ответ";
-                    submitButton.onclick = () => handleManualAnswer(input.value, data.correct_answer, data.question_id);  // Передаем ID вопроса
+                    submitButton.onclick = () => {
+                        console.log("Ответ отправлен вручную:", input.value);  // Логируем ввод вручную
+                        handleManualAnswer(input.value, data.correct_answer, data.question_id);  // Передаем ID вопроса
+                    };
 
                     optionsContainer.appendChild(input);
                     optionsContainer.appendChild(submitButton);
                 } else {
-                    // Ошибка при загрузке вопроса
                     document.body.innerHTML = "<h1>Ошибка загрузки вопроса. Попробуйте позже.</h1>";
                 }
             } catch (error) {
-                console.error("Ошибка при загрузке вопроса:", error);
+                console.error("Ошибка при загрузке вопроса:", error);  // Логирование ошибки
                 document.body.innerHTML = "<h1>Ошибка загрузки вопроса. Попробуйте позже.</h1>";
             }
         }
 
         // Обработчик для обычного вопроса
         async function handleAnswer(selectedAnswer, correctAnswer, questionId) {
+            console.log("Обработка ответа...");  // Логируем начало обработки
             console.log("Выбранный ответ:", selectedAnswer);  // Логируем выбранный ответ
             console.log("Правильный ответ:", correctAnswer);  // Логируем правильный ответ
 
             const isCorrect = selectedAnswer.trim().toLowerCase() === correctAnswer.trim().toLowerCase() ? 1 : 0;  // Проверяем правильность ответа (с игнорированием регистра и пробелов)
 
-            // Отправляем ответ на сервер
+            console.log("Отправка данных на сервер...");  // Логируем отправку данных на сервер
             await fetch("/api/save-answer", {
                 method: 'POST',
                 headers: {
@@ -82,12 +90,13 @@
 
         // Обработчик для ответа вручную
         async function handleManualAnswer(userAnswer, correctAnswer, questionId) {
+            console.log("Обработка ручного ответа...");  // Логируем начало обработки
             console.log("Введенный ответ:", userAnswer);  // Логируем введенный ответ
             console.log("Правильный ответ:", correctAnswer);  // Логируем правильный ответ
 
             const isCorrect = userAnswer.trim().toLowerCase() === correctAnswer.trim().toLowerCase() ? 1 : 0;  // Проверяем правильность ответа (с игнорированием регистра и пробелов)
 
-            // Отправляем ответ на сервер
+            console.log("Отправка данных на сервер...");  // Логируем отправку данных на сервер
             await fetch("/api/save-answer", {
                 method: 'POST',
                 headers: {
