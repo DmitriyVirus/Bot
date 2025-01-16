@@ -1,3 +1,4 @@
+# api/quiz.py
 import os
 import random
 import json
@@ -33,14 +34,40 @@ def generate_answers(client, correct_answer):
     
     return answers
 
-# Пример использования
+# Функция для получения вопроса и вариантов ответов
+async def get_question(question_id):
+    client = get_gspread_client()  # Получаем клиент для работы с Google Sheets
+    if not client:
+        raise Exception("Google Sheets client is not initialized")
+
+    question_data = get_question_and_answers(client, question_id)
+    return {
+        "question": question_data["question"],
+        "answers": question_data["answers"],
+        "correct_answer": question_data["correct_answer"]
+    }
+
+# Функция для проверки ответа
+async def check_answer(question_id, user_answer):
+    client = get_gspread_client()
+    if not client:
+        raise Exception("Google Sheets client is not initialized")
+
+    question_data = get_question_and_answers(client, question_id)
+    correct_answer = question_data["correct_answer"]
+
+    if user_answer == correct_answer:
+        return {"result": "Correct!"}
+    else:
+        return {"result": "Incorrect!"}
+
+# Пример использования (можно удалить после тестирования)
 def get_question_and_answers(client, question_id):
-    # Получаем все вопросы
     questions = fetch_questions_from_sheet(client)
     question = next((q for q in questions if q["id"] == question_id), None)
 
     if not question:
-        raise ValueError("Вопрос не найден")
+        raise ValueError("Question not found")
 
     correct_answer = question["correct_answer"]
     answers = generate_answers(client, correct_answer)
@@ -50,14 +77,4 @@ def get_question_and_answers(client, question_id):
         "answers": answers,
         "correct_answer": correct_answer
     }
-
-# Получаем клиента для работы с Google Sheets
-client = get_gspread_client()
-
-# Получаем вопрос и ответы для вопроса с id = 1
-question_data = get_question_and_answers(client, 1)
-
-print("Вопрос:", question_data["question"])
-print("Ответы:", question_data["answers"])
-print("Правильный ответ:", question_data["correct_answer"])
 
