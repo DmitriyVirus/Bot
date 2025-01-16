@@ -6,56 +6,52 @@
     <title>Викторина</title>
     <style>
         body { font-family: Arial, sans-serif; }
-        button { margin: 5px; }
+        #question-container { margin-top: 20px; }
+        #options button { margin: 5px; }
     </style>
 </head>
 <body>
-    <h1 id="question-number"></h1>
-    <p id="question-text"></p>
-    <div id="answers"></div>
+    <h1>Викторина начинается!</h1>
+    <div id="question-container">
+        <p id="question-text">Загрузка вопроса...</p>
+        <div id="options"></div>
+    </div>
 
     <script>
-        const username = "Введите имя пользователя"; // Должно быть передано с сервера или введено ранее
-        const apiBaseUrl = "/api";
-
         async function loadQuestion() {
-            const response = await fetch(`${apiBaseUrl}/get-question?name=${username}`);
-            if (response.ok) {
-                const data = await response.json();
-                document.getElementById("question-number").innerText = `Вопрос #${data.question_id}`;
-                document.getElementById("question-text").innerText = data.question;
+            const name = localStorage.getItem("userName"); // Имя пользователя из localStorage
 
-                const answersDiv = document.getElementById("answers");
-                answersDiv.innerHTML = "";
+            const response = await fetch(`/api/get-question?name=${name}`);
+            const data = await response.json();
+
+            if (data.status === "success") {
+                document.getElementById("question-text").textContent = `Вопрос ${data.question_id}: ${data.question}`;
+                const optionsContainer = document.getElementById("options");
+                optionsContainer.innerHTML = ""; // Очистить старые варианты
 
                 data.options.forEach(option => {
                     const button = document.createElement("button");
-                    button.innerText = option;
+                    button.textContent = option;
                     button.onclick = () => submitAnswer(data.question_id, option);
-                    answersDiv.appendChild(button);
+                    optionsContainer.appendChild(button);
                 });
+            } else if (data.status === "completed") {
+                document.body.innerHTML = "<h1>Викторина завершена. Спасибо за участие!</h1>";
             } else {
-                alert("Викторина завершена или ошибка загрузки вопроса.");
+                document.body.innerHTML = "<h1>Ошибка загрузки вопроса. Попробуйте позже.</h1>";
             }
         }
 
-        async function submitAnswer(questionId, answer) {
-            const response = await fetch(`${apiBaseUrl}/submit-answer`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name: username, question_id: questionId, user_answer: answer })
-            });
-
-            if (response.ok) {
-                const result = await response.json();
-                alert(result.result);
-                loadQuestion();
-            } else {
-                alert("Ошибка при отправке ответа.");
-            }
+        // Заглушка для отправки ответа
+        async function submitAnswer(questionId, selectedAnswer) {
+            alert(`Вы выбрали: ${selectedAnswer}`); // Уведомление о выборе (временно)
+            loadQuestion(); // Загрузить следующий вопрос
         }
 
-        loadQuestion();
+        // Загружаем первый вопрос при загрузке страницы
+        document.addEventListener("DOMContentLoaded", () => {
+            loadQuestion();
+        });
     </script>
 </body>
 </html>
