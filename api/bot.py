@@ -6,7 +6,7 @@ from decouple import config
 from fastapi import FastAPI, Request, HTTPException
 from aiogram import Bot, Router, types
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
 from tgbot.gspread_client import get_gspread_client
 
@@ -196,7 +196,7 @@ async def check_answer(answer_check: AnswerCheck):
         }
     except Exception as e:
         print(f"Error: {e}")
-        return {"status": "error", "message": str(e)} 
+        return {"status": "error", "message": str(e)}
 
 @app.post("/api/check-answer-and-update")
 async def check_answer_and_update(data: dict):
@@ -234,99 +234,13 @@ async def check_answer_and_update(data: dict):
         filled_answers = [value for value in last_row[2:12] if value != ""]
         if len(filled_answers) >= 10:
             # Если все столбцы заполнены, пересчитываем результат и сохраняем
-            final_score = sum(int(value) for value in filled_answers if value.isdigit())
-            user_sheet.update_cell(last_row_index, 13, final_score)  # Обновляем столбец Result
+            user_sheet.update("N1", "Завершено")  # Подтверждаем, что все вопросы были отвечены
+            return {"status": "completed"}
 
-            export_results_to_static(client)
-
-            # Перенаправляем на страницу с результатами
-            return RedirectResponse(url="/quiz-results", status_code=303)
-
-        # Если не все столбцы заполнены, обновляем следующий
-        for i in range(2, 12):  # Индексы столбцов 3-12
-            if len(last_row) <= i or last_row[i] == "":
-                # Вставляем 1 или 0 в первый пустой столбец
-                user_sheet.update_cell(last_row_index, i + 1, 1 if is_correct else 0)
-                return {
-                    "status": "success",
-                    "is_correct": is_correct,
-                    "correct_answer": correct_answer
-                }
+        # Перезаписываем ответ пользователя в строку
+        user_sheet.update_cell(last_row_index + 1, len(filled_answers) + 2, user_answer)
+        return {"status": "success", "correct_answer": correct_answer, "is_correct": is_correct}
 
     except Exception as e:
-        print(f"Error: {e}")
         return {"status": "error", "message": str(e)}
 
-@app.get("/quiz-results", include_in_schema=False)
-async def quiz_results():
-    return FileResponse("static/quiz_results.html")
-
-
-def export_results_to_static(client):
-    try:
-        # Открываем второй лист с результатами
-        user_sheet = client.open("quiz").get_worksheet(1)  # Второй лист
-        all_rows = user_sheet.get_all_values()
-
-        # Генерируем HTML-код для таблицы
-        html_table = """
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Результаты викторины</title>
-            <style>
-                table {
-                    width: 100%;
-                    border-collapse: collapse;
-                }
-                th, td {
-                    border: 1px solid #ddd;
-                    padding: 8px;
-                    text-align: left;
-                }
-                th {
-                    background-color: #f4f4f4;
-                }
-            </style>
-        </head>
-        <body>
-            <h1>Результаты викторины</h1>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Difficulty</th>
-                        <th>1</th>
-                        <th>2</th>
-                        <th>3</th>
-                        <th>4</th>
-                        <th>5</th>
-                        <th>6</th>
-                        <th>7</th>
-                        <th>8</th>
-                        <th>9</th>
-                        <th>10</th>
-                        <th>Result</th>
-                    </tr>
-                </thead>
-                <tbody>
-        """
-        for row in all_rows[1:]:  # Пропускаем заголовок
-            html_table += "<tr>" + "".join(f"<td>{cell}</td>" for cell in row) + "</tr>"
-        html_table += """
-                </tbody>
-            </table>
-        </body>
-        </html>
-        """
-
-        # Сохраняем файл в папку static
-        with open("static/quiz_results.html", "w", encoding="utf-8") as file:
-            file.write(html_table)
-
-        print("Результаты успешно экспортированы в static/quiz_results.html")
-
-    except Exception as e:
-        print(f"Ошибка экспорта результатов: {e}")
