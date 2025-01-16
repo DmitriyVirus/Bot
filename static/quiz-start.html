@@ -6,20 +6,22 @@
     <title>Викторина</title>
     <style>
         body { font-family: Arial, sans-serif; }
-        #options { margin-top: 20px; }
-        button { margin: 5px; }
     </style>
 </head>
 <body>
-    <h1>Викторина</h1>
-    <div id="question-container">
-        <p id="question-text"></p>
-        <div id="options"></div>
-    </div>
+    <h1>Викторина начинается!</h1>
+    <p id="question-text">Загружается вопрос...</p>
+    <div id="options"></div>
 
     <script>
         async function loadQuestion() {
-            const name = localStorage.getItem("userName"); // Имя пользователя из localStorage
+            const name = localStorage.getItem("userName"); // Получаем имя пользователя из localStorage
+            console.log("User name: ", name);  // Добавляем лог для проверки
+
+            if (!name) {
+                document.body.innerHTML = "<h1>Ошибка: имя пользователя не найдено.</h1>";
+                return;
+            }
 
             const response = await fetch(`/api/get-question?name=${name}`);
             const data = await response.json();
@@ -42,22 +44,7 @@
             }
         }
 
-        // Функция для отправки ответа на сервер
-        async function submitAnswer(question_id, answer) {
-            const response = await fetch(`/api/check-answer`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ question_id, answer })
-            });
-
-            const result = await response.json();
-            alert(result.message);  // Показать результат (правильный/неправильный ответ)
-            loadQuestion();  // Загрузить следующий вопрос
-        }
-
-        // Загрузить первый вопрос при загрузке страницы
+        // Вызов функции для загрузки первого вопроса
         loadQuestion();
     </script>
 </body>
