@@ -4,54 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Викторина</title>
-    <style>
-        body { font-family: Arial, sans-serif; }
-    </style>
 </head>
 <body>
-    <h1 id="user-name">Привет, {name}!</h1>  <!-- Имя пользователя будет вставлено через JavaScript -->
+    <h1>Привет!</h1>
     <div id="question-container">
         <h2 id="question-text"></h2>
         <div id="options"></div>
     </div>
 
     <script>
-        // Получаем имя пользователя из localStorage
-        const userName = localStorage.getItem("userName");
-
-        // Если имя не найдено, показываем ошибку
-        if (!userName) {
-            document.body.innerHTML = "<h1>Ошибка: имя пользователя не найдено.</h1>";
-        } else {
-            // Показать имя на странице
-            document.getElementById("user-name").textContent = `Привет, ${userName}!`;
-
-            // Функция для загрузки вопроса
-            async function loadQuestion() {
-                const response = await fetch(`/api/get-question?name=${userName}`);
+        async function loadQuestion() {
+            try {
+                const response = await fetch("/api/get-question");
                 const data = await response.json();
 
                 if (data.status === "success") {
-                    document.getElementById("question-text").textContent = `Вопрос ${data.question_id}: ${data.question}`;
+                    document.getElementById("question-text").textContent = `Вопрос: ${data.question}`;
                     const optionsContainer = document.getElementById("options");
                     optionsContainer.innerHTML = "";  // Очистить старые варианты
 
                     data.options.forEach(option => {
                         const button = document.createElement("button");
                         button.textContent = option;
-                        button.onclick = () => submitAnswer(data.question_id, option);
+                        button.onclick = () => alert(`Вы выбрали: ${option}`);
                         optionsContainer.appendChild(button);
                     });
-                } else if (data.status === "completed") {
-                    document.body.innerHTML = "<h1>Викторина завершена. Спасибо за участие!</h1>";
                 } else {
                     document.body.innerHTML = "<h1>Ошибка загрузки вопроса. Попробуйте позже.</h1>";
                 }
+            } catch (error) {
+                console.error("Ошибка при загрузке вопроса:", error);
+                document.body.innerHTML = "<h1>Ошибка загрузки вопроса. Попробуйте позже.</h1>";
             }
-
-            // Загружаем первый вопрос при загрузке страницы
-            loadQuestion();
         }
+
+        loadQuestion();  // Загружаем первый вопрос при загрузке страницы
     </script>
 </body>
 </html>
