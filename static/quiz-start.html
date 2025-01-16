@@ -58,7 +58,10 @@
 
         // Обработчик для обычного вопроса
         async function handleAnswer(selectedAnswer, correctAnswer) {
-            const isCorrect = selectedAnswer === correctAnswer ? 1 : 0;  // Проверяем правильность ответа
+            console.log("Выбранный ответ:", selectedAnswer);  // Логируем выбранный ответ
+            console.log("Правильный ответ:", correctAnswer);  // Логируем правильный ответ
+
+            const isCorrect = selectedAnswer.trim().toLowerCase() === correctAnswer.trim().toLowerCase() ? 1 : 0;  // Проверяем правильность ответа (с игнорированием регистра и пробелов)
 
             // Отправляем ответ на сервер
             await fetch("/api/save-answer", {
@@ -79,7 +82,10 @@
 
         // Обработчик для ответа вручную
         async function handleManualAnswer(userAnswer, correctAnswer) {
-            const isCorrect = userAnswer === correctAnswer ? 1 : 0;  // Проверяем правильность ответа
+            console.log("Введенный ответ:", userAnswer);  // Логируем введенный ответ
+            console.log("Правильный ответ:", correctAnswer);  // Логируем правильный ответ
+
+            const isCorrect = userAnswer.trim().toLowerCase() === correctAnswer.trim().toLowerCase() ? 1 : 0;  // Проверяем правильность ответа (с игнорированием регистра и пробелов)
 
             // Отправляем ответ на сервер
             await fetch("/api/save-answer", {
