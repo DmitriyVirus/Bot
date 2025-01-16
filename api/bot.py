@@ -90,45 +90,25 @@ async def quiz_start_page(request: Request):
     return FileResponse(os.path.join(os.getcwd(), "static", "quiz-start.html"))
 
 @app.get("/api/get-question")
-async def get_question(name: str):
-    print(f"Received request for user: {name}")
-    client = get_gspread_client()
+async def get_question():
+    client = get_gspread_client()  # Получаем клиент для работы с Google Sheets
+    if not client:
+        raise HTTPException(status_code=500, detail="Не удалось подключиться к Google Sheets.")
+
     question_sheet = client.open("quiz").sheet1  # Первый лист с вопросами
-    user_sheet = client.open("quiz").get_worksheet(1)  # Второй лист с пользователями
+    question_row = question_sheet.row_values(2)  # Получаем второй вопрос (заголовки на первой строке)
 
-    # Найти пользователя
-    user_records = user_sheet.get_all_records()
-    user_row = None
-    for i, record in enumerate(user_records):
-        if record["Name"] == name:
-            user_row = i + 2  # +2 для учета заголовков
-            break
+    # Проверка наличия вопроса
+    if not question_row:
+        return {"status": "error", "message": "Ошибка загрузки вопроса. Попробуйте позже."}
 
-    if user_row is None:
-        return {"status": "error", "message": "User not found."}
+    question_text = question_row[0]  # Первый столбец с вопросом
+    correct_answer = question_row[1]  # Второй столбец с правильным ответом
+    options = question_row[2:]  # Остальные столбцы с вариантами ответов
 
-    # Найти первый незавершенный вопрос
-    for question_id in range(1, 16):  # Вопросы от 1 до 15
-        if not user_sheet.cell(user_row, question_id + 2).value:  # Проверка пустой ячейки
-            question_row = question_sheet.row_values(question_id + 1)  # +1 для учета заголовков
-            question_text = question_row[1]
-            correct_answer = question_row[2]
-
-            # Получить все ответы из столбца C (правильные ответы)
-            all_answers = question_sheet.col_values(3)[1:]  # Исключаем заголовок
-            all_answers = list(set(all_answers) - {correct_answer})  # Убираем правильный ответ
-
-            # Выбираем 3 случайных ответа
-            wrong_answers = random.sample(all_answers, min(len(all_answers), 3))
-            options = [correct_answer] + wrong_answers
-            random.shuffle(options)  # Перемешиваем варианты
-
-            return {
-                "status": "success",
-                "question_id": question_id,
-                "question": question_text,
-                "options": options
-            }
-
-    # Если вопросы закончились
-    return {"status": "completed", "message": "Викторина завершена. Спасибо за участие!"}
+    return {
+        "status": "success",
+        "question_id": 1,
+        "question": question_text,
+        "options": options
+    }
