@@ -53,7 +53,6 @@
 
             if (response.ok) {
                 const result = await response.json();
-                alert(result.message); // Показать сообщение
                 window.location.href = result.redirect_to; // Перенаправить на новый маршрут
             } else {
                 alert('Ошибка при начале викторины.');
