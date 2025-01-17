@@ -46,7 +46,6 @@ async def tgbot_webhook_route(request: Request):
     except Exception as e:
         print(f"Error processing update: {e}")
         return {"error": str(e)}
-
 #/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////#
 # Модель для данных пользователя (имя и сложность)
 class UserData(BaseModel):
