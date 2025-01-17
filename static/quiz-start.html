@@ -14,9 +14,9 @@
         body {
             display: flex;
             height: 100vh;
-            justify-content: center; /* Центрируем все содержимое */
+            justify-content: center;
             align-items: center;
-            flex-wrap: wrap; /* Позволяет перенос содержимого на меньших экранах */
+            flex-wrap: wrap;
         }
 
         .left-section {
@@ -32,72 +32,46 @@
             padding: 5%;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: flex-start;
             align-items: center;
             height: 100%;
-            position: relative;
+        }
+
+        .header {
+            height: 20%;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         h1 {
             font-size: 2.5em;
             text-align: center;
-            margin-bottom: 30%;
         }
 
-        #question-container {
+        .question-container {
+            height: 20%;
+            width: 100%;
             display: flex;
             flex-direction: column;
-            gap: 5%;
-            align-items: center;
-            position: relative;
-            width: 100%;
-            max-height: 100%; /* Уменьшаем максимальную высоту */
-            overflow: hidden; /* Прячем лишнее содержимое */
-        }
-
-        #timer-container {
-            width: 100%;
-            text-align: center;
-            margin-bottom: 15px; /* Таймер теперь выше вариантов */
-        }
-
-        #timer {
-            font-size: 3em;
-            font-weight: bold;
-            color: #ff5733;
-            border-radius: 50%;
-            width: 80px;
-            height: 80px;
-            display: flex;
-            align-items: center;
             justify-content: center;
-            border: 5px solid #ff5733;
-            animation: pulse 1s infinite;
-            margin: 0 auto;
+            align-items: center;
         }
 
-        @keyframes pulse {
-            0% {
-                transform: scale(1);
-                opacity: 1;
-            }
-            50% {
-                transform: scale(1.2);
-                opacity: 0.7;
-            }
-            100% {
-                transform: scale(1);
-                opacity: 1;
-            }
+        #question-text {
+            font-size: 1.5em;
+            text-align: center;
         }
 
-        #options {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 5% 10%;
-            justify-items: center;
+        .options-container {
+            height: 40%;
             width: 100%;
-            margin-top: 1%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            justify-content: center;
+            align-items: center;
         }
 
         button {
@@ -108,7 +82,7 @@
             font-size: 1.2em;
             cursor: pointer;
             border-radius: 10px;
-            width: 100%;
+            width: 80%;
             height: 60px;
             transition: background-color 0.3s, border 0.3s;
         }
@@ -118,17 +92,12 @@
             border: 2px solid white;
         }
 
-        input {
-            padding: 10px;
-            font-size: 1.2em;
-            width: 80%;
-            margin-bottom: 15px;
-        }
-
         .footer {
-            position: absolute;
-            bottom: 5%;
-            right: 5%;
+            width: 100%;
+            height: 20%;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
             font-size: 1.2em;
             font-weight: bold;
             color: black;
@@ -139,7 +108,6 @@
             font-size: 1.5em;
         }
 
-        /* Адаптивные стили */
         @media (max-width: 1024px) {
             .left-section {
                 width: 50%;
@@ -172,7 +140,7 @@
             }
 
             .left-section {
-                display: none; /* Скрываем левую секцию на маленьких экранах */
+                display: none;
             }
 
             .right-section {
@@ -223,12 +191,11 @@
     <div class="left-section"></div>
 
     <div class="right-section">
-        <h1>Перевіримо ваші знання!</h1>
+        <div class="header">
+            <h1>Перевіримо ваші знання!</h1>
+        </div>
 
-        <div id="question-container">
-            <div id="timer-container">
-                <div id="timer"></div> <!-- Таймер теперь в отдельном контейнере -->
-            </div>
+        <div class="question-container" id="question-container">
             <h2 id="question-text"></h2>
             <div id="options"></div>
         </div>
@@ -254,7 +221,7 @@
             try {
                 loadingIndicator.style.display = "block";
                 questionContainer.style.display = "none";
-                optionsContainer.innerHTML = ""; // Очистить старые кнопки
+                optionsContainer.innerHTML = ""; 
 
                 const response = await fetch("/api/get-question");
                 const data = await response.json();
@@ -280,7 +247,7 @@
             timeLeft = 7;
             const timerElement = document.getElementById("timer");
             timerElement.textContent = timeLeft;
-            timerElement.style.display = 'flex'; // Показываем таймер
+            timerElement.style.display = 'flex';
 
             buttonsEnabled = false;
             disableButtons();
@@ -298,7 +265,7 @@
                     clearInterval(timer);
                     buttonsEnabled = true;
                     enableButtons();
-                    timerElement.style.display = 'none'; // Скрываем таймер после окончания отсчета
+                    timerElement.style.display = 'none'; 
                 }
             }, 1000);
         }
