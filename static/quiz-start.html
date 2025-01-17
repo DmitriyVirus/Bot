@@ -13,53 +13,51 @@
 
         body {
             display: flex;
-            flex-wrap: wrap; /* Перенос для адаптации */
-            min-height: 100vh;
-            justify-content: center;
+            height: 100vh;
+            justify-content: center; /* Центрируем все содержимое */
             align-items: center;
-            font-family: Arial, sans-serif;
+            flex-wrap: wrap; /* Позволяет перенос содержимого на меньших экранах */
         }
 
         .left-section {
             background-image: url('https://i.pinimg.com/1200x/83/46/7d/83467d8f0484c8de9e3d6b12c704a3b6.jpg');
             background-position: center;
             background-size: cover;
-            flex: 1 1 55%; /* Гибкость ширины */
-            min-height: 50vh; /* Минимальная высота */
-            order: 1; /* Для управления порядком на мобильных */
+            width: 55%;
+            height: 100%;
         }
 
         .right-section {
-            flex: 1 1 45%;
+            width: 45%;
             padding: 5%;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: flex-start;
             align-items: center;
-            min-height: 50vh; /* Минимальная высота */
-            order: 2; /* Для мобильного */
+            height: 100%;
+            position: relative;
         }
 
         h1 {
-            font-size: 2em;
+            font-size: 2.5em;
             text-align: center;
-            margin-bottom: 1em;
+            margin-bottom: 5%;
         }
 
         #question-container {
             display: flex;
             flex-direction: column;
-            gap: 1em;
+            gap: 5%;
             align-items: center;
-            width: 100%;
         }
 
         #options {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* Адаптивная сетка */
-            gap: 10px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 5% 10%;
+            justify-items: center;
             width: 100%;
-            margin-top: 1em;
+            margin-top: 30%;
         }
 
         button {
@@ -67,46 +65,58 @@
             color: white;
             border: none;
             padding: 10px 20px;
-            font-size: 1em;
+            font-size: 1.2em;
             cursor: pointer;
-            border-radius: 8px;
-            transition: background-color 0.3s, transform 0.2s;
+            border-radius: 10px;
+            width: 100%;
+            height: 60px;
+            transition: background-color 0.3s, border 0.3s;
         }
 
         button:hover {
             background-color: #45a049;
-            transform: scale(1.05);
+            border: 2px solid white;
         }
 
         input {
             padding: 10px;
-            font-size: 1em;
+            font-size: 1.2em;
             width: 80%;
             margin-bottom: 15px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
         }
 
         .footer {
-            text-align: center;
-            font-size: 1em;
+            position: absolute;
+            bottom: 5%;
+            right: 5%;
+            font-size: 1.2em;
             font-weight: bold;
-            margin-top: 2em;
             color: black;
         }
 
+        #loading {
+            text-align: center;
+            font-size: 1.5em;
+        }
+
+        /* Таймер */
         #timer {
-            font-size: 2em;
+            font-size: 3em;
             font-weight: bold;
             color: #ff5733;
             border-radius: 50%;
-            width: 60px;
-            height: 60px;
+            width: 80px;
+            height: 80px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 4px solid #ff5733;
+            border: 5px solid #ff5733;
             animation: pulse 1s infinite;
+            margin-top: 5%;
+            position: absolute;
+            top: 25%;
+            left: 50%;
+            transform: translate(-50%, -50%);
         }
 
         @keyframes pulse {
@@ -125,14 +135,44 @@
         }
 
         /* Адаптивные стили */
+        @media (max-width: 1024px) {
+            .left-section {
+                width: 50%;
+            }
+
+            .right-section {
+                width: 50%;
+                padding: 3%;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            button {
+                font-size: 1em;
+                padding: 8px 15px;
+            }
+
+            #timer {
+                width: 70px;
+                height: 70px;
+                font-size: 2em;
+            }
+        }
+
         @media (max-width: 768px) {
             body {
                 flex-direction: column;
             }
 
-            .left-section, .right-section {
-                flex: 1 1 100%;
-                min-height: 50vh;
+            .left-section {
+                display: none; /* Скрываем левую секцию на маленьких экранах */
+            }
+
+            .right-section {
+                width: 90%;
+                padding: 5%;
             }
 
             h1 {
@@ -141,33 +181,35 @@
 
             button {
                 font-size: 0.9em;
-                padding: 8px 15px;
+                height: 50px;
             }
 
             #timer {
+                width: 60px;
+                height: 60px;
                 font-size: 1.5em;
-                width: 50px;
-                height: 50px;
-                border: 3px solid #ff5733;
             }
         }
 
         @media (max-width: 480px) {
+            .right-section {
+                width: 100%;
+                padding: 4%;
+            }
+
             h1 {
                 font-size: 1.2em;
             }
 
             button {
                 font-size: 0.8em;
-                padding: 6px 10px;
+                height: 45px;
             }
 
-            input {
-                width: 100%;
-            }
-
-            .footer {
-                font-size: 0.8em;
+            #timer {
+                width: 50px;
+                height: 50px;
+                font-size: 1.2em;
             }
         }
     </style>
@@ -180,7 +222,7 @@
 
         <div id="question-container">
             <h2 id="question-text"></h2>
-            <div id="timer"></div>
+            <div id="timer"></div> <!-- Таймер по центру -->
             <div id="options"></div>
         </div>
         <div id="loading" style="display: none;">Завантаження питання...</div>
@@ -189,5 +231,161 @@
             Directed by Olexander Golovaty
         </div>
     </div>
+
+    <script>
+        let timer;
+        let timeLeft = 7;
+        let buttonsEnabled = true;
+
+        async function loadQuestion() {
+            const loadingIndicator = document.getElementById("loading");
+            const questionContainer = document.getElementById("question-container");
+            const timerElement = document.getElementById("timer");
+            const optionsContainer = document.getElementById("options");
+
+            try {
+                loadingIndicator.style.display = "block";
+                questionContainer.style.display = "none";
+                optionsContainer.innerHTML = ""; // Очистить старые кнопки
+
+                const response = await fetch("/api/get-question");
+                const data = await response.json();
+
+                if (data.status === "success") {
+                    displayQuestionWithOptions(data.question, data.options);
+                } else if (data.status === "manual_input") {
+                    displayManualInputQuestion(data.question);
+                } else {
+                    displayError("Зачекайте пару секунд і перезавантажте.");
+                }
+            } catch (error) {
+                console.error("Помилка:", error);
+                displayError("Помилка завантаження питання. Спробуйте ще раз.");
+            } finally {
+                loadingIndicator.style.display = "none";
+                questionContainer.style.display = "block";
+                resetTimer();
+            }
+        }
+
+        function resetTimer() {
+            timeLeft = 7;
+            const timerElement = document.getElementById("timer");
+            timerElement.textContent = timeLeft;
+            timerElement.style.display = 'flex'; // Показываем таймер
+
+            buttonsEnabled = false;
+            disableButtons();
+
+            if (timer) clearInterval(timer);
+            startTimer(timerElement);
+        }
+
+        function startTimer(timerElement) {
+            timer = setInterval(() => {
+                timeLeft--;
+                timerElement.textContent = timeLeft;
+
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    buttonsEnabled = true;
+                    enableButtons();
+                    timerElement.style.display = 'none';
+                }
+            }, 1000);
+        }
+
+        function enableButtons() {
+            const buttons = document.querySelectorAll("button");
+            buttons.forEach(button => {
+                button.disabled = false;
+            });
+        }
+
+        function disableButtons() {
+            const buttons = document.querySelectorAll("button");
+            buttons.forEach(button => {
+                button.disabled = true;
+            });
+        }
+
+        function displayQuestionWithOptions(questionText, options) {
+            const questionTextElement = document.getElementById("question-text");
+            const optionsContainer = document.getElementById("options");
+
+            questionTextElement.textContent = `Дайте відповідь на питання: ${questionText}`;
+            optionsContainer.innerHTML = ""; 
+
+            options.forEach(option => {
+                const button = document.createElement("button");
+                button.textContent = option;
+                button.disabled = true;
+                button.onclick = async () => {
+                    await checkAnswer(questionText, option);
+                };
+                optionsContainer.appendChild(button);
+            });
+        }
+
+        function displayManualInputQuestion(questionText) {
+            const questionTextElement = document.getElementById("question-text");
+            const optionsContainer = document.getElementById("options");
+
+            questionTextElement.textContent = `Дайте відповідь на питання: ${questionText}`;
+            optionsContainer.innerHTML = "";
+
+            const input = document.createElement("input");
+            input.type = "text";
+            input.placeholder = "Введіть ваш відповідь";
+            const submitButton = document.createElement("button");
+            submitButton.textContent = "Відповісти";
+            submitButton.onclick = async () => {
+                const userAnswer = input.value.trim();
+                if (!userAnswer) {
+                    alert("Введіть відповідь!");
+                    input.focus();
+                    return;
+                }
+                await checkAnswer(questionText, userAnswer);
+            };
+
+            optionsContainer.appendChild(input);
+            optionsContainer.appendChild(submitButton);
+            input.focus();
+        }
+
+        function displayError(message) {
+            document.getElementById("question-container").innerHTML = `<h1>${message}</h1>`;
+        }
+
+        async function checkAnswer(questionText, userAnswer) {
+            try {
+                const response = await fetch("/api/check-answer-and-update", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ question: questionText, user_answer: userAnswer })
+                });
+
+                const result = await response.json();
+                if (result.status === "success") {
+                    if (result.finished) {
+                        window.location.href = "/quiz-results";
+                    } else {
+                        alert(result.is_correct ? "Все вірно!" : `Неправильно! Правильна відповідь: ${result.correct_answer}`);
+                        await loadQuestion();
+                    }
+                } else {
+                    alert("Помилка перевірки: " + result.message);
+                }
+            } catch (error) {
+                console.error("Помилка:", error);
+                alert("Щось пішло не так. Спробуйте ще раз.");
+            }
+        }
+
+        loadQuestion();
+    </script>
 </body>
 </html>
