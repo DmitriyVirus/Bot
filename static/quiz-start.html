@@ -49,6 +49,7 @@
             flex-direction: column;
             gap: 5%;
             align-items: center;
+            position: relative; /* Добавляем относительное позиционирование */
         }
 
         #options {
@@ -114,9 +115,9 @@
             animation: pulse 1s infinite;
             margin-top: 5%;
             position: absolute;
-            top: 25%;
+            top: 0%; /* Позиционируем по верхнему краю контейнера вопроса */
             left: 50%;
-            transform: translate(-50%, -50%);
+            transform: translateX(-50%);
         }
 
         @keyframes pulse {
