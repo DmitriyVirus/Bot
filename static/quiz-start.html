@@ -105,7 +105,8 @@
                 const result = await response.json();
                 if (result.status === "success") {
                     if (result.finished) {
-                        alert(`Гра завершена! Підсумковий результат: ${result.final_score}`);
+                        // Перенаправление на страницу результатов
+                        window.location.href = "/quiz-results";
                     } else {
                         alert(result.is_correct ? "Все вірно!" : `Неправильно! Правильна відповідь: ${result.correct_answer}`);
                         await loadQuestion(); // Загрузить следующий вопрос
