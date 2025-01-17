@@ -197,39 +197,35 @@ async def check_answer_and_update(data: dict):
         user_sheet = client.open("quiz").get_worksheet(1)  # Второй лист (индекс 1)
         user_rows = user_sheet.get_all_values()
 
-        last_row_index = len(user_rows)  # Индекс последней строки
-        last_row = user_rows[-1] if last_row_index > 1 else [""] * 13
+        if len(user_rows) < 2:  # Если данных нет (только заголовки)
+            raise HTTPException(status_code=400, detail="Нет данных о пользователях.")
 
-        # Проверяем заполненность столбцов 1-10 (индексы 2-11)
+        # Индекс последней строки
+        last_row_index = len(user_rows)
+        last_row = user_rows[-1] if len(user_rows) > 1 else [""] * 13
+
+        # Проверяем заполненность столбцов ответов (2-11)
         filled_answers = [value for value in last_row[2:12] if value != ""]
         if len(filled_answers) >= 10:
-            # Если все столбцы заполнены, пересчитываем результат и сохраняем
+            # Считаем итоговый результат
             final_score = sum(int(value) for value in filled_answers if value.isdigit())
-            user_sheet.update_cell(last_row_index, 13, final_score)  # Обновляем столбец Result
+            user_sheet.update_cell(last_row_index, 13, final_score)  # Обновляем Result
 
-            # Генерация HTML-таблицы с результатами (последние 5 пользователей)
-            result_html = "<table border='1'><tr><th>Имя</th><th>Сложность</th><th>Результат</th></tr>"
+            # Возвращаем только результат участника
+            return {
+                "status": "success",
+                "final_score": final_score,
+                "message": "Викторина завершена, результат обновлен.",
+            }
 
-            # Срезаем последние 5 строк и переворачиваем их
-            last_5_rows = user_rows[-5:]
-            last_5_rows.reverse()  # Переворачиваем порядок строк
-            for row in last_5_rows[1:]:  # Пропускаем первую строку с заголовками
-                name, difficulty, result = row[0], row[1], row[12]  # Имя, сложность, результат
-                result_html += f"<tr><td>{name}</td><td>{difficulty}</td><td>{result}</td></tr>"
-            result_html += "</table>"
-
-            # Возвращаем HTML-таблицу
-            return HTMLResponse(content=result_html, status_code=200)
-
-        # Если не все столбцы заполнены, обновляем следующий
-        for i in range(2, 12):  # Индексы столбцов 3-12
+        # Обновляем первый незаполненный столбец
+        for i in range(2, 12):  # Столбцы 3-12
             if len(last_row) <= i or last_row[i] == "":
-                # Вставляем 1 или 0 в первый пустой столбец
                 user_sheet.update_cell(last_row_index, i + 1, 1 if is_correct else 0)
                 return {
                     "status": "success",
                     "is_correct": is_correct,
-                    "correct_answer": correct_answer
+                    "correct_answer": correct_answer,
                 }
 
     except Exception as e:
