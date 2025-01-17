@@ -213,7 +213,6 @@ async def check_answer_and_update(data: dict):
             return {
                 "status": "success",
                 "finished": True,
-                "final_score": final_score,
                 "message": "Викторина завершена!",
             }
 
@@ -231,3 +230,33 @@ async def check_answer_and_update(data: dict):
     except Exception as e:
         print(f"Error: {e}")
         return {"status": "error", "message": str(e)}
+
+@app.get("/quiz-results", response_class=HTMLResponse)
+async def quiz_results():
+    try:
+          # Открываем таблицу пользователей
+        user_sheet = client.open("quiz").get_worksheet(1)  # Второй лист (индекс 1)
+        user_rows = user_sheet.get_all_values()
+
+        if len(user_rows) < 2:  # Если данных нет (только заголовки)
+            return HTMLResponse("<h1>Нет данных для отображения результата.</h1>", status_code=400)
+
+        # Получаем данные последнего пользователя
+        last_row = user_rows[-1]
+        final_score = last_row[12] if len(last_row) > 12 else "0"  # 13-й столбец - итоговый результат
+
+        return f"""
+        <html>
+            <head><title>Результати вікторини</title></head>
+            <body>
+                <h1>Ваш результат: {final_score}</h1>
+                <a href="/">Почати знову</a>
+            </body>
+        </html>
+        """
+    except Exception as e:
+        print(f"Error: {e}")
+        return HTMLResponse(
+            "<h1>Произошла ошибка при загрузке результата. Попробуйте позже.</h1>",
+            status_code=500
+        )
