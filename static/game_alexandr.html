@@ -12,34 +12,40 @@
         }
 
         body {
-            font-family: Arial, sans-serif;
-            background-image: url('https://i.pinimg.com/1200x/83/46/7d/83467d8f0484c8de9e3d6b12c704a3b6.jpg'); /* Путь к картинке */
-            background-position: left center; /* Картинка слева */
-            background-repeat: no-repeat; /* Без дублирования */
-            background-size: auto; /* Стандартный размер картинки */
-            color: black; /* Цвет текста */
-            text-align: center;
+            display: flex;
             height: 100vh;
+        }
+
+        /* Слева картинка */
+        .left-section {
+            background-image: url('https://i.pinimg.com/1200x/83/46/7d/83467d8f0484c8de9e3d6b12c704a3b6.jpg');
+            background-position: center;
+            background-size: cover;
+            width: 55%;
+        }
+
+        /* Рабочая зона справа */
+        .right-section {
+            width: 45%;
+            padding: 15% 15% 0 15%; /* Отступы слева, справа и сверху для рабочей зоны */
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
+            justify-content: space-between;
+            height: 100%;
         }
 
         h1 {
-            margin-top: 15%; /* Отступ сверху */
             font-size: 2.5em;
-            margin-bottom: 20px;
             text-align: center;
+            margin-bottom: 20px;
         }
 
         .buttons-container {
             display: flex;
-            flex-direction: column; /* Кнопки друг под другом */
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
             gap: 20px;
-            margin-top: 20px;
+            margin-top: 20%;
         }
 
         .button {
@@ -50,7 +56,7 @@
             font-size: 1.5em;
             cursor: pointer;
             border-radius: 10px;
-            width: 250px; /* Прямоугольная форма кнопки */
+            width: 250px;
             height: 60px;
         }
 
@@ -60,23 +66,28 @@
 
         .footer {
             position: absolute;
-            bottom: 20%; /* Отступ снизу */
-            right: 20%; /* Отступ справа */
-            font-size: 1em;
-            color: black; /* Цвет текста */
+            bottom: 15%; /* Отступ снизу */
+            right: 15%; /* Отступ справа */
+            font-size: 1.2em;
+            font-weight: bold; /* Жирный шрифт */
+            color: black;
         }
     </style>
 </head>
 <body>
-    <h1>Це онлайн-вікторина в якій ми перевіримо, як ви розумієте процеси, що проходять під час приготування їжі та користування пуботовими приладами.</h1>
+    <div class="left-section"></div> <!-- Картинка фона слева -->
+    
+    <div class="right-section">
+        <h1>Це онлайн-вікторина в якій ми перевіримо, як ви розумієте процеси, що проходять під час приготування їжі та користування пуботовими приладами.</h1>
 
-    <div class="buttons-container">
-        <button class="button" onclick="window.location.href='/quiz'">Почати гру</button>
-        <button class="button" onclick="window.location.href='/quiz-results'">Результати</button>
-    </div>
+        <div class="buttons-container">
+            <button class="button" onclick="window.location.href='/quiz'">Почати гру</button>
+            <button class="button" onclick="window.location.href='/quiz-results'">Результати</button>
+        </div>
 
-    <div class="footer">
-        Directed by Olexander Golovaty
-    </div>
+        <div class="footer">
+            Directed by Olexander Golovaty
+        </div>
+    </div> <!-- Рабочая зона справа -->
 </body>
 </html>
