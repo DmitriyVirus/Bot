@@ -94,6 +94,37 @@
             text-align: center;
             font-size: 1.5em;
         }
+
+        /* Таймер */
+        #timer {
+            font-size: 2em;
+            font-weight: bold;
+            color: #ff5733;
+            margin-bottom: 20px;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 5px solid #ff5733;
+            animation: pulse 1s infinite; /* Пульсация */
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.2);
+                opacity: 0.7;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
     </style>
 </head>
 <body>
@@ -104,6 +135,7 @@
 
         <div id="question-container">
             <h2 id="question-text"></h2>
+            <div id="timer"></div> <!-- Таймер -->
             <div id="options"></div>
         </div>
         <div id="loading" style="display: none;">Завантаження питання...</div>
@@ -114,13 +146,21 @@
     </div> <!-- Рабочая зона справа -->
 
     <script>
+        let timer;
+        let timeLeft = 7; // Таймер на 7 секунд
+        let buttonsEnabled = true;
+
         async function loadQuestion() {
             const loadingIndicator = document.getElementById("loading");
             const questionContainer = document.getElementById("question-container");
+            const timerElement = document.getElementById("timer");
+            const optionsContainer = document.getElementById("options");
+
             try {
                 // Показать индикатор загрузки
                 loadingIndicator.style.display = "block";
                 questionContainer.style.display = "none";
+                optionsContainer.innerHTML = ""; // Очистить старые кнопки
 
                 const response = await fetch("/api/get-question");
                 const data = await response.json();
@@ -141,7 +181,33 @@
                 // Скрыть индикатор загрузки
                 loadingIndicator.style.display = "none";
                 questionContainer.style.display = "block";
+
+                // Таймер начинается при загрузке вопроса
+                startTimer(timerElement);
             }
+        }
+
+        function startTimer(timerElement) {
+            buttonsEnabled = false;
+            timerElement.textContent = timeLeft;
+
+            timer = setInterval(() => {
+                timeLeft--;
+                timerElement.textContent = timeLeft;
+
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    buttonsEnabled = true;
+                    enableButtons();
+                }
+            }, 1000);
+        }
+
+        function enableButtons() {
+            const buttons = document.querySelectorAll("button");
+            buttons.forEach(button => {
+                button.disabled = false;
+            });
         }
 
         function displayQuestionWithOptions(questionText, options) {
@@ -154,6 +220,7 @@
             options.forEach(option => {
                 const button = document.createElement("button");
                 button.textContent = option;
+                button.disabled = true; // Кнопки не активны вначале
                 button.onclick = async () => {
                     await checkAnswer(questionText, option);
                 };
