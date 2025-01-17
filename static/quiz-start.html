@@ -56,7 +56,7 @@
             gap: 5% 10%; /* Меньшие отступы в процентах */
             justify-items: center;
             width: 100%;
-            position: relative;
+            position: relative; /* Для того чтобы кнопки не двигались */
         }
 
         button {
@@ -111,7 +111,11 @@
             justify-content: center;
             border: 5px solid #ff5733;
             animation: pulse 1s infinite;
-            margin-top: 5%; /* Отступ в процентах между таймером и кнопками */
+            margin-top: 5%; /* Отступ в процентах между таймером и вариантами */
+            position: absolute; /* Абсолютное позиционирование */
+            top: 50%; /* Центрируем по вертикали */
+            left: 50%; /* Центрируем по горизонтали */
+            transform: translate(-50%, -50%); /* Точное центрирование */
         }
 
         @keyframes pulse {
@@ -138,8 +142,7 @@
 
         <div id="question-container">
             <h2 id="question-text"></h2>
-            <!-- Таймер теперь будет между вопросом и кнопками -->
-            <div id="timer"></div> 
+            <div id="timer"></div> <!-- Таймер по центру -->
             <div id="options"></div>
         </div>
         <div id="loading" style="display: none;">Завантаження питання...</div>
