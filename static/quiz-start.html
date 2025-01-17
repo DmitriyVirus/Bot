@@ -102,22 +102,25 @@
         }
 
         /* Таймер */
+        #timer-container {
+            width: 100%;
+            text-align: center;
+            margin-top: 20px; /* Добавляем отступ сверху */
+        }
+
         #timer {
-            font-size: 3vw; /* Используем vw для размера шрифта */
+            font-size: 3em;
             font-weight: bold;
             color: #ff5733;
             border-radius: 50%;
-            width: 10vw; /* Используем vw для ширины */
-            height: 10vw; /* Используем vw для высоты */
+            width: 80px;
+            height: 80px;
             display: flex;
             align-items: center;
             justify-content: center;
             border: 5px solid #ff5733;
             animation: pulse 1s infinite;
-            position: absolute;
-            top: 10vh; /* Используем vh для позиционирования */
-            left: 50%;
-            transform: translateX(-50%);
+            margin: 0 auto;
         }
 
         @keyframes pulse {
@@ -156,9 +159,9 @@
             }
 
             #timer {
-                width: 15vw;
-                height: 15vw;
-                font-size: 4vw;
+                width: 70px;
+                height: 70px;
+                font-size: 2em;
             }
         }
 
@@ -186,9 +189,9 @@
             }
 
             #timer {
-                width: 20vw;
-                height: 20vw;
-                font-size: 5vw;
+                width: 60px;
+                height: 60px;
+                font-size: 1.5em;
             }
         }
 
@@ -208,9 +211,9 @@
             }
 
             #timer {
-                width: 25vw;
-                height: 25vw;
-                font-size: 6vw;
+                width: 50px;
+                height: 50px;
+                font-size: 1.2em;
             }
         }
     </style>
@@ -223,9 +226,13 @@
 
         <div id="question-container">
             <h2 id="question-text"></h2>
-            <div id="timer"></div> <!-- Таймер по центру -->
             <div id="options"></div>
         </div>
+
+        <div id="timer-container">
+            <div id="timer"></div> <!-- Таймер теперь в отдельном контейнере -->
+        </div>
+
         <div id="loading" style="display: none;">Завантаження питання...</div>
 
         <div class="footer">
@@ -291,7 +298,7 @@
                     clearInterval(timer);
                     buttonsEnabled = true;
                     enableButtons();
-                    timerElement.style.display = 'none';
+                    timerElement.style.display = 'none'; // Скрываем таймер после окончания отсчета
                 }
             }, 1000);
         }
