@@ -23,35 +23,37 @@
             background-position: center;
             background-size: cover;
             width: 55%;
+            height: 100%; /* Убедимся, что левая секция занимает всю высоту */
         }
 
         .right-section {
             width: 45%;
-            padding: 3% 5%; 
+            padding: 5% 5%; /* Заменили отступы на проценты */
             display: flex;
             flex-direction: column;
             justify-content: flex-start;
             align-items: center; 
             height: 100%;
+            position: relative; /* Для того чтобы фоновое изображение не перекрывалось */
         }
 
         h1 {
             font-size: 2.5em;
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 5%; /* Отступ в процентах */
         }
 
         #question-container {
             display: flex;
             flex-direction: column;
-            gap: 30px;
+            gap: 5%; /* Отступы между элементами в процентах */
             align-items: center;
         }
 
         #options {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 10px 20px;
+            gap: 5% 10%; /* Меньшие отступы в процентах */
             justify-items: center;
             width: 100%;
         }
@@ -83,8 +85,8 @@
 
         .footer {
             position: absolute;
-            bottom: 15%;
-            right: 3%;
+            bottom: 5%;
+            right: 5%;
             font-size: 1.2em;
             font-weight: bold;
             color: black;
@@ -100,7 +102,7 @@
             font-size: 3em; /* Увеличен размер таймера */
             font-weight: bold;
             color: #ff5733;
-            margin-bottom: 30px; /* Увеличен отступ между вопросом и таймером */
+            margin-bottom: 5%; /* Отступ в процентах между вопросом и таймером */
             border-radius: 50%;
             width: 80px;
             height: 80px;
@@ -109,7 +111,10 @@
             justify-content: center;
             border: 5px solid #ff5733;
             animation: pulse 1s infinite;
-            margin-top: 30px; /* Увеличен отступ между таймером и вариантами */
+            margin-top: 5%; /* Отступ в процентах между таймером и вариантами */
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%); /* Центрирование по вертикали */
         }
 
         @keyframes pulse {
@@ -136,7 +141,7 @@
 
         <div id="question-container">
             <h2 id="question-text"></h2>
-            <div id="timer"></div> <!-- Таймер по центру -->
+            <div id="timer"></div> <!-- Таймер по центру правой секции -->
             <div id="options"></div>
         </div>
         <div id="loading" style="display: none;">Завантаження питання...</div>
