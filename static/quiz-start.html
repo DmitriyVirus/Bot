@@ -14,9 +14,9 @@
         body {
             display: flex;
             height: 100vh;
-            justify-content: center; /* Центрируем все содержимое */
+            justify-content: center;
             align-items: center;
-            flex-wrap: wrap; /* Позволяет перенос содержимого на меньших экранах */
+            flex-wrap: wrap;
         }
 
         .left-section {
@@ -36,15 +36,12 @@
             align-items: center;
             height: 100%;
             position: relative;
-            top: -20%px; /* Поднимает весь контейнер */
         }
 
         h1 {
             font-size: 2.5em;
             text-align: center;
             margin-bottom: 10%;
-            position: relative; /* Устанавливает относительное позиционирование */
-            top: -20%; /* Поднимает заголовок вверх */
         }
 
         #question-container {
@@ -52,32 +49,25 @@
             flex-direction: column;
             gap: 10px;
             align-items: center;
-            position: relative;
             width: 100%;
-            padding: 20px; /* Добавлены внутренние отступы */
-            max-height: auto; /* Удалено ограничение высоты */
-            margin-top: -20px;
+            padding: 20px;
         }
 
         #question-text {
-            margin-bottom: 20px; /* Добавьте этот стиль для отступа */
-            margin-top: -20px; /* Значение можно настроить */
+            margin-bottom: 20px;
         }
 
         #timer-container {
             width: 100%;
             text-align: center;
-            margin-bottom: 20px; /* Таймер теперь выше вариантов */
-            padding-top: 20px;
-            position: relative;
-            top: -15%; /* Поднимет контейнер таймера на 10% вверх */
+            margin-bottom: 20px;
         }
 
         #timer {
             font-size: 3em;
             font-weight: bold;
             color: #ff5733;
-            border-radius: 40%;
+            border-radius: 50%;
             width: 100px;
             height: 100px;
             display: flex;
@@ -86,7 +76,6 @@
             border: 5px solid #ff5733;
             animation: pulse 1s infinite;
             margin: auto;
-            visibility: visible; /* Таймер видим по умолчанию */
         }
 
         @keyframes pulse {
@@ -107,10 +96,8 @@
         #options {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 5% 10%;
-            justify-items: center;
+            gap: 10px;
             width: 100%;
-            margin-top: 1%;
         }
 
         button {
@@ -121,8 +108,6 @@
             font-size: 1.2em;
             cursor: pointer;
             border-radius: 10px;
-            width: 100%;
-            height: 60px;
             transition: background-color 0.3s, border 0.3s;
         }
 
@@ -135,7 +120,6 @@
             padding: 10px;
             font-size: 1.2em;
             width: 80%;
-            margin-bottom: 15px;
         }
 
         .footer {
@@ -153,23 +137,25 @@
         }
 
         /* Адаптивные стили */
-        @media (max-width: 1024px) {
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+
             .left-section {
-                width: 50%;
+                display: none;
             }
 
             .right-section {
-                width: 50%;
-                padding: 3%;
+                width: 90%;
             }
 
             h1 {
-                font-size: 2em;
+                font-size: 1.5em;
             }
 
             button {
                 font-size: 1em;
-                padding: 8px 15px;
             }
 
             #timer {
@@ -178,78 +164,20 @@
                 font-size: 2em;
             }
         }
-
-        @media (max-width: 768px) {
-            body {
-                flex-direction: column;
-            }
-
-            .left-section {
-                display: none; /* Скрываем левую секцию на маленьких экранах */
-            }
-
-            .right-section {
-                width: 90%;
-                padding: 5%;
-            }
-
-            h1 {
-                font-size: 1.5em;
-            }
-
-            button {
-                font-size: 0.9em;
-                height: 50px;
-            }
-
-            #timer {
-                width: 60px;
-                height: 60px;
-                font-size: 1.5em;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .right-section {
-                width: 100%;
-                padding: 4%;
-            }
-
-            h1 {
-                font-size: 1.2em;
-            }
-
-            button {
-                font-size: 0.8em;
-                height: 45px;
-            }
-
-            #timer {
-                width: 50px;
-                height: 50px;
-                font-size: 1.2em;
-            }
-        }
     </style>
 </head>
 <body>
     <div class="left-section"></div>
-
     <div class="right-section">
-        <!-- Таймер перемещен сюда, над заголовком -->
         <div id="timer-container">
             <div id="timer"></div>
         </div>
-
         <h1>Перевіримо ваші знання!</h1>
-
         <div id="question-container">
             <h2 id="question-text"></h2>
             <div id="options"></div>
         </div>
-
         <div id="loading" style="display: none;">Завантаження питання...</div>
-
         <div class="footer">
             Directed by Olexander Golovaty
         </div>
@@ -258,18 +186,16 @@
     <script>
         let timer;
         let timeLeft = 7;
-        let buttonsEnabled = true;
 
         async function loadQuestion() {
             const loadingIndicator = document.getElementById("loading");
             const questionContainer = document.getElementById("question-container");
-            const timerElement = document.getElementById("timer");
             const optionsContainer = document.getElementById("options");
 
             try {
                 loadingIndicator.style.display = "block";
                 questionContainer.style.display = "none";
-                optionsContainer.innerHTML = ""; // Очистить старые кнопки
+                optionsContainer.innerHTML = "";
 
                 const response = await fetch("/api/get-question");
                 const data = await response.json();
@@ -282,8 +208,7 @@
                     displayError("Зачекайте пару секунд і перезавантажте.");
                 }
             } catch (error) {
-                console.error("Помилка:", error);
-                displayError("Помилка завантаження питання. Спробуйте ще раз.");
+                displayError("Помилка завантаження питання.");
             } finally {
                 loadingIndicator.style.display = "none";
                 questionContainer.style.display = "block";
@@ -295,10 +220,6 @@
             timeLeft = 7;
             const timerElement = document.getElementById("timer");
             timerElement.textContent = timeLeft;
-            timerElement.style.visibility = "visible"; // Таймер видим и доступен
-            buttonsEnabled = false;
-            disableButtons();
-
             if (timer) clearInterval(timer);
             startTimer(timerElement);
         }
@@ -310,25 +231,8 @@
 
                 if (timeLeft <= 0) {
                     clearInterval(timer);
-                    buttonsEnabled = true;
-                    enableButtons();
-                    timerElement.style.visibility = "hidden"; // Таймер становится невидимым
                 }
             }, 1000);
-        }
-
-        function enableButtons() {
-            const buttons = document.querySelectorAll("button");
-            buttons.forEach(button => {
-                button.disabled = false;
-            });
-        }
-
-        function disableButtons() {
-            const buttons = document.querySelectorAll("button");
-            buttons.forEach(button => {
-                button.disabled = true;
-            });
         }
 
         function displayQuestionWithOptions(questionText, options) {
@@ -336,12 +240,11 @@
             const optionsContainer = document.getElementById("options");
 
             questionTextElement.textContent = `Дайте відповідь на питання: ${questionText}`;
-            optionsContainer.innerHTML = ""; 
+            optionsContainer.innerHTML = "";
 
             options.forEach(option => {
                 const button = document.createElement("button");
                 button.textContent = option;
-                button.disabled = true;
                 button.onclick = async () => {
                     await checkAnswer(questionText, option);
                 };
@@ -357,23 +260,16 @@
             optionsContainer.innerHTML = "";
 
             const input = document.createElement("input");
-            input.type = "text";
-            input.placeholder = "Введіть ваш відповідь";
             const submitButton = document.createElement("button");
             submitButton.textContent = "Відповісти";
             submitButton.onclick = async () => {
                 const userAnswer = input.value.trim();
-                if (!userAnswer) {
-                    alert("Введіть відповідь!");
-                    input.focus();
-                    return;
-                }
+                if (!userAnswer) return;
                 await checkAnswer(questionText, userAnswer);
             };
 
             optionsContainer.appendChild(input);
             optionsContainer.appendChild(submitButton);
-            input.focus();
         }
 
         function displayError(message) {
@@ -384,25 +280,22 @@
             try {
                 const response = await fetch("/api/check-answer-and-update", {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ question: questionText, user_answer: userAnswer })
                 });
 
                 const result = await response.json();
                 if (result.status === "success") {
+                    alert(result.is_correct ? "Все вірно!" : `Неправильно! Правильна відповідь: ${result.correct_answer}`);
                     if (result.finished) {
                         window.location.href = "/quiz-results";
                     } else {
-                        alert(result.is_correct ? "Все вірно!" : `Неправильно! Правильна відповідь: ${result.correct_answer}`);
                         await loadQuestion();
                     }
                 } else {
-                    alert("Помилка перевірки: " + result.message);
+                    alert("Помилка: " + result.message);
                 }
             } catch (error) {
-                console.error("Помилка:", error);
                 alert("Щось пішло не так. Спробуйте ще раз.");
             }
         }
