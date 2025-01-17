@@ -5,27 +5,113 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Хімія + Кухня?</title>
     <style>
-        body { font-family: Arial, sans-serif; }
-        #form { margin-top: 20px; }
-        label, select, input, button { margin-bottom: 10px; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Слева картинка */
+        .left-section {
+            background-image: url('https://i.pinimg.com/1200x/83/46/7d/83467d8f0484c8de9e3d6b12c704a3b6.jpg');
+            background-position: center;
+            background-size: cover;
+            width: 55%;
+        }
+
+        /* Рабочая зона справа */
+        .right-section {
+            width: 45%;
+            padding: 0 5% 0 2%; /* Отступы слева и справа */
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start; /* Начало вертикального выравнивания */
+            align-items: center; /* Центрирование по горизонтали */
+            height: 100%;
+            margin-top: 3%; /* Отступ сверху для всей рабочей зоны */
+        }
+
+        h1 {
+            font-size: 2.5em;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+        }
+
+        label, select, input, button {
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        input, select {
+            padding: 10px;
+            width: 80%;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            font-size: 1.5em;
+            cursor: pointer;
+            border-radius: 10px;
+            width: 250px;
+            height: 60px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 15%; /* Отступ снизу */
+            right: 3%; /* Отступ справа */
+            font-size: 1.2em;
+            font-weight: bold; /* Жирный шрифт */
+            color: black;
+        }
     </style>
 </head>
 <body>
-    <h1>Це онлайн-вікторина в якій ми перевіримо, як ви розумієте процеси, що проходять під час приготування їжі та користування пуботовими приладами.</h1>
-    <div id="form">
-        <label for="name">Введіть своє ім'я:</label>
-        <input type="text" id="name" required>
-        <br>
-        <label for="difficulty">Виберіть свій рівень:</label>
-        <select id="difficulty">
-            <option value="Легко">Легко</option>
-            <option value="Нормально">Нормально</option>
-            <option value="Важко">Тяжко</option>
-            <option value="Serious"></option>
-        </select>
-        <br>
-        <button onclick="startQuiz()">Почати!</button>
-    </div>
+    <div class="left-section"></div> <!-- Картинка фона слева -->
+    
+    <div class="right-section">
+        <h1>Це онлайн-вікторина в якій ми перевіримо, як ви розумієте процеси, що проходять під час приготування їжі та користування пуботовими приладами.</h1>
+
+        <div id="form">
+            <label for="name">Введіть своє ім'я:</label>
+            <input type="text" id="name" required>
+            <br>
+            <label for="difficulty">Виберіть свій рівень:</label>
+            <select id="difficulty">
+                <option value="Легко">Легко</option>
+                <option value="Нормально">Нормально</option>
+                <option value="Важко">Тяжко</option>
+                <option value="Serious"></option>
+            </select>
+            <br>
+            <button onclick="startQuiz()">Почати!</button>
+        </div>
+
+        <div class="footer">
+            Directed by Olexander Golovaty
+        </div>
+    </div> <!-- Рабочая зона справа -->
 
     <script>
         // Функция для отправки данных на сервер
