@@ -11,54 +11,85 @@
         <h2 id="question-text"></h2>
         <div id="options"></div>
     </div>
+    <div id="loading" style="display: none;">Завантаження питання...</div>
 
     <script>
         async function loadQuestion() {
+            const loadingIndicator = document.getElementById("loading");
+            const questionContainer = document.getElementById("question-container");
             try {
+                // Показать индикатор загрузки
+                loadingIndicator.style.display = "block";
+                questionContainer.style.display = "none";
+
                 const response = await fetch("/api/get-question");
                 const data = await response.json();
 
                 if (data.status === "success") {
                     // Обычный вопрос с вариантами ответа
-                    document.getElementById("question-text").textContent = `Дайте відповідь на питання: ${data.question}`;
-                    const optionsContainer = document.getElementById("options");
-                    optionsContainer.innerHTML = "";  // Очистить старые варианты
-
-                    data.options.forEach(option => {
-                        const button = document.createElement("button");
-                        button.textContent = option;
-                        button.onclick = async () => {
-                            await checkAnswer(data.question, option);  // Проверка ответа
-                        };
-                        optionsContainer.appendChild(button);
-                    });
+                    displayQuestionWithOptions(data.question, data.options);
                 } else if (data.status === "manual_input") {
                     // Вопрос с ручным вводом ответа
-                    document.getElementById("question-text").textContent = `Дайте відповідь на питання: ${data.question}`;
-                    const optionsContainer = document.getElementById("options");
-                    optionsContainer.innerHTML = "";  // Очистить старые варианты
-
-                    // Поле для ввода ручного ответа
-                    const input = document.createElement("input");
-                    input.type = "text";
-                    input.placeholder = "Введите ваш ответ";
-                    const submitButton = document.createElement("button");
-                    submitButton.textContent = "Відповісти";
-                    submitButton.onclick = async () => {
-                        const userAnswer = input.value;
-                        await checkAnswer(data.question, userAnswer);  // Проверка ответа
-                    };
-
-                    optionsContainer.appendChild(input);
-                    optionsContainer.appendChild(submitButton);
+                    displayManualInputQuestion(data.question);
                 } else {
-                    // Ошибка загрузки вопроса
-                    document.body.innerHTML = "<h1>Зачекайте пару секунд і перезавантажте.</h1>";
+                    displayError("Зачекайте пару секунд і перезавантажте.");
                 }
             } catch (error) {
-                console.error("Зачекайте пару секунд і перезавантажте. Помилка:", error);
-                document.body.innerHTML = "<h1>З</h1>";
+                console.error("Помилка:", error);
+                displayError("Помилка завантаження питання. Спробуйте ще раз.");
+            } finally {
+                // Скрыть индикатор загрузки
+                loadingIndicator.style.display = "none";
+                questionContainer.style.display = "block";
             }
+        }
+
+        function displayQuestionWithOptions(questionText, options) {
+            const questionTextElement = document.getElementById("question-text");
+            const optionsContainer = document.getElementById("options");
+
+            questionTextElement.textContent = `Дайте відповідь на питання: ${questionText}`;
+            optionsContainer.innerHTML = ""; // Очистить старые варианты
+
+            options.forEach(option => {
+                const button = document.createElement("button");
+                button.textContent = option;
+                button.onclick = async () => {
+                    await checkAnswer(questionText, option);
+                };
+                optionsContainer.appendChild(button);
+            });
+        }
+
+        function displayManualInputQuestion(questionText) {
+            const questionTextElement = document.getElementById("question-text");
+            const optionsContainer = document.getElementById("options");
+
+            questionTextElement.textContent = `Дайте відповідь на питання: ${questionText}`;
+            optionsContainer.innerHTML = ""; // Очистить старые варианты
+
+            const input = document.createElement("input");
+            input.type = "text";
+            input.placeholder = "Введіть ваш відповідь";
+            const submitButton = document.createElement("button");
+            submitButton.textContent = "Відповісти";
+            submitButton.onclick = async () => {
+                const userAnswer = input.value.trim();
+                if (!userAnswer) {
+                    alert("Введіть відповідь!");
+                    input.focus();
+                    return;
+                }
+                await checkAnswer(questionText, userAnswer);
+            };
+
+            optionsContainer.appendChild(input);
+            optionsContainer.appendChild(submitButton);
+            input.focus();
+        }
+
+        function displayError(message) {
+            document.getElementById("question-container").innerHTML = `<h1>${message}</h1>`;
         }
 
         async function checkAnswer(questionText, userAnswer) {
@@ -74,21 +105,22 @@
                 const result = await response.json();
                 if (result.status === "success") {
                     if (result.finished) {
-                        alert(`Игра завершена! Итоговый результат: ${result.final_score}`);
+                        alert(`Гра завершена! Підсумковий результат: ${result.final_score}`);
                     } else {
                         alert(result.is_correct ? "Все вірно!" : `Неправильно! Правильна відповідь: ${result.correct_answer}`);
-                        await loadQuestion(); // Загружаем следующий вопрос
+                        await loadQuestion(); // Загрузить следующий вопрос
                     }
                 } else {
-                    alert("Помилка перевірки..." + result.message);
+                    alert("Помилка перевірки: " + result.message);
                 }
             } catch (error) {
                 console.error("Помилка:", error);
-                alert("Щось пішло не так...");
+                alert("Щось пішло не так. Спробуйте ще раз.");
             }
         }
 
-        loadQuestion();  // Загружаем первый вопрос при загрузке страницы
+        // Загрузка первого вопроса при загрузке страницы
+        loadQuestion();
     </script>
 </body>
 </html>
