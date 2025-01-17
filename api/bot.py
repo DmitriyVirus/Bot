@@ -8,7 +8,7 @@ from aiogram import Bot, Router, types
 from fastapi.staticfiles import StaticFiles
 from tgbot.gspread_client import get_gspread_client
 from fastapi import FastAPI, Request, HTTPException
-from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, HTMLResponse
 
 app = FastAPI()
 
