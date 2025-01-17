@@ -3,48 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Гра Олександра</title>
+    <title>Хімія + Кухня?</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-image: url('https://i.pinimg.com/1200x/83/46/7d/83467d8f0484c8de9e3d6b12c704a3b6.jpg');
-            background-position: left center;
-            background-repeat: no-repeat;
-            background-size: auto 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+        * {
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        .container {
+        body {
             display: flex;
-            width: 55%; /* 55% экрана - картинка */
-            height: 80%; /* Рабочая зона будет занимать 80% по высоте */
+            height: 100vh;
         }
 
-        .image-container {
-            width: 55%;
+        /* Слева картинка */
+        .left-section {
             background-image: url('https://i.pinimg.com/1200x/83/46/7d/83467d8f0484c8de9e3d6b12c704a3b6.jpg');
             background-position: center;
-            background-repeat: no-repeat;
             background-size: cover;
+            width: 55%;
         }
 
-        .content {
+        /* Рабочая зона справа */
+        .right-section {
             width: 45%;
-            padding: 15% 15% 15% 15%; /* Отступы внутри рабочего блока */
+            padding: 2% 5% 0 2%; /* Отступы слева, справа и сверху для рабочей зоны */
             display: flex;
             flex-direction: column;
-            justify-content: center; /* Центрируем содержимое по вертикали */
-            align-items: center;
-            position: relative;
+            justify-content: center; /* Центрирование по вертикали */
+            align-items: center; /* Центрирование по горизонтали */
+            height: 100%;
         }
 
         h1 {
-            font-size: 1.5em;
-            color: black;
+            font-size: 2.5em;
+            text-align: center;
+            margin-bottom: 20px;
         }
 
         .buttons-container {
@@ -52,8 +46,7 @@
             flex-direction: column;
             align-items: center;
             gap: 20px;
-            flex-grow: 1; /* Заполняет доступное пространство */
-            justify-content: center; /* Центрируем по вертикали */
+            margin-top: 20%;
         }
 
         .button {
@@ -74,27 +67,28 @@
 
         .footer {
             position: absolute;
-            bottom: 15%; /* Отступ от нижнего края рабочего блока */
-            right: 15%;
+            bottom: 15%; /* Отступ снизу */
+            right: 3%; /* Отступ справа */
             font-size: 1.2em;
+            font-weight: bold; /* Жирный шрифт */
             color: black;
-            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="image-container"></div>
-        <div class="content">
-            <h1>Це онлайн-вікторина в якій ми перевіримо, як ви розумієте процеси, що проходять під час приготування їжі та користування пуботовими приладами.</h1>
-            <div class="buttons-container">
-                <button class="button" onclick="window.location.href='/quiz'">Почати гру</button>
-                <button class="button" onclick="window.location.href='/quiz-results'">Результати</button>
-            </div>
-            <div class="footer">
-                Directed by Olexander Golovaty
-            </div>
+    <div class="left-section"></div> <!-- Картинка фона слева -->
+    
+    <div class="right-section">
+        <h1>Це онлайн-вікторина в якій ми перевіримо, як ви розумієте процеси, що проходять під час приготування їжі та користування пуботовими приладами.</h1>
+
+        <div class="buttons-container">
+            <button class="button" onclick="window.location.href='/quiz'">Почати гру</button>
+            <button class="button" onclick="window.location.href='/quiz-results'">Результати</button>
         </div>
-    </div>
+
+        <div class="footer">
+            Directed by Olexander Golovaty
+        </div>
+    </div> <!-- Рабочая зона справа -->
 </body>
 </html>
