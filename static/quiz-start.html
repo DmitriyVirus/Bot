@@ -281,7 +281,7 @@
             timeLeft = 7;
             const timerElement = document.getElementById("timer");
             timerElement.textContent = timeLeft;
-            timerElement.style.display = 'flex'; // Показываем таймер
+            timerElement.style.opacity = 1; // Таймер видимый
 
             buttonsEnabled = false;
             disableButtons();
@@ -299,7 +299,7 @@
                     clearInterval(timer);
                     buttonsEnabled = true;
                     enableButtons();
-                    timerElement.style.display = 'none'; // Скрываем таймер после окончания отсчета
+                    timerElement.style.opacity = 0; // Таймер становится невидимым
                 }
             }, 1000);
         }
