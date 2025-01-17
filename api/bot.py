@@ -234,7 +234,14 @@ async def check_answer_and_update(data: dict):
 @app.get("/quiz-results", response_class=HTMLResponse)
 async def quiz_results():
     try:
-          # Открываем таблицу пользователей
+        client = get_gspread_client()
+        if not client:
+            return HTMLResponse(
+                "<h1>Не удалось подключиться к Google Sheets. Попробуйте позже.</h1>",
+                status_code=500
+            )
+
+        # Открываем таблицу пользователей
         user_sheet = client.open("quiz").get_worksheet(1)  # Второй лист (индекс 1)
         user_rows = user_sheet.get_all_values()
 
