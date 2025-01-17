@@ -14,9 +14,10 @@
         body {
             display: flex;
             height: 100vh;
+            justify-content: center; /* Центрируем все содержимое */
+            align-items: center;
         }
 
-        /* Слева картинка */
         .left-section {
             background-image: url('https://i.pinimg.com/1200x/83/46/7d/83467d8f0484c8de9e3d6b12c704a3b6.jpg');
             background-position: center;
@@ -24,35 +25,34 @@
             width: 55%;
         }
 
-        /* Рабочая зона справа */
         .right-section {
             width: 45%;
-            padding: 3% 5%; /* Отступы слева и справа, отступ сверху 3% */
+            padding: 3% 5%; 
             display: flex;
             flex-direction: column;
-            justify-content: flex-start; /* Начало вертикального выравнивания */
-            align-items: center; /* Центрирование по горизонтали */
+            justify-content: flex-start;
+            align-items: center; 
             height: 100%;
         }
 
         h1 {
             font-size: 2.5em;
             text-align: center;
-            margin-bottom: 30px; /* Увеличен отступ между вопросом и кнопками */
+            margin-bottom: 30px;
         }
 
         #question-container {
             display: flex;
             flex-direction: column;
-            gap: 30px; /* Увеличен отступ между вопросом и кнопками */
+            gap: 30px;
             align-items: center;
         }
 
         #options {
             display: grid;
-            grid-template-columns: repeat(2, 1fr); /* Два столбца для кнопок */
-            gap: 10px 20px; /* Уменьшены отступы между кнопками по ширине и высоте */
-            justify-items: center; /* Центрирование кнопок по горизонтали */
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px 20px;
+            justify-items: center;
             width: 100%;
         }
 
@@ -60,8 +60,8 @@
             background-color: #4CAF50;
             color: white;
             border: none;
-            padding: 10px 20px; /* Уменьшены отступы внутри кнопок */
-            font-size: 1.2em; /* Уменьшен размер шрифта внутри кнопок */
+            padding: 10px 20px;
+            font-size: 1.2em;
             cursor: pointer;
             border-radius: 10px;
             width: 100%;
@@ -71,7 +71,7 @@
 
         button:hover {
             background-color: #45a049;
-            border: 2px solid white; /* Белая рамка при наведении */
+            border: 2px solid white;
         }
 
         input {
@@ -83,10 +83,10 @@
 
         .footer {
             position: absolute;
-            bottom: 15%; /* Отступ снизу */
-            right: 3%; /* Отступ справа */
+            bottom: 15%;
+            right: 3%;
             font-size: 1.2em;
-            font-weight: bold; /* Жирный шрифт */
+            font-weight: bold;
             color: black;
         }
 
@@ -97,18 +97,19 @@
 
         /* Таймер */
         #timer {
-            font-size: 2em;
+            font-size: 3em; /* Увеличен размер таймера */
             font-weight: bold;
             color: #ff5733;
-            margin-bottom: 20px;
+            margin-bottom: 30px; /* Увеличен отступ между вопросом и таймером */
             border-radius: 50%;
-            width: 60px;
-            height: 60px;
+            width: 80px;
+            height: 80px;
             display: flex;
             align-items: center;
             justify-content: center;
             border: 5px solid #ff5733;
-            animation: pulse 1s infinite; /* Пульсация */
+            animation: pulse 1s infinite;
+            margin-top: 30px; /* Увеличен отступ между таймером и вариантами */
         }
 
         @keyframes pulse {
@@ -128,14 +129,14 @@
     </style>
 </head>
 <body>
-    <div class="left-section"></div> <!-- Картинка фона слева -->
-    
+    <div class="left-section"></div> 
+
     <div class="right-section">
         <h1>Перевіримо ваші знання!</h1>
 
         <div id="question-container">
             <h2 id="question-text"></h2>
-            <div id="timer"></div> <!-- Таймер -->
+            <div id="timer"></div> <!-- Таймер по центру -->
             <div id="options"></div>
         </div>
         <div id="loading" style="display: none;">Завантаження питання...</div>
@@ -143,11 +144,11 @@
         <div class="footer">
             Directed by Olexander Golovaty
         </div>
-    </div> <!-- Рабочая зона справа -->
+    </div>
 
     <script>
         let timer;
-        let timeLeft = 7; // Таймер на 7 секунд
+        let timeLeft = 7;
         let buttonsEnabled = true;
 
         async function loadQuestion() {
@@ -166,10 +167,8 @@
                 const data = await response.json();
 
                 if (data.status === "success") {
-                    // Обычный вопрос с вариантами ответа
                     displayQuestionWithOptions(data.question, data.options);
                 } else if (data.status === "manual_input") {
-                    // Вопрос с ручным вводом ответа
                     displayManualInputQuestion(data.question);
                 } else {
                     displayError("Зачекайте пару секунд і перезавантажте.");
@@ -183,14 +182,25 @@
                 questionContainer.style.display = "block";
 
                 // Таймер начинается при загрузке вопроса
-                startTimer(timerElement);
+                resetTimer();
             }
         }
 
-        function startTimer(timerElement) {
-            buttonsEnabled = false;
+        function resetTimer() {
+            timeLeft = 7;
+            const timerElement = document.getElementById("timer");
             timerElement.textContent = timeLeft;
+            timerElement.style.display = 'flex'; // Показываем таймер
 
+            buttonsEnabled = false;
+            disableButtons();
+
+            // Сброс таймера
+            if (timer) clearInterval(timer);
+            startTimer(timerElement);
+        }
+
+        function startTimer(timerElement) {
             timer = setInterval(() => {
                 timeLeft--;
                 timerElement.textContent = timeLeft;
@@ -199,6 +209,7 @@
                     clearInterval(timer);
                     buttonsEnabled = true;
                     enableButtons();
+                    timerElement.style.display = 'none'; // Скрываем таймер по завершении
                 }
             }, 1000);
         }
@@ -207,6 +218,13 @@
             const buttons = document.querySelectorAll("button");
             buttons.forEach(button => {
                 button.disabled = false;
+            });
+        }
+
+        function disableButtons() {
+            const buttons = document.querySelectorAll("button");
+            buttons.forEach(button => {
+                button.disabled = true;
             });
         }
 
@@ -272,11 +290,10 @@
                 const result = await response.json();
                 if (result.status === "success") {
                     if (result.finished) {
-                        // Перенаправление на страницу результатов
                         window.location.href = "/quiz-results";
                     } else {
                         alert(result.is_correct ? "Все вірно!" : `Неправильно! Правильна відповідь: ${result.correct_answer}`);
-                        await loadQuestion(); // Загрузить следующий вопрос
+                        await loadQuestion();
                     }
                 } else {
                     alert("Помилка перевірки: " + result.message);
