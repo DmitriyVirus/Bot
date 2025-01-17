@@ -4,14 +4,113 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Вікторина</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Слева картинка */
+        .left-section {
+            background-image: url('https://i.pinimg.com/1200x/83/46/7d/83467d8f0484c8de9e3d6b12c704a3b6.jpg');
+            background-position: center;
+            background-size: cover;
+            width: 55%;
+        }
+
+        /* Рабочая зона справа */
+        .right-section {
+            width: 45%;
+            padding: 3% 5%; /* Отступы слева и справа, отступ сверху 3% */
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start; /* Начало вертикального выравнивания */
+            align-items: center; /* Центрирование по горизонтали */
+            height: 100%;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #question-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+
+        #options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px; /* Отступы между кнопками */
+            align-items: center;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            font-size: 1.5em;
+            cursor: pointer;
+            border-radius: 10px;
+            width: 250px;
+            height: 60px;
+            transition: background-color 0.3s, border 0.3s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+            border: 2px solid white; /* Белая рамка при наведении */
+        }
+
+        input {
+            padding: 10px;
+            font-size: 1.2em;
+            width: 80%;
+            margin-bottom: 15px;
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 15%; /* Отступ снизу */
+            right: 3%; /* Отступ справа */
+            font-size: 1.2em;
+            font-weight: bold; /* Жирный шрифт */
+            color: black;
+        }
+
+        #loading {
+            text-align: center;
+            font-size: 1.5em;
+        }
+    </style>
 </head>
 <body>
-    <h1>Перевіримо ваші знання!</h1>
-    <div id="question-container">
-        <h2 id="question-text"></h2>
-        <div id="options"></div>
-    </div>
-    <div id="loading" style="display: none;">Завантаження питання...</div>
+    <div class="left-section"></div> <!-- Картинка фона слева -->
+    
+    <div class="right-section">
+        <h1>Перевіримо ваші знання!</h1>
+
+        <div id="question-container">
+            <h2 id="question-text"></h2>
+            <div id="options"></div>
+        </div>
+        <div id="loading" style="display: none;">Завантаження питання...</div>
+
+        <div class="footer">
+            Directed by Olexander Golovaty
+        </div>
+    </div> <!-- Рабочая зона справа -->
 
     <script>
         async function loadQuestion() {
