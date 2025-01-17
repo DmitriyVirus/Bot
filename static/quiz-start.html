@@ -75,7 +75,7 @@
             border: 5px solid #ff5733;
             animation: pulse 1s infinite;
             margin: 0 auto;
-            opacity: 1; /* Таймер по умолчанию видим */
+            visibility: visible; /* Таймер видим по умолчанию */
         }
 
         @keyframes pulse {
@@ -282,7 +282,7 @@
             timeLeft = 7;
             const timerElement = document.getElementById("timer");
             timerElement.textContent = timeLeft;
-            timerElement.style.opacity = 1; // Таймер видим и доступен
+            timerElement.style.visibility = "visible"; // Таймер видим и доступен
             buttonsEnabled = false;
             disableButtons();
 
@@ -299,7 +299,7 @@
                     clearInterval(timer);
                     buttonsEnabled = true;
                     enableButtons();
-                    timerElement.style.opacity = 0; // Таймер становится невидимым
+                    timerElement.style.visibility = "hidden"; // Таймер становится невидимым
                 }
             }, 1000);
         }
