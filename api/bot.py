@@ -65,6 +65,14 @@ def save_user_data(client, name, difficulty):
     except Exception as e:
         print(f"Error saving data: {e}")
         raise
+
+# Главная страница викторины
+@app.get("/game_alexandr", include_in_schema=False)
+async def game_alexandr_page():
+    return HTMLResponse(
+        content=open(os.path.join(os.getcwd(), "static", "game_alexandr.html"), "r").read(),
+        status_code=200
+    )
           
 # Страница викторины
 @app.get("/quiz", include_in_schema=False)
@@ -257,7 +265,7 @@ async def quiz_results():
             <head><title>Результати вікторини</title></head>
             <body>
                 <h1>Ваш результат: {final_score}</h1>
-                <a href="/">Почати знову</a>
+                <a href="/game_alexandr">Почати знову</a>
             </body>
         </html>
         """
