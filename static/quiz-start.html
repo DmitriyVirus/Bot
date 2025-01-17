@@ -103,21 +103,21 @@
 
         /* Таймер */
         #timer {
-            font-size: 3em;
+            font-size: 3vw; /* Используем vw для размера шрифта */
             font-weight: bold;
             color: #ff5733;
             border-radius: 50%;
-            width: 80px;
-            height: 80px;
+            width: 10vw; /* Используем vw для ширины */
+            height: 10vw; /* Используем vw для высоты */
             display: flex;
             align-items: center;
             justify-content: center;
             border: 5px solid #ff5733;
             animation: pulse 1s infinite;
             position: absolute;
-            top: 30%; /* Позиционируем по низу контейнера вопроса */
+            top: 10vh; /* Используем vh для позиционирования */
             left: 50%;
-            transform: translate(-50%, -50%);
+            transform: translateX(-50%);
         }
 
         @keyframes pulse {
@@ -156,9 +156,9 @@
             }
 
             #timer {
-                width: 70px;
-                height: 70px;
-                font-size: 2em;
+                width: 15vw;
+                height: 15vw;
+                font-size: 4vw;
             }
         }
 
@@ -186,9 +186,9 @@
             }
 
             #timer {
-                width: 60px;
-                height: 60px;
-                font-size: 1.5em;
+                width: 20vw;
+                height: 20vw;
+                font-size: 5vw;
             }
         }
 
@@ -208,9 +208,9 @@
             }
 
             #timer {
-                width: 50px;
-                height: 50px;
-                font-size: 1.2em;
+                width: 25vw;
+                height: 25vw;
+                font-size: 6vw;
             }
         }
     </style>
