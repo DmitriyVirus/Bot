@@ -112,9 +112,22 @@
             border: 5px solid #ff5733;
             animation: pulse 1s infinite;
             margin-top: 5%; /* Отступ в процентах между таймером и вариантами */
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%); /* Центрирование по вертикали */
+            position: relative;
+        }
+
+        #question-container {
+            display: flex;
+            flex-direction: column;
+            gap: 5%;
+            align-items: center;
+            position: relative;
+        }
+
+        #options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 5% 10%;
+            width: 100%;
         }
 
         @keyframes pulse {
@@ -309,8 +322,7 @@
             }
         }
 
-        // Загрузка первого вопроса при загрузке страницы
-        loadQuestion();
+        loadQuestion(); // Загрузка первого вопроса
     </script>
 </body>
 </html>
