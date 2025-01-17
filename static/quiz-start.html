@@ -75,6 +75,7 @@
             border: 5px solid #ff5733;
             animation: pulse 1s infinite;
             margin: 0 auto;
+            opacity: 1; /* Таймер по умолчанию видим */
         }
 
         @keyframes pulse {
@@ -281,8 +282,7 @@
             timeLeft = 7;
             const timerElement = document.getElementById("timer");
             timerElement.textContent = timeLeft;
-            timerElement.style.opacity = 1; // Таймер видимый
-
+            timerElement.style.opacity = 1; // Таймер видим и доступен
             buttonsEnabled = false;
             disableButtons();
 
