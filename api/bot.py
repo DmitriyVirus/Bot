@@ -202,28 +202,28 @@ async def check_answer_and_update(data: dict):
 
         # Индекс последней строки
         last_row_index = len(user_rows)
-        last_row = user_rows[-1] if len(user_rows) > 1 else [""] * 13
+        last_row = user_rows[-1]
 
-        # Проверяем заполненность столбцов ответов (2-11)
-        filled_answers = [value for value in last_row[2:12] if value != ""]
+        # Проверяем заполненность столбцов с ответами (столбцы 3-12)
+        filled_answers = [value for value in last_row[2:12] if value]
         if len(filled_answers) >= 10:
-            # Считаем итоговый результат
+            # Подсчет итогового результата
             final_score = sum(int(value) for value in filled_answers if value.isdigit())
-            user_sheet.update_cell(last_row_index, 13, final_score)  # Обновляем Result
-
-            # Возвращаем только результат участника
+            user_sheet.update_cell(last_row_index, 13, final_score)  # Обновляем итоговый результат
             return {
                 "status": "success",
+                "finished": True,
                 "final_score": final_score,
-                "message": "Викторина завершена, результат обновлен.",
+                "message": "Викторина завершена!",
             }
 
-        # Обновляем первый незаполненный столбец
+        # Находим первый незаполненный столбец
         for i in range(2, 12):  # Столбцы 3-12
-            if len(last_row) <= i or last_row[i] == "":
+            if len(last_row) <= i or not last_row[i]:
                 user_sheet.update_cell(last_row_index, i + 1, 1 if is_correct else 0)
                 return {
                     "status": "success",
+                    "finished": False,
                     "is_correct": is_correct,
                     "correct_answer": correct_answer,
                 }
