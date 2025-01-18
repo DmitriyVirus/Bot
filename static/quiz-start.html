@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Вікторина</title>
-    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet"> <!-- Подключение шрифта -->
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Great+Vibes&display=swap" rel="stylesheet"> <!-- Подключение шрифтов -->
     <style>
         * {
             margin: 0;
@@ -15,47 +15,40 @@
         body {
             display: flex;
             height: 100vh;
-            justify-content: center; /* Центрируем все содержимое */
+            justify-content: center;
             align-items: center;
-            flex-wrap: wrap; /* Позволяет перенос содержимого на меньших экранах */
+            flex-wrap: wrap;
         }
 
         .left-section {
             background-image: url('https://i.pinimg.com/1200x/83/46/7d/83467d8f0484c8de9e3d6b12c704a3b6.jpg');
             background-position: center;
             background-size: cover;
-            width: 55%;
+            width: 50%;
             height: 100%;
         }
 
         .right-section {
-            width: 45%;
+            width: 50%;
             padding: 5%;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100%;
-            position: relative;
-            top: -20%px; /* Поднимает весь контейнер */
         }
 
         h1 {
-            font-size: 2.5em;
+            font-family: 'Great Vibes', cursive, sans-serif; /* Декоративный шрифт */
+            font-size: 3em;
             text-align: center;
             margin-bottom: 10%;
-            position: relative; /* Устанавливает относительное позиционирование */
-            top: -20%; /* Поднимает заголовок вверх */
-            margin-top: 5%;
-            font-family: 'Patrick Hand', cursive, sans-serif; /* Использование шрифта Patrick Hand */
-            color: #006400; /* Темно-зеленый цвет текста */
-            background-color: #d4edda; /* Бледно-зеленый фон */
-            border: 2px solid #006400; /* Темно-зеленая рамка */
-            border-radius: 15px; /* Скругленные углы */
-            padding: 15px; /* Внутренние отступы */
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Легкая тень для эффекта */
-            display: inline-block; /* Ограничение ширины под контент */
-            width: auto; /* Позволяет рамке подстраиваться под текст */
+            color: #ff5733; /* Яркий оранжевый цвет текста */
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3); /* Легкая тень */
+            border-bottom: 3px solid #006400; /* Темно-зеленая линия под заголовком */
+            padding-bottom: 10px; /* Отступ под линией */
+            display: inline-block;
+            width: auto;
         }
 
         #question-container {
@@ -63,25 +56,28 @@
             flex-direction: column;
             gap: 10px;
             align-items: center;
-            position: relative;
             width: 100%;
-            padding: 20px; /* Добавлены внутренние отступы */
-            max-height: auto; /* Удалено ограничение высоты */
-            margin-top: -20px;
+            padding: 20px;
         }
 
         #question-text {
-            margin-bottom: 20px; /* Добавьте этот стиль для отступа */
-            margin-top: -20px; /* Значение можно настроить */
+            font-family: 'Patrick Hand', cursive, sans-serif; /* Шрифт Patrick Hand */
+            color: #006400; /* Темно-зеленый цвет текста */
+            background-color: #d4edda; /* Бледно-зеленый фон */
+            border: 2px solid #006400; /* Темно-зеленая рамка */
+            border-radius: 15px; /* Скругленные углы */
+            padding: 15px; /* Внутренние отступы */
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Легкая тень */
+            text-align: center; /* Центрирование текста */
+            display: inline-block;
+            width: auto;
+            margin-bottom: 20px; /* Отступ от остальных элементов */
         }
 
         #timer-container {
             width: 100%;
             text-align: center;
-            margin-bottom: 40px; /* Таймер теперь выше вариантов */
-            padding-top: 20px;
-            position: relative;
-            top: -15%; /* Поднимет контейнер таймера на 10% вверх */
+            margin-bottom: 40px;
         }
 
         #timer {
@@ -97,7 +93,7 @@
             border: 5px solid #ff5733;
             animation: pulse 1s infinite;
             margin: auto;
-            visibility: visible; /* Таймер видим по умолчанию */
+            visibility: visible;
         }
 
         @keyframes pulse {
@@ -118,10 +114,9 @@
         #options {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 5% 10%;
+            gap: 10px;
             justify-items: center;
             width: 100%;
-            margin-top: 1%;
         }
 
         button {
@@ -142,13 +137,6 @@
             border: 2px solid white;
         }
 
-        input {
-            padding: 10px;
-            font-size: 1.2em;
-            width: 80%;
-            margin-bottom: 15px;
-        }
-
         .footer {
             position: absolute;
             bottom: 5%;
@@ -158,24 +146,18 @@
             color: black;
         }
 
-        #loading {
-            text-align: center;
-            font-size: 1.5em;
-        }
-
         /* Адаптивные стили */
         @media (max-width: 1024px) {
             .left-section {
-                width: 50%;
+                display: none; /* Убираем левую секцию */
             }
 
             .right-section {
-                width: 50%;
-                padding: 3%;
+                width: 90%;
             }
 
             h1 {
-                font-size: 2em;
+                font-size: 2.5em;
             }
 
             button {
@@ -191,21 +173,8 @@
         }
 
         @media (max-width: 768px) {
-            body {
-                flex-direction: column;
-            }
-
-            .left-section {
-                display: none; /* Скрываем левую секцию на маленьких экранах */
-            }
-
-            .right-section {
-                width: 90%;
-                padding: 5%;
-            }
-
             h1 {
-                font-size: 1.5em;
+                font-size: 2em;
             }
 
             button {
@@ -223,11 +192,10 @@
         @media (max-width: 480px) {
             .right-section {
                 width: 100%;
-                padding: 4%;
             }
 
             h1 {
-                font-size: 1.2em;
+                font-size: 1.5em;
             }
 
             button {
