@@ -18,15 +18,17 @@
             overflow: hidden;
         }
 
+        /* Левая секция с картинкой */
         .left-section {
             background-image: url('https://i.pinimg.com/1200x/83/46/7d/83467d8f0484c8de9e3d6b12c704a3b6.jpg');
             background-position: center;
-            background-size: contain;
-            background-repeat: no-repeat;
+            background-size: contain; /* Масштабируем картинку по высоте */
+            background-repeat: no-repeat; /* Запрещаем повторение картинки */
             width: 50%;
             height: 100vh;
         }
 
+        /* Правая секция */
         .right-section {
             width: 50%;
             padding: 5%;
@@ -35,53 +37,45 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            box-sizing: border-box;
+            box-sizing: border-box; /* Учитываем паддинги в общей ширине */
         }
 
         h1 {
-            font-family: 'Great Vibes', cursive, sans-serif;
+            font-family: 'Great Vibes', cursive, sans-serif; /* Декоративный шрифт */
             font-size: 3em;
             text-align: center;
             margin-bottom: 10%;
-            color: #ff5733;
-            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
-            border-bottom: 3px solid #006400;
-            padding-bottom: 10px;
+            color: #ff5733; /* Яркий оранжевый цвет текста */
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3); /* Легкая тень */
+            border-bottom: 3px solid #006400; /* Темно-зеленая линия под заголовком */
+            padding-bottom: 10px; /* Отступ под линией */
             display: inline-block;
             width: auto;
             margin-top: -20%;
         }
 
-        .form-container-wrapper {
-            display: flex;
-            justify-content: space-between;
-            gap: 20px;
-            width: 100%;
-            max-width: 800px;
-        }
-
-        .form-container,
-        .info-container {
+        /* Контейнер для формы */
+        .form-container {
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 30px;
             border: 3px solid #4CAF50;
             border-radius: 15px;
-            width: 50%;
-            background-color: #f0fff0; /* Бледно-зеленый фон */
+            width: 100%;
+            max-width: 400px;
+            background-color: #f9f9f9;
             box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
         }
 
-        .form-container label,
-        .info-container label {
+        label {
             font-size: 1.5em;
             color: #333;
             margin-bottom: 10px;
         }
 
-        .form-container input[type="text"],
-        .custom-select {
+        input[type="text"],
+        select {
             width: 90%;
             padding: 12px;
             margin-bottom: 20px;
@@ -91,7 +85,13 @@
             outline: none;
         }
 
-        .form-container button {
+        input[type="text"]:focus,
+        select:focus {
+            border-color: #4CAF50;
+            box-shadow: 0 0 8px rgba(76, 175, 80, 0.5);
+        }
+
+        button {
             background-color: #4CAF50;
             color: white;
             border: none;
@@ -103,38 +103,49 @@
             width: 90%;
         }
 
-        .form-container button:hover {
+        button:hover {
             background-color: #45a049;
+        }
+
+        .footer {
+            margin-top: 30px;
+            font-size: 1em;
+            color: #333;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        /* Контейнер с пояснением */
+        .info-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            border: 3px solid #4CAF50;
+            border-radius: 15px;
+            width: 100%;
+            max-width: 400px;
+            background-color: #eaf8e1; /* Бледно-зеленый фон */
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            margin-top: 20px; /* Отступ сверху */
+        }
+
+        .info-container h2 {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #006400; /* Темно-зеленый цвет */
+            margin-bottom: 15px;
         }
 
         .info-container p {
             font-size: 1.2em;
-            color: #006400; /* Темно-желтый цвет */
+            color: #006400; /* Темно-зеленый цвет текста */
             line-height: 1.5em;
             text-align: left;
             width: 100%;
         }
 
-        .info-container span {
-            font-weight: bold;
-        }
-
-        .info-container .green {
-            color: green;
-        }
-
-        .info-container .yellow {
-            color: #FFD700;
-        }
-
-        .info-container .red {
-            color: red;
-        }
-
-        .info-container .purple {
-            color: purple;
-        }
-
+        /* Адаптивность */
         @media (max-width: 768px) {
             body {
                 flex-direction: column;
@@ -153,14 +164,13 @@
                 font-size: 2.5em;
             }
 
-            .form-container-wrapper {
-                flex-direction: column;
-                gap: 10px;
+            .form-container {
+                width: 100%;
             }
 
-            .form-container,
             .info-container {
-                width: 100%;
+                width: 90%;
+                margin-top: 10px;
             }
         }
 
@@ -169,45 +179,47 @@
                 font-size: 2em;
             }
 
-            .form-container button {
+            button {
                 font-size: 1.2em;
+            }
+
+            .info-container {
+                width: 100%;
             }
         }
     </style>
 </head>
 <body>
-    <div class="left-section"></div>
+    <div class="left-section"></div> <!-- Левая секция с картинкой -->
+
     <div class="right-section">
         <h1>Спочатку оберіть рівень та введіть своє Ім'я</h1>
 
-        <div class="form-container-wrapper">
-            <!-- Форма с вводом имени и выбора уровня -->
-            <div class="form-container">
-                <label for="name">Введіть своє ім'я:</label>
-                <input type="text" id="name" placeholder="Ваше ім'я" required>
+        <div class="form-container">
+            <label for="name">Введіть своє ім'я:</label>
+            <input type="text" id="name" placeholder="Ваше ім'я" required>
 
-                <label for="difficulty">Виберіть рівень:</label>
-                <div class="custom-select">
-                    <select id="difficulty">
-                        <option value="Легко" class="green">Легко</option>
-                        <option value="Нормально" class="yellow">Нормально</option>
-                        <option value="Важко" class="red">Важко</option>
-                        <option value="Serious" class="purple">Serious</option>
-                    </select>
-                </div>
+            <label for="difficulty">Виберіть рівень:</label>
+            <select id="difficulty">
+                <option value="Легко">Легко</option>
+                <option value="Нормально">Нормально</option>
+                <option value="Важко">Важко</option>
+                <option value="Serious">Serious</option>
+            </select>
 
-                <button onclick="startQuiz()">Почати!</button>
-            </div>
-
-            <!-- Рамка с пояснениями -->
-            <div class="info-container">
-                <p>На що впливає рівень:</p>
-                <p><span class="green">Легко</span> - є лише 3 варіанти відповіді</p>
-                <p><span class="yellow">Нормально</span> - є 4 варіанти відповіді</p>
-                <p><span class="red">Важко</span> - є шість варіантів відповіді</p>
-                <p><span class="purple">Serious</span> - відповідь необхідно ввести вручну</p>
-            </div>
+            <button onclick="startQuiz()">Почати!</button>
         </div>
+
+        <!-- Рамка с пояснением -->
+        <div class="info-container">
+            <h2>На що впливає рівень:</h2>
+            <p><span style="color: #4CAF50; font-weight: bold;">Легко</span> - є лише 3 варіанти відповіді</p>
+            <p><span style="color: #FFEB3B; font-weight: bold;">Нормально</span> - є 4 варіанти відповіді</p>
+            <p><span style="color: #FF0000; font-weight: bold;">Важко</span> - є шість варіантів відповіді</p>
+            <p><span style="color: #800080; font-weight: bold;">Serious</span> - відповідь необхідно ввести вручну.</p>
+        </div>
+
+        <div class="footer">Directed by Olexander Golovaty</div>
     </div>
 
     <script>
