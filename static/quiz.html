@@ -21,9 +21,9 @@
         /* Левая секция с картинкой */
         .left-section {
             background-image: url('https://i.pinimg.com/1200x/83/46/7d/83467d8f0484c8de9e3d6b12c704a3b6.jpg');
-            background-position: center center;
-            background-size: cover; /* Картинка полностью покрывает блок */
-            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain; /* Масштабируем картинку по высоте */
+            background-repeat: no-repeat; /* Запрещаем повторение картинки */
             width: 50%;
             height: 100vh;
         }
@@ -31,12 +31,13 @@
         /* Правая секция */
         .right-section {
             width: 50%;
-            padding: 3% 5%; /* Отступы вокруг содержимого */
+            padding: 5%;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background-color: #fff;
+            height: 100vh;
+            box-sizing: border-box; /* Учитываем паддинги в общей ширине */
         }
 
         h1 {
