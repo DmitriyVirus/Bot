@@ -15,13 +15,13 @@
         body {
             display: flex;
             height: 100vh;
-            overflow: hidden;
+            overflow-y: auto; /* Позволяет прокручивать на маленьких экранах */
         }
 
         .left-section {
             background-image: url('https://i.pinimg.com/1200x/83/46/7d/83467d8f0484c8de9e3d6b12c704a3b6.jpg');
             background-position: center;
-            background-size: contain;
+            background-size: cover; /* Используется cover для масштабирования изображения */
             background-repeat: no-repeat;
             width: 50%;
             height: 100vh;
@@ -36,6 +36,7 @@
             align-items: center;
             height: 100vh;
             box-sizing: border-box;
+            overflow-y: auto; /* Позволяет прокручивать контент */
         }
 
         h1 {
@@ -272,6 +273,10 @@
 
             button {
                 font-size: 1.2em;
+            }
+
+            .form-container, .explanation-container {
+                padding: 20px;
             }
         }
     </style>
