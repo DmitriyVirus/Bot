@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Хімія + Кухня?</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Great+Vibes&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -14,63 +15,87 @@
         body {
             display: flex;
             height: 100vh;
+            overflow: hidden;
         }
 
-        /* Слева картинка */
+        /* Левая секция с картинкой */
         .left-section {
             background-image: url('https://i.pinimg.com/1200x/83/46/7d/83467d8f0484c8de9e3d6b12c704a3b6.jpg');
             background-position: center;
-            background-size: cover;
+            background-size: cover; /* Картинка масштабируется на весь экран */
             width: 55%;
+            height: 100vh;
         }
 
-        /* Рабочая зона справа */
+        /* Правая секция */
         .right-section {
             width: 45%;
-            padding: 0 5% 0 2%; /* Отступы слева и справа */
+            padding: 3% 5%; /* Отступы вокруг содержимого */
             display: flex;
             flex-direction: column;
-            justify-content: flex-start; /* Начало вертикального выравнивания */
-            align-items: center; /* Центрирование по горизонтали */
-            height: 100%;
-            margin-top: 3%; /* Отступ сверху для всей рабочей зоны */
+            justify-content: center;
+            align-items: center;
+            background-color: #fff;
         }
 
         h1 {
-            font-size: 2.5em;
+            font-family: 'Great Vibes', cursive, sans-serif;
+            font-size: 3.2em;
+            color: #ff5733;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+            margin-bottom: 30px;
+            border-bottom: 3px solid #006400;
+            padding-bottom: 10px;
             text-align: center;
-            margin-bottom: 20px;
         }
 
-        #form {
+        /* Контейнер для формы */
+        .form-container {
             display: flex;
             flex-direction: column;
-            gap: 10px;
             align-items: center;
+            padding: 30px;
+            border: 3px solid #4CAF50;
+            border-radius: 15px;
+            width: 100%;
+            max-width: 400px;
+            background-color: #f9f9f9;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
         }
 
-        label, select, input, button {
+        label {
+            font-size: 1.5em;
+            color: #333;
             margin-bottom: 10px;
-            font-size: 1.2em;
         }
 
-        input, select {
-            padding: 10px;
-            width: 80%;
+        input[type="text"],
+        select {
+            width: 90%;
+            padding: 12px;
+            margin-bottom: 20px;
             font-size: 1.2em;
-            margin-bottom: 15px;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        input[type="text"]:focus,
+        select:focus {
+            border-color: #4CAF50;
+            box-shadow: 0 0 8px rgba(76, 175, 80, 0.5);
         }
 
         button {
             background-color: #4CAF50;
             color: white;
             border: none;
-            padding: 20px 40px;
+            padding: 15px 30px;
             font-size: 1.5em;
             cursor: pointer;
-            border-radius: 10px;
-            width: 250px;
-            height: 60px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+            width: 90%;
         }
 
         button:hover {
@@ -78,43 +103,73 @@
         }
 
         .footer {
-            position: absolute;
-            bottom: 15%; /* Отступ снизу */
-            right: 3%; /* Отступ справа */
-            font-size: 1.2em;
-            font-weight: bold; /* Жирный шрифт */
-            color: black;
+            margin-top: 30px;
+            font-size: 1em;
+            color: #333;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+
+            .left-section {
+                display: none;
+            }
+
+            .right-section {
+                width: 100%;
+                padding: 10%;
+            }
+
+            h1 {
+                font-size: 2.5em;
+            }
+
+            .form-container {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 2em;
+            }
+
+            button {
+                font-size: 1.2em;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="left-section"></div> <!-- Картинка фона слева -->
-    
-    <div class="right-section">
-        <h1>Спочатку оберіть рівень на введіть своє Ім'я</h1>
+    <div class="left-section"></div> <!-- Левая секция с картинкой -->
 
-        <div id="form">
+    <div class="right-section">
+        <h1>Спочатку оберіть рівень та введіть своє Ім'я</h1>
+
+        <div class="form-container">
             <label for="name">Введіть своє ім'я:</label>
-            <input type="text" id="name" required>
-            <br>
-            <label for="difficulty">Виберіть свій рівень:</label>
+            <input type="text" id="name" placeholder="Ваше ім'я" required>
+
+            <label for="difficulty">Виберіть рівень:</label>
             <select id="difficulty">
                 <option value="Легко">Легко</option>
                 <option value="Нормально">Нормально</option>
                 <option value="Важко">Важко</option>
                 <option value="Serious">Serious</option>
             </select>
-            <br>
+
             <button onclick="startQuiz()">Почати!</button>
         </div>
 
-        <div class="footer">
-            Directed by Olexander Golovaty
-        </div>
-    </div> <!-- Рабочая зона справа -->
+        <div class="footer">Directed by Olexander Golovaty</div>
+    </div>
 
     <script>
-        // Функция для отправки данных на сервер
         async function startQuiz() {
             const name = document.getElementById('name').value;
             const difficulty = document.getElementById('difficulty').value;
@@ -124,22 +179,20 @@
                 return;
             }
 
-            // Сохраняем имя и сложность в localStorage
             localStorage.setItem("userName", name);
             localStorage.setItem("difficulty", difficulty);
 
-            // Отправка данных на сервер
             const response = await fetch('/api/start-quiz', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ name: name, difficulty: difficulty })
+                body: JSON.stringify({ name, difficulty })
             });
 
             if (response.ok) {
                 const result = await response.json();
-                window.location.href = result.redirect_to; // Перенаправить на новый маршрут
+                window.location.href = result.redirect_to;
             } else {
                 alert('Упс... Щось пішло не так =(');
             }
