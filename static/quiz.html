@@ -336,11 +336,11 @@
             toggleDropdown();
         }
 
-        // Set default value for the select box
-        window.onload = () => {
+        // Set the default selection to "Нормально"
+        document.addEventListener('DOMContentLoaded', () => {
             const defaultOption = document.querySelector('.option.yellow');
-            selectOption(defaultOption, 'Нормально');
-        }
+            selectOption(defaultOption, "Нормально");
+        });
 
         async function startQuiz() {
             const name = document.getElementById('name').value;
