@@ -213,31 +213,28 @@
             background-color: #f1f1f1;
         }
 
-        @media (max-width: 768px) {
-            body {
-                flex-direction: column;
-            }
-
-            .left-section {
-                display: none;
-            }
-
-            .right-section {
-                width: 100%;
-                padding: 10%;
-            }
-
-            h1 {
-                font-size: 2.5em;
-            }
-
+        /* Сделать таблицу справа на большом экране и сверху на маленьком */
+        @media (min-width: 768px) {
             .form-container {
-                width: 100%;
+                order: 1;
             }
 
             .explanation-container {
+                order: 2;
+                margin-left: 20px;
+                width: 350px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .explanation-container {
                 width: 100%;
                 margin-top: 20px;
+            }
+
+            .right-section {
+                flex-direction: column;
+                align-items: flex-start;
             }
         }
 
@@ -279,27 +276,21 @@
         <div class="explanation-container">
             <h2>На що впливає рівень:</h2>
             <table class="explanation-table">
-                <thead>
-                    <tr>
-                        <th>Рівень</th>
-                        <th>Пояснення</th>
-                    </tr>
-                </thead>
                 <tbody>
                     <tr>
-                        <td style="color: green;">Легко</td>
+                        <td style="font-weight: bold; color: green;">Легко</td>
                         <td>Є лише 3 варіанти відповіді</td>
                     </tr>
                     <tr>
-                        <td style="color: #FFD700;">Нормально</td>
+                        <td style="font-weight: bold; color: #FFD700;">Нормально</td>
                         <td>Є 4 варіанти відповіді</td>
                     </tr>
                     <tr>
-                        <td style="color: red;">Важко</td>
+                        <td style="font-weight: bold; color: red;">Важко</td>
                         <td>Є 6 варіантів відповіді</td>
                     </tr>
                     <tr>
-                        <td style="color: purple;">Serious</td>
+                        <td style="font-weight: bold; color: purple;">Serious</td>
                         <td>Відповідь необхідно ввести вручну</td>
                     </tr>
                 </tbody>
