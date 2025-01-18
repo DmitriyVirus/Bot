@@ -77,8 +77,9 @@
         }
 
         label {
+            font-family: 'Patrick Hand', cursive, sans-serif; /* Шрифт Patrick Hand */
+            color: #006400; /* Темно-зеленый цвет текста */
             font-size: 1.5em;
-            color: #333;
             margin-bottom: 10px;
         }
 
@@ -113,18 +114,10 @@
             padding: 12px;
             cursor: pointer;
             user-select: none;
-            display: flex;
-            justify-content: space-between; /* Размещаем контент слева и стрелочку справа */
-            align-items: center;
         }
 
         .select-box.open {
             border-color: #4CAF50;
-        }
-
-        .arrow {
-            font-size: 1.2em;
-            color: #333;
         }
 
         .options-container {
@@ -284,10 +277,7 @@
 
                 <label for="difficulty">Виберіть рівень:</label>
                 <div class="custom-select">
-                    <div class="select-box" onclick="toggleDropdown()">
-                        <span id="selected-option">Нормально</span>
-                        <span class="arrow">&#9660;</span>  <!-- Стрелочка для выпадающего списка -->
-                    </div>
+                    <div class="select-box" onclick="toggleDropdown()">Оберіть рівень</div>
                     <div class="options-container">
                         <div class="option green" onclick="selectOption(this, 'Легко')">Легко</div>
                         <div class="option yellow" onclick="selectOption(this, 'Нормально')">Нормально</div>
@@ -337,7 +327,12 @@
 
         function selectOption(element, value) {
             const box = document.querySelector('.select-box');
-            box.querySelector('#selected-option').textContent = value;  // Устанавливаем выбранный текст
+            box.textContent = value;
+            box.dataset.value = value;
+
+            // Update color based on selected option
+            box.style.color = element.style.color;
+
             toggleDropdown();
         }
 
