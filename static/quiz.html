@@ -66,10 +66,10 @@
             flex-direction: column;
             justify-content: center;
             padding: 30px;
-            background-color: #d4edda; /* Бледно-зеленый фон */
-            border: 2px solid #006400; /* Темно-зеленая рамка */
-            border-radius: 15px; /* Скругленные углы */
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Легкая тень */
+            background-color: #d4edda;
+            border: 2px solid #006400;
+            border-radius: 15px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
         }
 
         .form-container {
@@ -77,15 +77,15 @@
         }
 
         label {
-            font-family: 'Patrick Hand', cursive, sans-serif; /* Шрифт Patrick Hand */
-            color: #006400; /* Темно-зеленый цвет текста */
+            font-family: 'Patrick Hand', cursive, sans-serif;
+            color: #006400;
             font-size: 1.5em;
             margin-bottom: 10px;
         }
 
         input[type="text"] {
-            font-family: 'Patrick Hand', cursive, sans-serif; /* Шрифт Patrick Hand */
-            color: #006400; /* Темно-зеленый цвет текста */
+            font-family: 'Patrick Hand', cursive, sans-serif;
+            color: #006400;
             width: 100%;
             padding: 12px;
             margin-bottom: 20px;
@@ -105,19 +105,29 @@
             position: relative;
             font-size: 1.2em;
             margin-bottom: 20px;
+            font-family: 'Patrick Hand', cursive, sans-serif;
         }
 
         .select-box {
-            background-color: #FFFFFF; /* Бледно-зеленый фон */
+            background-color: #FFFFFF;
             border: 2px solid #ccc;
             border-radius: 8px;
             padding: 12px;
             cursor: pointer;
             user-select: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .select-box.open {
             border-color: #4CAF50;
+        }
+
+        .select-box::after {
+            content: " ▼";
+            font-size: 1.2em;
+            color: #006400;
         }
 
         .options-container {
@@ -142,6 +152,7 @@
             padding: 12px;
             font-weight: bold;
             cursor: pointer;
+            text-align: center;
         }
 
         .option:hover {
@@ -194,8 +205,8 @@
         }
 
         .explanation-container h2 {
-            font-family: 'Patrick Hand', cursive, sans-serif; /* Шрифт Patrick Hand */
-            color: #006400; /* Темно-зеленый цвет текста */
+            font-family: 'Patrick Hand', cursive, sans-serif;
+            color: #006400;
             font-size: 1.8em;
             font-weight: bold;
             margin-bottom: 15px;
@@ -329,10 +340,7 @@
             const box = document.querySelector('.select-box');
             box.textContent = value;
             box.dataset.value = value;
-
-            // Update color based on selected option
             box.style.color = element.style.color;
-
             toggleDropdown();
         }
 
