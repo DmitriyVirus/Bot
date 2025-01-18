@@ -18,17 +18,15 @@
             overflow: hidden;
         }
 
-        /* Левая секция с картинкой */
         .left-section {
             background-image: url('https://i.pinimg.com/1200x/83/46/7d/83467d8f0484c8de9e3d6b12c704a3b6.jpg');
             background-position: center;
-            background-size: contain; /* Масштабируем картинку по высоте */
-            background-repeat: no-repeat; /* Запрещаем повторение картинки */
+            background-size: contain;
+            background-repeat: no-repeat;
             width: 50%;
             height: 100vh;
         }
 
-        /* Правая секция */
         .right-section {
             width: 50%;
             padding: 5%;
@@ -37,24 +35,23 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            box-sizing: border-box; /* Учитываем паддинги в общей ширине */
+            box-sizing: border-box;
         }
 
         h1 {
-            font-family: 'Great Vibes', cursive, sans-serif; /* Декоративный шрифт */
+            font-family: 'Great Vibes', cursive, sans-serif;
             font-size: 3em;
             text-align: center;
             margin-bottom: 10%;
-            color: #ff5733; /* Яркий оранжевый цвет текста */
-            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3); /* Легкая тень */
-            border-bottom: 3px solid #006400; /* Темно-зеленая линия под заголовком */
-            padding-bottom: 10px; /* Отступ под линией */
+            color: #ff5733;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+            border-bottom: 3px solid #006400;
+            padding-bottom: 10px;
             display: inline-block;
             width: auto;
             margin-top: -20%;
         }
 
-        /* Контейнер для формы */
         .form-container {
             display: flex;
             flex-direction: column;
@@ -74,8 +71,7 @@
             margin-bottom: 10px;
         }
 
-        input[type="text"],
-        select {
+        input[type="text"] {
             width: 90%;
             padding: 12px;
             margin-bottom: 20px;
@@ -85,10 +81,72 @@
             outline: none;
         }
 
-        input[type="text"]:focus,
-        select:focus {
+        input[type="text"]:focus {
             border-color: #4CAF50;
             box-shadow: 0 0 8px rgba(76, 175, 80, 0.5);
+        }
+
+        .custom-select {
+            width: 90%;
+            position: relative;
+            font-size: 1.2em;
+            margin-bottom: 20px;
+        }
+
+        .select-box {
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .select-box.open {
+            border-color: #4CAF50;
+        }
+
+        .options-container {
+            position: absolute;
+            width: 100%;
+            top: 110%;
+            left: 0;
+            background: white;
+            border: 2px solid #4CAF50;
+            border-radius: 8px;
+            z-index: 10;
+            display: none;
+            flex-direction: column;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .options-container.show {
+            display: flex;
+        }
+
+        .option {
+            padding: 12px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .option:hover {
+            background-color: #f0f0f0;
+        }
+
+        .option.green {
+            color: green;
+        }
+
+        .option.yellow {
+            color: #FFD700;
+        }
+
+        .option.red {
+            color: red;
+        }
+
+        .option.purple {
+            color: purple;
         }
 
         button {
@@ -115,37 +173,6 @@
             font-weight: bold;
         }
 
-        /* Контейнер с пояснением */
-        .info-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-            border: 3px solid #4CAF50;
-            border-radius: 15px;
-            width: 100%;
-            max-width: 400px;
-            background-color: #eaf8e1; /* Бледно-зеленый фон */
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-            margin-top: 20px; /* Отступ сверху */
-        }
-
-        .info-container h2 {
-            font-size: 1.8em;
-            font-weight: bold;
-            color: #006400; /* Темно-зеленый цвет */
-            margin-bottom: 15px;
-        }
-
-        .info-container p {
-            font-size: 1.2em;
-            color: #006400; /* Темно-зеленый цвет текста */
-            line-height: 1.5em;
-            text-align: left;
-            width: 100%;
-        }
-
-        /* Адаптивность */
         @media (max-width: 768px) {
             body {
                 flex-direction: column;
@@ -167,11 +194,6 @@
             .form-container {
                 width: 100%;
             }
-
-            .info-container {
-                width: 90%;
-                margin-top: 10px;
-            }
         }
 
         @media (max-width: 480px) {
@@ -182,16 +204,11 @@
             button {
                 font-size: 1.2em;
             }
-
-            .info-container {
-                width: 100%;
-            }
         }
     </style>
 </head>
 <body>
-    <div class="left-section"></div> <!-- Левая секция с картинкой -->
-
+    <div class="left-section"></div>
     <div class="right-section">
         <h1>Спочатку оберіть рівень та введіть своє Ім'я</h1>
 
@@ -200,35 +217,43 @@
             <input type="text" id="name" placeholder="Ваше ім'я" required>
 
             <label for="difficulty">Виберіть рівень:</label>
-            <select id="difficulty">
-                <option value="Легко">Легко</option>
-                <option value="Нормально">Нормально</option>
-                <option value="Важко">Важко</option>
-                <option value="Serious">Serious</option>
-            </select>
+            <div class="custom-select">
+                <div class="select-box" onclick="toggleDropdown()">Оберіть рівень</div>
+                <div class="options-container">
+                    <div class="option green" onclick="selectOption(this, 'Легко')">Легко</div>
+                    <div class="option yellow" onclick="selectOption(this, 'Нормально')">Нормально</div>
+                    <div class="option red" onclick="selectOption(this, 'Важко')">Важко</div>
+                    <div class="option purple" onclick="selectOption(this, 'Serious')">Serious</div>
+                </div>
+            </div>
 
             <button onclick="startQuiz()">Почати!</button>
-        </div>
-
-        <!-- Рамка с пояснением -->
-        <div class="info-container">
-            <h2>На що впливає рівень:</h2>
-            <p><span style="color: #4CAF50; font-weight: bold;">Легко</span> - є лише 3 варіанти відповіді</p>
-            <p><span style="color: #FFEB3B; font-weight: bold;">Нормально</span> - є 4 варіанти відповіді</p>
-            <p><span style="color: #FF0000; font-weight: bold;">Важко</span> - є шість варіантів відповіді</p>
-            <p><span style="color: #800080; font-weight: bold;">Serious</span> - відповідь необхідно ввести вручну.</p>
         </div>
 
         <div class="footer">Directed by Olexander Golovaty</div>
     </div>
 
     <script>
+        function toggleDropdown() {
+            const dropdown = document.querySelector('.options-container');
+            dropdown.classList.toggle('show');
+            const box = document.querySelector('.select-box');
+            box.classList.toggle('open');
+        }
+
+        function selectOption(element, value) {
+            const box = document.querySelector('.select-box');
+            box.textContent = value;
+            box.dataset.value = value;
+            toggleDropdown();
+        }
+
         async function startQuiz() {
             const name = document.getElementById('name').value;
-            const difficulty = document.getElementById('difficulty').value;
+            const difficulty = document.querySelector('.select-box').dataset.value;
 
-            if (!name) {
-                alert('Ім"я не було вказано!');
+            if (!name || !difficulty) {
+                alert('Заповніть усі поля!');
                 return;
             }
 
