@@ -15,7 +15,10 @@
         body {
             display: flex;
             height: 100vh;
-            flex-wrap: wrap; /* Разрешение на перенос содержимого */
+            width: 100vw;  /* Занимает 100% ширины экрана */
+            overflow: hidden; /* Отключаем прокрутку */
+            margin: 0;
+            padding: 0;
         }
 
         /* Слева картинка */
@@ -23,20 +26,21 @@
             background-image: url('https://i.pinimg.com/1200x/83/46/7d/83467d8f0484c8de9e3d6b12c704a3b6.jpg');
             background-position: center;
             background-size: cover;
-            width: 55%;
+            background-attachment: fixed; /* Зафиксировать фон */
+            width: 50%;
             height: 100vh;
         }
 
         /* Рабочая зона справа */
         .right-section {
-            width: 45%;
-            padding: 0 5% 0 2%; /* Отступы слева и справа */
+            width: 50%;
+            padding: 5%;
             display: flex;
             flex-direction: column;
-            justify-content: flex-start; /* Начало вертикального выравнивания */
-            align-items: center; /* Центрирование по горизонтали */
-            height: 100%;
-            margin-top: 3%; /* Отступ сверху для всей рабочей зоны */
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            box-sizing: border-box; /* Учитываем паддинги в общей ширине */
         }
 
         h1 {
