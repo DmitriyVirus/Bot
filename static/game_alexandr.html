@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Хімія + Кухня?</title>
-    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Great+Vibes&display=swap" rel="stylesheet"> <!-- Подключение шрифтов -->
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Great+Vibes&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -15,23 +15,21 @@
         body {
             display: flex;
             height: 100vh;
-            width: 100vw;  /* Занимает 100% ширины экрана */
+            width: 100vw; /* Занимает 100% ширины экрана */
             overflow: hidden; /* Отключаем прокрутку */
             margin: 0;
             padding: 0;
         }
 
-        /* Слева картинка */
         .left-section {
             background-image: url('https://i.pinimg.com/1200x/83/46/7d/83467d8f0484c8de9e3d6b12c704a3b6.jpg');
             background-position: center;
-            background-size: contain; /* Масштабируем картинку по высоте */
-            background-repeat: no-repeat; /* Запрещаем повторение картинки */
+            background-size: contain;
+            background-repeat: no-repeat;
             width: 50%;
             height: 100vh;
         }
 
-        /* Рабочая зона справа */
         .right-section {
             width: 50%;
             padding: 5%;
@@ -40,21 +38,22 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            box-sizing: border-box; /* Учитываем паддинги в общей ширине */
+            box-sizing: border-box;
+            position: relative; /* Для позиционирования текста внизу */
         }
 
         h1 {
-            font-family: 'Great Vibes', cursive, sans-serif; /* Декоративный шрифт */
+            font-family: 'Great Vibes', cursive, sans-serif;
             font-size: 3em;
             text-align: center;
             margin-bottom: 10%;
-            color: #ff5733; /* Яркий оранжевый цвет текста */
-            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3); /* Легкая тень */
-            border-bottom: 3px solid #006400; /* Темно-зеленая линия под заголовком */
-            padding-bottom: 10px; /* Отступ под линией */
+            color: #ff5733;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+            border-bottom: 3px solid #006400;
+            padding-bottom: 10px;
             display: inline-block;
             width: auto;
-            margin-top: -30%;
+            margin-top: -20%;
         }
 
         .buttons-container {
@@ -62,10 +61,10 @@
             flex-direction: column;
             align-items: center;
             gap: 30px;
-            margin-top: 10%; /* Отступ между заголовком и кнопками */
-            padding: 15px; /* Внутренние отступы вокруг кнопок */
-            border: 3px solid #4CAF50; /* Рамка вокруг контейнера с кнопками */
-            border-radius: 10px; /* Скругленные углы */
+            margin-top: 10%;
+            padding: 15px;
+            border: 3px solid #4CAF50;
+            border-radius: 10px;
         }
 
         .button {
@@ -86,18 +85,17 @@
 
         .footer {
             position: absolute;
-            bottom: 15%; /* Отступ снизу */
-            right: 3%; /* Отступ справа */
+            bottom: 5%; /* Расположение на 5% от нижней границы */
+            right: 5%; /* Расположение на 5% от правой границы */
             font-size: 1.2em;
-            font-weight: bold; /* Жирный шрифт */
+            font-weight: bold;
             color: black;
         }
 
-        /* Адаптивные стили */
         @media (max-width: 1024px) {
             .left-section {
-                width: 100%; /* Ширина секции с картинкой на экранах до 1024px */
-                height: 50vh; /* Высота на экранах меньше 1024px */
+                width: 100%;
+                height: 50vh;
             }
 
             .right-section {
@@ -126,7 +124,7 @@
             }
 
             .left-section {
-                display: none; /* Скрываем левую секцию на маленьких экранах */
+                display: none;
             }
 
             .right-section {
@@ -174,7 +172,7 @@
     </style>
 </head>
 <body>
-    <div class="left-section"></div> <!-- Картинка фона слева -->
+    <div class="left-section"></div> 
     
     <div class="right-section">
         <h1>Це онлайн-вікторина в якій ми перевіримо, як ви розумієте процеси, що проходять під час приготування їжі та користування побутовими приладами.</h1>
@@ -187,6 +185,6 @@
         <div class="footer">
             Directed by Olexander Golovaty
         </div>
-    </div> <!-- Рабочая зона справа -->
+    </div>
 </body>
 </html>
