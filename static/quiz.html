@@ -52,16 +52,28 @@
             margin-top: -20%;
         }
 
-        .form-container {
+        .form-explanation-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: stretch;
+            width: 100%;
+            gap: 20px;
+        }
+
+        .form-container, .explanation-container {
+            flex: 1;
             display: flex;
             flex-direction: column;
-            align-items: center;
+            justify-content: center;
             padding: 30px;
             border: 3px solid #4CAF50;
             border-radius: 15px;
-            width: 45%;
             background-color: #f9f9f9;
             box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-container {
+            max-width: 400px;
         }
 
         label {
@@ -165,22 +177,16 @@
         }
 
         .footer {
-            position: absolute;
-            bottom: 5%;
-            right: 5%;
-            font-size: 1.2em;
+            margin-top: 30px;
+            font-size: 1em;
+            color: #333;
+            text-align: center;
             font-weight: bold;
-            color: black;
         }
 
-        /* Таблица с пояснениями */
         .explanation-container {
-            width: 45%;
-            padding: 20px;
-            border: 2px solid #006400;
-            border-radius: 12px;
             background-color: #e6f9e6;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            border-color: #006400;
         }
 
         .explanation-container h2 {
@@ -196,13 +202,23 @@
             border-collapse: collapse;
         }
 
-        .explanation-table td {
-            padding: 16px;
-            font-size: 1.2em;
-            font-weight: bold;
+        .explanation-table th, .explanation-table td {
+            padding: 12px;
             text-align: center;
             border: 1px solid #006400;
+        }
+
+        .explanation-table th {
+            background-color: #006400;
+            color: white;
+        }
+
+        .explanation-table td {
             background-color: #f1f1f1;
+        }
+
+        .bold {
+            font-weight: bold;
         }
 
         @media (max-width: 768px) {
@@ -223,13 +239,13 @@
                 font-size: 2.5em;
             }
 
-            .form-container {
+            .form-container, .explanation-container {
                 width: 100%;
+                margin-bottom: 20px;
             }
 
-            .explanation-container {
-                width: 100%;
-                margin-top: 20px;
+            .form-explanation-wrapper {
+                flex-direction: column;
             }
         }
 
@@ -249,47 +265,49 @@
     <div class="right-section">
         <h1>Спочатку оберіть рівень та введіть своє Ім'я</h1>
 
-        <div class="form-container">
-            <label for="name">Введіть своє ім'я:</label>
-            <input type="text" id="name" placeholder="Ваше ім'я" required>
+        <div class="form-explanation-wrapper">
+            <div class="form-container">
+                <label for="name">Введіть своє ім'я:</label>
+                <input type="text" id="name" placeholder="Ваше ім'я" required>
 
-            <label for="difficulty">Виберіть рівень:</label>
-            <div class="custom-select">
-                <div class="select-box" onclick="toggleDropdown()">Оберіть рівень</div>
-                <div class="options-container">
-                    <div class="option green" onclick="selectOption(this, 'Легко')">Легко</div>
-                    <div class="option yellow" onclick="selectOption(this, 'Нормально')">Нормально</div>
-                    <div class="option red" onclick="selectOption(this, 'Важко')">Важко</div>
-                    <div class="option purple" onclick="selectOption(this, 'Serious')">Serious</div>
+                <label for="difficulty">Виберіть рівень:</label>
+                <div class="custom-select">
+                    <div class="select-box" onclick="toggleDropdown()">Оберіть рівень</div>
+                    <div class="options-container">
+                        <div class="option green" onclick="selectOption(this, 'Легко')">Легко</div>
+                        <div class="option yellow" onclick="selectOption(this, 'Нормально')">Нормально</div>
+                        <div class="option red" onclick="selectOption(this, 'Важко')">Важко</div>
+                        <div class="option purple" onclick="selectOption(this, 'Serious')">Serious</div>
+                    </div>
                 </div>
+
+                <button onclick="startQuiz()">Почати!</button>
             </div>
 
-            <button onclick="startQuiz()">Почати!</button>
-        </div>
-
-        <!-- Таблица с пояснениями -->
-        <div class="explanation-container">
-            <h2>На що впливає рівень:</h2>
-            <table class="explanation-table">
-                <tbody>
-                    <tr>
-                        <td style="color: green;">Легко</td>
-                        <td>Є лише 3 варіанти відповіді</td>
-                    </tr>
-                    <tr>
-                        <td style="color: #FFD700;">Нормально</td>
-                        <td>Є 4 варіанти відповіді</td>
-                    </tr>
-                    <tr>
-                        <td style="color: red;">Важко</td>
-                        <td>Є 6 варіантів відповіді</td>
-                    </tr>
-                    <tr>
-                        <td style="color: purple;">Serious</td>
-                        <td>Відповідь необхідно ввести вручну</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="explanation-container">
+                <h2>На що впливає рівень:</h2>
+                <table class="explanation-table">
+                    <thead>
+                        <tr>
+                            <th>Пояснення</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="bold" style="color: green;">Легко: Є лише 3 варіанти відповіді</td>
+                        </tr>
+                        <tr>
+                            <td class="bold" style="color: #FFD700;">Нормально: Є 4 варіанти відповіді</td>
+                        </tr>
+                        <tr>
+                            <td class="bold" style="color: red;">Важко: Є 6 варіантів відповіді</td>
+                        </tr>
+                        <tr>
+                            <td class="bold" style="color: purple;">Serious: Відповідь необхідно ввести вручну</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <div class="footer">Directed by Olexander Golovaty</div>
