@@ -277,7 +277,7 @@
 
                 <label for="difficulty">Виберіть рівень:</label>
                 <div class="custom-select">
-                    <div class="select-box" onclick="toggleDropdown()">Оберіть рівень</div>
+                    <div class="select-box" onclick="toggleDropdown()">Нормально</div>
                     <div class="options-container">
                         <div class="option green" onclick="selectOption(this, 'Легко')">Легко</div>
                         <div class="option yellow" onclick="selectOption(this, 'Нормально')">Нормально</div>
@@ -335,6 +335,12 @@
 
             toggleDropdown();
         }
+
+        // Set default selection to "Нормально"
+        document.addEventListener('DOMContentLoaded', () => {
+            const defaultOption = document.querySelector('.option.yellow');
+            selectOption(defaultOption, 'Нормально');
+        });
 
         async function startQuiz() {
             const name = document.getElementById('name').value;
