@@ -1,10 +1,9 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Результати Вікторини</title>
-    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Great+Vibes&display=swap" rel="stylesheet">
+    <title>Результаты викторины</title>
     <style>
         * {
             margin: 0;
@@ -17,123 +16,182 @@
             height: 100vh;
             justify-content: center;
             align-items: center;
+            background-image: url('https://i.pinimg.com/1200x/83/46/7d/83467d8f0484c8de9e3d6b12c704a3b6.jpg');
+            background-position: center;
+            background-size: cover; /* Масштабируем фоновое изображение по размеру экрана */
+            background-repeat: no-repeat;
+            flex-wrap: wrap;
+        }
+
+        .container {
+            display: flex;
+            width: 80%;
+            height: 80%;
+            border-radius: 15px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            background-color: rgba(255, 255, 255, 0.7); /* Полупрозрачный фон для контейнера */
+        }
+
+        .left-section {
+            width: 50%;
+            height: 100%;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .right-section {
+            width: 50%;
+            height: 100%;
+            padding: 20px;
+            display: flex;
             flex-direction: column;
-            background-color: #f7f7f7;
-            font-family: 'Patrick Hand', cursive, sans-serif;
+            justify-content: center;
+            align-items: center;
         }
 
         h1 {
             font-family: 'Great Vibes', cursive, sans-serif;
-            font-size: 3em;
+            font-size: 2.5em;
             text-align: center;
-            margin-bottom: 20px;
             color: #ff5733;
-            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
-            border-bottom: 3px solid #006400;
-            padding-bottom: 10px;
+            margin-bottom: 20px;
         }
 
-        .results-container {
-            width: 80%;
-            max-width: 600px;
-            background-color: #ffffff;
-            border: 2px solid #006400;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        #final-score {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #006400;
+            margin-bottom: 20px;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
         }
 
         th, td {
-            padding: 10px;
-            text-align: center;
-            border: 1px solid #006400;
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
         }
 
         th {
-            background-color: #d4edda;
-            color: #006400;
-            font-size: 1.2em;
+            background-color: #f2f2f2;
         }
 
-        td {
-            background-color: #f9f9f9;
-            color: #333333;
-        }
-
-        .footer {
-            margin-top: 20px;
-            font-size: 1em;
-            font-weight: bold;
-            color: black;
+        #results-table-body tr td {
             text-align: center;
         }
 
+        #results-table-body tr {
+            height: 40px;
+        }
+
         @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                width: 90%;
+                height: auto;
+            }
+
+            .left-section, .right-section {
+                width: 100%;
+            }
+
             h1 {
                 font-size: 2em;
             }
 
-            th, td {
-                font-size: 0.9em;
+            #final-score {
+                font-size: 1.2em;
             }
         }
     </style>
 </head>
 <body>
-    <h1>Результати Вікторини</h1>
-    <div class="results-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>Місце</th>
-                    <th>Ім'я</th>
-                    <th>Очки</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Здесь будут динамически подгружены данные -->
-            </tbody>
-        </table>
+    <div class="container">
+        <div class="left-section">
+            <!-- Здесь можно добавить дополнительную информацию, если нужно -->
+        </div>
+        <div class="right-section">
+            <h1>Результаты викторины</h1>
+            <h2>Ваш результат: <span id="final-score">Загрузка...</span></h2>
+            <h3>Топ-10 участников</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Имя</th>
+                        <th>Сложность</th>
+                        <th>Очки</th>
+                    </tr>
+                </thead>
+                <tbody id="results-table-body">
+                    <tr><td colspan="3">Загрузка...</td></tr>
+                    <tr><td colspan="3"></td></tr>
+                    <tr><td colspan="3"></td></tr>
+                    <tr><td colspan="3"></td></tr>
+                    <tr><td colspan="3"></td></tr>
+                    <tr><td colspan="3"></td></tr>
+                    <tr><td colspan="3"></td></tr>
+                    <tr><td colspan="3"></td></tr>
+                    <tr><td colspan="3"></td></tr>
+                    <tr><td colspan="3"></td></tr>
+                </tbody>
+            </table>
+        </div>
     </div>
-    <div class="footer">Directed by Olexander Golovaty</div>
 
     <script>
-        async function loadResults() {
+        // Загружаем данные из API
+        async function loadQuizResults() {
             try {
-                const response = await fetch('/api/quiz-results');
+                const response = await fetch("/api/quiz-table-data");
                 const data = await response.json();
 
-                if (data.status === 'success') {
-                    const tableBody = document.querySelector('tbody');
-                    tableBody.innerHTML = '';
+                if (data.status === "success") {
+                    const tableBody = document.getElementById("results-table-body");
+                    tableBody.innerHTML = ""; // Очищаем содержимое таблицы
 
-                    data.results.forEach((result, index) => {
-                        const row = document.createElement('tr');
+                    // Заполняем таблицу строками
+                    for (let i = 0; i < 10; i++) {
+                        const row = data.table_data[i] || ["-", "-", "-"]; // Пустая строка, если данных меньше 10
 
-                        row.innerHTML = `
-                            <td>${index + 1}</td>
-                            <td>${result.name}</td>
-                            <td>${result.score}</td>
-                        `;
+                        const tr = document.createElement("tr");
 
-                        tableBody.appendChild(row);
-                    });
+                        const nameCell = document.createElement("td");
+                        nameCell.textContent = row[0];
+                        tr.appendChild(nameCell);
+
+                        const difficultyCell = document.createElement("td");
+                        difficultyCell.textContent = row[1];
+                        tr.appendChild(difficultyCell);
+
+                        const scoreCell = document.createElement("td");
+                        scoreCell.textContent = row[2];
+                        tr.appendChild(scoreCell);
+
+                        tableBody.appendChild(tr);
+                    }
+
+                    // Устанавливаем результат последнего пользователя
+                    const lastUserResult = data.last_user_result;
+                    if (lastUserResult) {
+                        document.getElementById("final-score").textContent = `${lastUserResult.score} (Имя: ${lastUserResult.name}, Сложность: ${lastUserResult.difficulty})`;
+                    } else {
+                        document.getElementById("final-score").textContent = "Нет данных.";
+                    }
                 } else {
-                    alert('Помилка завантаження результатів.');
+                    alert("Ошибка: " + data.message);
                 }
             } catch (error) {
-                console.error('Помилка:', error);
-                alert('Щось пішло не так. Спробуйте ще раз пізніше.');
+                console.error("Ошибка загрузки данных:", error);
+                alert("Не удалось загрузить данные. Попробуйте позже.");
             }
         }
 
-        loadResults();
+        // Загружаем данные при загрузке страницы
+        document.addEventListener("DOMContentLoaded", loadQuizResults);
     </script>
 </body>
 </html>
