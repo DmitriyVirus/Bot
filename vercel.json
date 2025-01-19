@@ -6,7 +6,6 @@
   "routes": [
     { "src": "/api/bot", "dest": "/api/bot.py" },
     { "src": "/favicon.ico", "dest": "/static/favicon.ico" },
-    { "src": "/favicon_quiz.ico", "dest": "/Quiz/favicon_quiz.ico" },
     { "src": "/(.*)", "dest": "/api/bot.py" },
     { "src": "/send_reminder1", "dest": "/api/bot.py" }
   ]
