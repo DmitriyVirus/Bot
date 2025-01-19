@@ -223,17 +223,13 @@
                 const response = await fetch("/api/quiz-table-data");
                 const data = await response.json();
 
-                // Проверка на пустые данные
                 if (data.status === "success") {
                     const tableBody = document.getElementById("results-table-body");
                     tableBody.innerHTML = ""; // Очищаем содержимое таблицы
 
-                    // Проверяем, есть ли данные в таблице
-                    const tableData = data.table_data && data.table_data.length > 0 ? data.table_data : Array(10).fill(["-", "-", "-"]); 
-
                     // Заполняем таблицу строками
                     for (let i = 0; i < 10; i++) {
-                        const row = tableData[i]; // Если данных нет, будет ["-", "-", "-"]
+                        const row = data.table_data[i] || ["-", "-", "-"]; // Пустая строка, если данных меньше 10
 
                         const tr = document.createElement("tr");
 
@@ -270,10 +266,16 @@
                     }
 
                     // Устанавливаем результат последнего пользователя
-                    const lastUserResult = data.last_user_result || {};
-                    document.getElementById("user-name").textContent = `Ім'я: ${lastUserResult.name || '-'}`;
-                    document.getElementById("user-level").textContent = `Рівень: ${lastUserResult.difficulty || '-'}`;
-                    document.getElementById("user-result").textContent = `Ваш результат: ${lastUserResult.score || '-'}`;
+                    const lastUserResult = data.last_user_result;
+                    if (lastUserResult) {
+                        document.getElementById("user-name").textContent = `Ім'я: ${lastUserResult.name}`;
+                        document.getElementById("user-level").textContent = `Рівень: ${lastUserResult.difficulty}`;
+                        document.getElementById("user-result").textContent = `Ваш результат: ${lastUserResult.score}`;
+                    } else {
+                        document.getElementById("user-name").textContent = "Ім'я: -";
+                        document.getElementById("user-level").textContent = "Рівень: -";
+                        document.getElementById("user-result").textContent = "Ваш результат: -";
+                    }
                 } else {
                     alert("Помилка: " + data.message);
                 }
