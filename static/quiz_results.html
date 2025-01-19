@@ -1,72 +1,89 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Результати вікторини</title>
-    <link rel="stylesheet" href="/static/styles.css">
+    <title>Результаты викторины</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
 </head>
 <body>
-    <h1 id="result">Ваш результат:</h1>
-    <h2>Дані з таблиці:</h2>
-    <div id="table-container">
-        <table id="data-table" border="1">
-            <thead>
-                <tr>
-                    <th>Ім'я</th>
-                    <th>Рівень</th>
-                    <th>Результат</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Данные будут добавлены через JavaScript -->
-            </tbody>
-        </table>
-    </div>
-    <a href="/game_alexandr">Почати знову</a>
+    <h1>Результаты викторины</h1>
+    <h2>Ваш результат: <span id="final-score">Загрузка...</span></h2>
+
+    <h3>Топ-10 участников</h3>
+    <table id="results-table">
+        <thead>
+            <tr>
+                <th>Имя</th>
+                <th>Сложность</th>
+                <th>Очки</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Данные будут подгружены через JS -->
+        </tbody>
+    </table>
 
     <script>
-        // Подставляем результат викторины
-        fetch("/api/quiz-final-score")
-            .then(response => response.json())
-            .then(data => {
-                const resultElement = document.getElementById("result");
-                if (data.status === "success") {
-                    resultElement.textContent = `Ваш результат: ${data.final_score}`;
-                } else {
-                    resultElement.textContent = "Ошибка загрузки результата.";
-                }
-            })
-            .catch(err => {
-                console.error("Error fetching quiz results:", err);
-                document.getElementById("result").textContent = "Ошибка загрузки результата.";
-            });
+        // Загружаем данные из API
+        async function loadQuizResults() {
+            try {
+                const response = await fetch("/api/quiz-table-data");
+                const data = await response.json();
 
-        // Загружаем данные таблицы
-        fetch("/api/quiz-table-data")
-            .then(response => response.json())
-            .then(data => {
                 if (data.status === "success") {
-                    const tbody = document.querySelector("#data-table tbody");
-                    tbody.innerHTML = ""; // Очищаем таблицу перед добавлением
+                    const tableBody = document.getElementById("results-table").querySelector("tbody");
+                    tableBody.innerHTML = ""; // Очищаем таблицу
 
-                    // Добавляем строки с данными
+                    // Заполняем таблицу строками
                     data.table_data.forEach(row => {
                         const tr = document.createElement("tr");
-                        row.forEach(cell => {
-                            const td = document.createElement("td");
-                            td.textContent = cell;
-                            tr.appendChild(td);
-                        });
-                        tbody.appendChild(tr);
+
+                        const nameCell = document.createElement("td");
+                        nameCell.textContent = row[0];
+                        tr.appendChild(nameCell);
+
+                        const difficultyCell = document.createElement("td");
+                        difficultyCell.textContent = row[1];
+                        tr.appendChild(difficultyCell);
+
+                        const scoreCell = document.createElement("td");
+                        scoreCell.textContent = row[2];
+                        tr.appendChild(scoreCell);
+
+                        tableBody.appendChild(tr);
                     });
+
+                    // Устанавливаем результат последнего пользователя
+                    if (data.table_data.length > 0) {
+                        document.getElementById("final-score").textContent = data.table_data[0][2];
+                    } else {
+                        document.getElementById("final-score").textContent = "Нет данных.";
+                    }
                 } else {
-                    console.error(data.message);
+                    alert("Ошибка: " + data.message);
                 }
-            })
-            .catch(err => {
-                console.error("Error fetching table data:", err);
-            });
+            } catch (error) {
+                console.error("Ошибка загрузки данных:", error);
+                alert("Не удалось загрузить данные. Попробуйте позже.");
+            }
+        }
+
+        // Загружаем данные при загрузке страницы
+        document.addEventListener("DOMContentLoaded", loadQuizResults);
     </script>
 </body>
 </html>
