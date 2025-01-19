@@ -41,7 +41,7 @@ async def game_alexandr_page():
 # Страница викторины
 @router.get("/quiz", include_in_schema=False)
 async def quiz_page():
-    return FileResponse(os.path.join(os.getcwd(), "static", "quiz.html"))
+    return FileResponse(os.path.join(os.getcwd(), "Quiz", "quiz.html"))
 
 @router.post("/api/start-quiz", response_class=JSONResponse)
 async def start_quiz(user_data: UserData):
