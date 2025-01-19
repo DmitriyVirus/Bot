@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Хімія + Кухня?</title>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <link rel="shortcut icon" href="/static/favicon.ico">
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Great+Vibes&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/Quiz/styles.css"> <!-- Путь к новому CSS файлу -->
+</head>
+<body>
+    <div class="left-section"></div>
+    <div class="right-section">
+        <h1>Спочатку оберіть рівень та введіть своє Ім'я</h1>
+
+        <div class="form-explanation-wrapper">
+            <div class="form-container">
+                <label for="name">Введіть своє ім'я:</label>
+                <input type="text" id="name" placeholder="Ім'я" required>
+
+                <label for="difficulty">Виберіть рівень:</label>
+                <div class="custom-select">
+                    <div class="select-box" onclick="toggleDropdown()">Оберіть рівень</div>
+                    <div class="options-container">
+                        <div class="option green" onclick="selectOption(this, 'Легко')">Легко</div>
+                        <div class="option yellow" onclick="selectOption(this, 'Нормально')">Нормально</div>
+                        <div class="option red" onclick="selectOption(this, 'Важко')">Важко</div>
+                        <div class="option purple" onclick="selectOption(this, 'Serious')">Serious</div>
+                    </div>
+                </div>
+
+                <button onclick="startQuiz()">Почати!</button>
+            </div>
+
+            <div class="explanation-container">
+                <h2>На що впливає рівень:</h2>
+                <table class="explanation-table">
+                    <tbody>
+                        <tr>
+                            <td class="bold-text" style="color: green;">Легко</td>
+                            <td>Є лише 3 варіанти відповіді</td>
+                        </tr>
+                        <tr>
+                            <td class="bold-text" style="color: #FFD700;">Нормально</td>
+                            <td>Є 4 варіанти відповіді</td>
+                        </tr>
+                        <tr>
+                            <td class="bold-text" style="color: red;">Важко</td>
+                            <td>Є 6 варіантів відповіді</td>
+                        </tr>
+                        <tr>
+                            <td class="bold-text" style="color: purple;">Serious</td>
+                            <td>Відповідь необхідно ввести вручну</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="footer">Directed by Olexander Golovaty</div>
+    </div>
+
+    <script src="/Quiz/quiz_script.js"></script> <!-- Путь к новому JS файлу -->
+</body>
+</html>
