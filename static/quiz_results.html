@@ -62,20 +62,12 @@
             padding-bottom: 10px; /* Отступ под линией */
         }
 
-        #final-score {
+        .result-text {
             font-family: 'Patrick Hand', cursive, sans-serif; /* Шрифт Patrick Hand */
             color: #006400; /* Темно-зеленый цвет текста */
             font-size: 1.5em;
             font-weight: bold;
             margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .user-result {
-            font-family: 'Patrick Hand', cursive, sans-serif; /* Шрифт Patrick Hand */
-            color: #006400; /* Темно-зеленый цвет текста */
-            font-size: 1.2em;
-            margin-top: 10px;
             text-align: center;
         }
 
@@ -116,7 +108,7 @@
                 font-size: 2em;
             }
 
-            #final-score {
+            .result-text {
                 font-size: 1.2em;
             }
         }
@@ -127,8 +119,8 @@
         <div class="left-section"></div>
         <div class="right-section">
             <h1>Результати вікторини</h1>
-            <div id="final-score">Загрузка...</div>
-            <div class="user-result" id="user-result">Ваш результат: -</div>
+            <div class="result-text" id="final-score">Загрузка...</div>
+            <div class="result-text" id="user-result">Ваш результат: -</div>
             <h3>Топ для останніх 10ти учасників</h3>
             <table>
                 <thead>
@@ -190,10 +182,10 @@
                     const lastUserResult = data.last_user_result;
                     if (lastUserResult) {
                         document.getElementById("final-score").textContent = `Рівень: ${lastUserResult.difficulty}`;
-                        document.getElementById("user-result").textContent = `Ваш результат: ${lastUserResult.score} (Им'я: ${lastUserResult.name})`;
+                        document.getElementById("user-result").textContent = `Ваш результат: ${lastUserResult.score} Им'я: ${lastUserResult.name}`;
                     } else {
                         document.getElementById("final-score").textContent = "Немає даних";
-                        document.getElementById("user-result").textContent = "Ваш результат: -";
+                        document.getElementById("user-result").textContent = "Ваш результат: - Им'я: -";
                     }
                 } else {
                     alert("Помилка: " + data.message);
