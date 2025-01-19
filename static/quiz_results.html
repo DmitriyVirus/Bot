@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -68,13 +68,17 @@
             background-color: #d4edda; /* Бледно-зеленый фон */
             border: 2px solid #006400; /* Темно-зеленая рамка */
             border-radius: 15px; /* Скругленные углы */
-            padding: 10px; /* Уменьшены внутренние отступы */
+            padding: 10px; /* Внутренние отступы */
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Легкая тень */
-            text-align: left; /* Текст слева */
-            display: inline-block;
-            width: 300px; /* Установим фиксированную ширину для блока */
-            margin-bottom: 20px;
+            text-align: center; /* Текст по центру */
+            display: flex;
+            flex-direction: column; /* Размещение элементов по вертикали */
+            justify-content: center; /* Центрирование по вертикали */
+            align-items: center; /* Центрирование по горизонтали */
+            width: 300px; /* Фиксированная ширина */
+            margin: 20px 0 0 20px; /* Отступы для расположения ниже и правее */
         }
+
 
         .result-container .result-text {
             font-family: 'Patrick Hand', cursive, sans-serif; /* Шрифт Patrick Hand */
