@@ -4,7 +4,8 @@ import random
 from tgbot import tgbot
 from fastapi import FastAPI
 from decouple import config
-from Quiz.quizgame import router, UserData, AnswerCheck, save_user_data
+from Quiz.quizgame import router as quiz_router
+from Quiz.quizgame import UserData, AnswerCheck, save_user_data
 from pydantic import BaseModel
 from aiogram import Bot, Router, types
 from fastapi.staticfiles import StaticFiles
@@ -14,7 +15,7 @@ from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, HTML
 
 app = FastAPI()
 
-app.include_router(router)
+app.include_router(quiz_router)
 
 # Монтируем директорию для статических файлов
 app.mount("/static", StaticFiles(directory="static"), name="static")
