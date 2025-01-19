@@ -1,4 +1,4 @@
-    <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -54,50 +54,46 @@
         .middle-section {
             flex: 2;
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             padding: 10px;
-            flex-direction: row; /* Горизонтальное расположение элементов */
-            align-items: center; /* Выравнивание по вертикали */
-            gap: 10px; /* Расстояние между контейнерами */
-            position: relative; /* Добавляем relative для правильного позиционирования дочернего элемента */
-
+            flex-direction: column; /* Вертикальное расположение элементов */
+            align-items: center; /* Центрирование элементов */
+            gap: 15px; /* Расстояние между блоками */
+            position: relative;
         }
 
         .bottom-section {
-            flex-grow: 1; /* Позволяет .bottom-section расширяться, занимая доступное пространство */
+            flex-grow: 1;
             padding: 20px;
             overflow-y: auto;
             display: flex;
-            flex-direction: column; /* Сделаем вертикальное выравнивание */
-            justify-content: flex-start; /* Поднимем элементы вверх */
-            align-items: center; /* Центрируем элементы по горизонтали */
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
         }
 
         .result-container {
-            background-color: #d4edda; /* Бледно-зеленый фон */
-            border: 2px solid #006400; /* Уменьшена толщина рамки до 1px */
-            border-radius: 15px; /* Скругленные углы */
-            padding: 5px; /* Уменьшены внутренние отступы */
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Легкая тень */
-            text-align: left; /* Текст по левому краю */
+            background-color: #d4edda;
+            border: 2px solid #006400;
+            border-radius: 15px;
+            padding: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: left;
             display: flex;
-            flex-direction: column; /* Размещение элементов по вертикали */
-            justify-content: center; /* Центрирование по вертикали */
-            align-items: flex-start; /* Центрирование по горизонтали слева */
-            width: 300px; /* Фиксированная ширина */
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            width: 300px;
             height: 140px;
-            position: relative; /* Чтобы можно было перемещать относительно родительского элемента */
-            margin-top: -20px; /* Перемещение вверх */
-            left: 20%; /* Смещаем на 20% вправо */
         }
 
         .result-container .result-text {
-            font-family: 'Patrick Hand', cursive, sans-serif; /* Шрифт Patrick Hand */
-            color: #006400; /* Темно-зеленый цвет текста */
+            font-family: 'Patrick Hand', cursive, sans-serif;
+            color: #006400;
             font-size: 1.5em;
             font-weight: bold;
-            margin-bottom: 8px; /* Уменьшен отступ между строками */
-            width: 300px; /* Фиксированная ширина */
+            margin-bottom: 8px;
+            width: 300px;
             height: 140px;
         }
 
@@ -106,11 +102,7 @@
             flex-direction: column;
             align-items: center;
             gap: 5px;
-            margin-top: 0;
             padding: 5px;
-            position: relative; /* Чтобы можно было перемещать относительно родительского элемента */
-            margin-top: -10px; /* Перемещение вверх */
-            right: 25%; /* Смещаем на 20% вправо */
         }
 
         .buttons-container button {
@@ -135,7 +127,7 @@
             font-family: 'Great Vibes', cursive, sans-serif;
             font-size: 3em;
             text-align: center;
-            margin-top: 40px; /* Добавлен отступ сверху */
+            margin-top: 40px;
             margin-bottom: 20px;
             color: #ff5733;
             text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
@@ -146,19 +138,19 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            border: 2px solid #006400; /* Темно-зеленая рамка вокруг таблицы */
-            background-color: #d4edda; /* Бледно-зеленый фон */
+            border: 2px solid #006400;
+            background-color: #d4edda;
         }
 
         th, td {
-            border: 1px solid #006400; /* Темно-зеленая рамка для ячеек */
+            border: 1px solid #006400;
             padding: 8px;
-            text-align: center; /* Текст по центру */
+            text-align: center;
         }
 
         th {
-            background-color: #006400; /* Темно-зеленый фон для заголовков */
-            color: white; /* Белый текст для заголовков */
+            background-color: #006400;
+            color: white;
             font-weight: bold;
         }
 
@@ -170,44 +162,39 @@
             height: 40px;
         }
 
-        /* Для изменения цвета заголовка "Топ для останніх 10ти учасників" */
         .top-title {
             font-family: 'Patrick Hand', cursive, sans-serif;
-            color: #ff5733; /* Ярко-оранжевый цвет для заголовка */
-            font-size: 1.8em; /* Увеличен размер текста */
+            color: #ff5733;
+            font-size: 1.8em;
             margin-bottom: 20px;
         }
 
-        /* Для выделения строки с результатами */
         .highlighted-row {
-            background-color: #90EE90; /* Ярко-зеленый фон */
-            border: 2px solid #006400; /* Темно-зеленая рамка */
+            background-color: #90EE90;
+            border: 2px solid #006400;
             font-family: 'Patrick Hand', cursive, sans-serif;
-            color: #006400; /* Темно-зеленый текст */
+            color: #006400;
         }
 
-        /* Для разных цветов в столбце "Результаты" */
         .green-result {
-            color: #006400; /* Темно-зеленый */
-            font-weight: bold; /* Жирный шрифт */
+            color: #006400;
+            font-weight: bold;
         }
 
         .blue-result {
-            color: #00008B; /* Темно-синий */
-            font-weight: bold; /* Жирный шрифт */
+            color: #00008B;
+            font-weight: bold;
         }
 
         .maroon-result {
-            color: #800000; /* Бордовый */
-            font-weight: bold; /* Жирный шрифт */
+            color: #800000;
+            font-weight: bold;
         }
 
-        /* Для столбца результата - жирный шрифт */
         td.result {
-            font-weight: bold; /* Жирный шрифт */
+            font-weight: bold;
         }
 
-        /* Футер */
         .footer {
             position: absolute;
             bottom: 5%;
@@ -267,15 +254,7 @@
                     </thead>
                     <tbody id="results-table-body">
                         <tr><td colspan="3">Загрузка...</td></tr>
-                        <tr><td colspan="3"></td></tr>
-                        <tr><td colspan="3"></td></tr>
-                        <tr><td colspan="3"></td></tr>
-                        <tr><td colspan="3"></td></tr>
-                        <tr><td colspan="3"></td></tr>
-                        <tr><td colspan="3"></td></tr>
-                        <tr><td colspan="3"></td></tr>
-                        <tr><td colspan="3"></td></tr>
-                        <tr><td colspan="3"></td></tr>
+                        <!-- Data rows will be added dynamically here -->
                     </tbody>
                 </table>
             </div>
