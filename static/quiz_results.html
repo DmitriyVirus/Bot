@@ -239,8 +239,12 @@
                         </tr>
                     </thead>
                     <tbody id="results-table-body">
-                        <tr><td colspan="3">Загрузка...</td></tr>
-                        <!-- More rows will be added dynamically -->
+                        <!-- Здесь будет загружаться информация -->
+                        <tr><td>Загрузка...</td><td>Загрузка...</td><td>Загрузка...</td></tr>
+                        <tr><td>Загрузка...</td><td>Загрузка...</td><td>Загрузка...</td></tr>
+                        <tr><td>Загрузка...</td><td>Загрузка...</td><td>Загрузка...</td></tr>
+                        <tr><td>Загрузка...</td><td>Загрузка...</td><td>Загрузка...</td></tr>
+                        <tr><td>Загрузка...</td><td>Загрузка...</td><td>Загрузка...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -259,41 +263,31 @@
 
                 if (data.status === "success") {
                     const tableBody = document.getElementById("results-table-body");
-                    tableBody.innerHTML = "";
+                    const rows = tableBody.getElementsByTagName('tr');
 
-                    for (let i = 0; i < 10; i++) {
-                        const row = data.table_data[i] || ["-", "-", "-"];
+                    for (let i = 0; i < rows.length; i++) {
+                        const row = rows[i];
 
-                        const tr = document.createElement("tr");
+                        if (data.table_data[i]) {
+                            const rowData = data.table_data[i];
+                            row.cells[0].textContent = rowData[0] || '-';
+                            row.cells[1].textContent = rowData[1] || '-';
+                            row.cells[2].textContent = rowData[2] || '-';
+                            row.cells[2].classList.add('result');
+                            const score = parseInt(rowData[2], 10);
 
-                        const nameCell = document.createElement("td");
-                        nameCell.textContent = row[0];
-                        tr.appendChild(nameCell);
-
-                        const difficultyCell = document.createElement("td");
-                        difficultyCell.textContent = row[1];
-                        tr.appendChild(difficultyCell);
-
-                        const scoreCell = document.createElement("td");
-                        scoreCell.textContent = row[2];
-                        scoreCell.classList.add('result');
-
-                        const score = parseInt(row[2], 10);
-                        if (score >= 8) {
-                            scoreCell.classList.add('green-result');
-                        } else if (score >= 5) {
-                            scoreCell.classList.add('blue-result');
-                        } else if (score >= 0) {
-                            scoreCell.classList.add('maroon-result');
+                            if (score >= 8) {
+                                row.cells[2].classList.add('green-result');
+                            } else if (score >= 5) {
+                                row.cells[2].classList.add('blue-result');
+                            } else if (score >= 0) {
+                                row.cells[2].classList.add('maroon-result');
+                            }
+                        } else {
+                            row.cells[0].textContent = '-';
+                            row.cells[1].textContent = '-';
+                            row.cells[2].textContent = '-';
                         }
-
-                        tr.appendChild(scoreCell);
-
-                        if (row[0] === data.last_user_result.name) {
-                            tr.classList.add('highlighted-row');
-                        }
-
-                        tableBody.appendChild(tr);
                     }
 
                     const lastUserResult = data.last_user_result;
