@@ -1,7 +1,13 @@
 import os
-from fastapi import APIRouter
+import json
+import random
+from decouple import config
 from pydantic import BaseModel
-from fastapi.responses import HTMLResponse, FileResponse
+from aiogram import Bot, Router, types
+from fastapi.staticfiles import StaticFiles
+from tgbot.gspread_client import get_gspread_client
+from fastapi import APIRouter, FastAPI, Request, HTTPException
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, HTMLResponse
 
 router = APIRouter()
 
