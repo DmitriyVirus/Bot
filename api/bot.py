@@ -288,10 +288,10 @@ async def quiz_table_data():
         if len(user_rows) < 2:  # Если данных нет (только заголовки)
             return {"status": "error", "message": "Нет данных для отображения."}
 
-        # Пропускаем заголовок и возвращаем данные
-        table_data = user_rows[1:]  # Пропускаем первую строку
+        # Извлекаем только 1-й, 2-й и 13-й столбцы (индексы 0, 1 и 12)
+        filtered_data = [[row[0], row[1], row[12] if len(row) > 12 else ""] for row in user_rows]
 
-        return {"status": "success", "table_data": table_data}
+        return {"status": "success", "table_data": filtered_data}
 
     except Exception as e:
         print(f"Error: {e}")
