@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Результати вікторини</title>
     <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Great+Vibes&display=swap" rel="stylesheet">
+    <!-- Использование только дополнительного значка -->
     <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
     <link rel="shortcut icon" href="/static/favicon.ico">
     <style>
@@ -19,7 +20,7 @@
             height: 100vh;
             justify-content: center;
             align-items: center;
-            position: relative;
+            position: relative; /* Для футера */
         }
 
         .container {
@@ -28,103 +29,125 @@
             height: 100%;
         }
 
+        /* Левая часть с фоном */
         .left-section {
             background-image: url('https://i.pinimg.com/1200x/83/46/7d/83467d8f0484c8de9e3d6b12c704a3b6.jpg');
             background-position: center;
-            background-size: contain;
-            background-repeat: no-repeat;
+            background-size: contain; /* Масштабируем картинку по высоте */
+            background-repeat: no-repeat; /* Запрещаем повторение картинки */
             width: 50%;
             height: 100vh;
         }
 
+        /* Правая часть с таблицей */
         .right-section {
             width: 50%;
             height: 100%;
             padding: 20px;
             overflow-y: auto;
-            background-color: rgba(255, 255, 255, 0.8);
+            background-color: rgba(255, 255, 255, 0.8); /* Полупрозрачный фон для правой части */
             display: flex;
             flex-direction: column;
-        }
-
-        .top-section {
-            height: 20%;
-            display: flex;
             justify-content: center;
             align-items: center;
         }
 
-        .bottom-section {
-            height: 80%;
-            display: flex;
-            flex-direction: row;
+        h1 {
+            font-family: 'Great Vibes', cursive, sans-serif; /* Декоративный шрифт */
+            font-size: 3em;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #ff5733; /* Яркий оранжевый цвет текста */
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3); /* Легкая тень */
+            border-bottom: 3px solid #006400; /* Темно-зеленая линия под заголовком */
+            padding-bottom: 10px; /* Отступ под линией */
         }
 
         .result-container {
-            background-color: #d4edda;
-            border: 2px solid #006400;
-            border-radius: 15px;
-            padding: 10px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            text-align: left;
-            width: 300px;
-            margin-right: 20px;
-            display: flex;
-            flex-direction: column;
+            background-color: #d4edda; /* Бледно-зеленый фон */
+            border: 2px solid #006400; /* Темно-зеленая рамка */
+            border-radius: 15px; /* Скругленные углы */
+            padding: 10px; /* Уменьшены внутренние отступы */
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Легкая тень */
+            text-align: left; /* Текст слева */
+            display: inline-block;
+            width: 300px; /* Установим фиксированную ширину для блока */
+            margin-bottom: 20px;
         }
 
         .result-text {
-            font-family: 'Patrick Hand', cursive, sans-serif;
-            color: #006400;
+            font-family: 'Patrick Hand', cursive, sans-serif; /* Шрифт Patrick Hand */
+            color: #006400; /* Темно-зеленый цвет текста */
             font-size: 1.5em;
             font-weight: bold;
-            margin-bottom: 8px;
-        }
-
-        .quiz-button {
-            margin-top: 10px;
-            padding: 10px 20px;
-            background-color: #006400;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1.2em;
-        }
-
-        .quiz-button:hover {
-            background-color: #004d00;
-        }
-
-        .table-container {
-            flex: 1;
-            display: flex;
-            justify-content: center;
+            margin-bottom: 8px; /* Уменьшен отступ между строками */
         }
 
         table {
-            width: 80%;
+            width: 100%;
             border-collapse: collapse;
-            border: 2px solid #006400;
-            background-color: #d4edda;
+            border: 2px solid #006400; /* Темно-зеленая рамка вокруг таблицы */
+            background-color: #d4edda; /* Бледно-зеленый фон */
         }
 
         th, td {
-            border: 1px solid #006400;
+            border: 1px solid #006400; /* Темно-зеленая рамка для ячеек */
             padding: 8px;
-            text-align: center;
+            text-align: center; /* Текст по центру */
         }
 
         th {
-            background-color: #006400;
-            color: white;
+            background-color: #006400; /* Темно-зеленый фон для заголовков */
+            color: white; /* Белый текст для заголовков */
             font-weight: bold;
         }
 
+        #results-table-body tr td {
+            text-align: center;
+        }
+
+        #results-table-body tr {
+            height: 40px;
+        }
+
+        /* Для изменения цвета заголовка "Топ для останніх 10ти учасників" */
+        .top-title {
+            font-family: 'Patrick Hand', cursive, sans-serif;
+            color: #ff5733; /* Ярко-оранжевый цвет для заголовка */
+            font-size: 1.8em; /* Увеличен размер текста */
+            margin-bottom: 20px;
+        }
+
+        /* Для выделения строки с результатами */
+        .highlighted-row {
+            background-color: #90EE90; /* Ярко-зеленый фон */
+            border: 2px solid #006400; /* Темно-зеленая рамка */
+            font-family: 'Patrick Hand', cursive, sans-serif;
+            color: #006400; /* Темно-зеленый текст */
+        }
+
+        /* Для разных цветов в столбце "Результаты" */
+        .green-result {
+            color: #006400; /* Темно-зеленый */
+            font-weight: bold; /* Жирный шрифт */
+        }
+
+        .blue-result {
+            color: #00008B; /* Темно-синий */
+            font-weight: bold; /* Жирный шрифт */
+        }
+
+        .maroon-result {
+            color: #800000; /* Бордовый */
+            font-weight: bold; /* Жирный шрифт */
+        }
+
+        /* Для столбца результата - жирный шрифт */
         td.result {
-            font-weight: bold;
+            font-weight: bold; /* Жирный шрифт */
         }
 
+        /* Футер */
         .footer {
             position: absolute;
             bottom: 5%;
@@ -144,10 +167,6 @@
                 height: auto;
             }
 
-            .top-section, .bottom-section {
-                flex-direction: column;
-            }
-
             h1 {
                 font-size: 2em;
             }
@@ -162,33 +181,26 @@
     <div class="container">
         <div class="left-section"></div>
         <div class="right-section">
-            <div class="top-section">
-                <h1>Результати вікторини</h1>
+            <h1>Результати вікторини</h1>
+            <div class="result-container">
+                <div class="result-text" id="user-name">Ім'я: -</div>
+                <div class="result-text" id="user-level">Рівень: -</div>
+                <div class="result-text" id="user-result">Ваш результат: -</div>
             </div>
-            <div class="bottom-section">
-                <div class="left-bottom">
-                    <div class="result-container">
-                        <div class="result-text" id="user-name">Ім'я: -</div>
-                        <div class="result-text" id="user-level">Рівень: -</div>
-                        <div class="result-text" id="user-result">Ваш результат: -</div>
-                        <button class="quiz-button" id="retry-button">Спробувати ще</button>
-                    </div>
-                </div>
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Им'я</th>
-                                <th>Рівень</th>
-                                <th>Результат</th>
-                            </tr>
-                        </thead>
-                        <tbody id="results-table-body">
-                            <tr><td colspan="3">Загрузка...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <h3 class="top-title">Топ для останніх 10ти учасників</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Им'я</th>
+                        <th>Рівень</th>
+                        <th>Результат</th>
+                    </tr>
+                </thead>
+                <tbody id="results-table-body">
+                    <tr><td colspan="3">Загрузка...</td></tr>
+                    <!-- Данные будут добавляться через JavaScript -->
+                </tbody>
+            </table>
         </div>
     </div>
 
@@ -197,6 +209,7 @@
     </div>
 
     <script>
+        // Загружаем данные из API
         async function loadQuizResults() {
             try {
                 const response = await fetch("/api/quiz-table-data");
@@ -204,10 +217,11 @@
 
                 if (data.status === "success") {
                     const tableBody = document.getElementById("results-table-body");
-                    tableBody.innerHTML = ""; 
+                    tableBody.innerHTML = ""; // Очищаем содержимое таблицы
 
+                    // Заполняем таблицу строками
                     for (let i = 0; i < 10; i++) {
-                        const row = data.table_data[i] || ["-", "-", "-"];
+                        const row = data.table_data[i] || ["-", "-", "-"]; // Пустая строка, если данных меньше 10
 
                         const tr = document.createElement("tr");
 
@@ -221,8 +235,9 @@
 
                         const scoreCell = document.createElement("td");
                         scoreCell.textContent = row[2];
-                        scoreCell.classList.add('result');
+                        scoreCell.classList.add('result'); // Применяем класс для жирного шрифта
 
+                        // Добавляем соответствующий класс в зависимости от значения результата
                         const score = parseInt(row[2], 10);
                         if (score >= 8) {
                             scoreCell.classList.add('green-result');
@@ -234,6 +249,7 @@
 
                         tr.appendChild(scoreCell);
 
+                        // Если это последний пользователь, выделяем строку
                         if (row[0] === data.last_user_result.name) {
                             tr.classList.add('highlighted-row');
                         }
@@ -241,6 +257,7 @@
                         tableBody.appendChild(tr);
                     }
 
+                    // Устанавливаем результат последнего пользователя
                     const lastUserResult = data.last_user_result;
                     if (lastUserResult) {
                         document.getElementById("user-name").textContent = `Ім'я: ${lastUserResult.name}`;
@@ -260,6 +277,7 @@
             }
         }
 
+        // Загружаем данные при загрузке страницы
         document.addEventListener("DOMContentLoaded", loadQuizResults);
     </script>
 </body>
