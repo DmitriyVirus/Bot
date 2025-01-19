@@ -305,3 +305,7 @@ async def quiz_table_data():
     except Exception as e:
         print(f"Error: {e}")
         return {"status": "error", "message": str(e)}
+
+@app.get("/quiz_log", include_in_schema=False)
+async def read_root():
+    return FileResponse(os.path.join(os.getcwd(), "quiz_log.html"))
