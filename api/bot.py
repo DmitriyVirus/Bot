@@ -273,3 +273,27 @@ async def quiz_final_score():
     except Exception as e:
         print(f"Error: {e}")
         return {"status": "error", "message": str(e)}
+
+@app.get("/api/quiz-table-data", response_class=JSONResponse)
+async def quiz_table_data():
+    try:
+        client = get_gspread_client()
+        if not client:
+            return {"status": "error", "message": "Не удалось подключиться к Google Sheets."}
+
+        # Открываем таблицу пользователей
+        user_sheet = client.open("quiz").get_worksheet(1)  # Второй лист (индекс 1)
+        user_rows = user_sheet.get_all_values()
+
+        if len(user_rows) < 2:  # Если данных нет (только заголовки)
+            return {"status": "error", "message": "Нет данных для отображения."}
+
+        # Пропускаем заголовок и возвращаем данные
+        table_data = user_rows[1:]  # Пропускаем первую строку
+
+        return {"status": "success", "table_data": table_data}
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return {"status": "error", "message": str(e)}
+
