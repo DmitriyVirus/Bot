@@ -60,9 +60,9 @@ async def start_quiz(user_data: UserData):
         print(f"Error in start_quiz: {e}")
         return {"status": "error", "message": str(e)}
 
-@router.get("/quiz-start", include_in_schema=False)
+@router.get("/quiz_start", include_in_schema=False)
 async def quiz_start_page(request: Request):
-    return FileResponse(os.path.join(os.getcwd(), "static", "quiz-start.html"))
+    return FileResponse(os.path.join(os.getcwd(), "Quiz", "quiz_start.html"))
 
 @router.get("/api/get-question")
 async def get_question():
