@@ -42,7 +42,6 @@
             height: 100%;
             display: flex;
             flex-direction: column;
-            background-color: rgba(255, 255, 255, 0.8);
         }
 
         .top-section {
@@ -66,20 +65,23 @@
         }
 
         .result-container {
-            width: 48%;
-            background-color: #d4edda;
-            border: 2px solid #006400;
-            border-radius: 15px;
-            padding: 10px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            text-align: left;
-            font-family: 'Patrick Hand', cursive, sans-serif;
+            background-color: #d4edda; /* Бледно-зеленый фон */
+            border: 2px solid #006400; /* Темно-зеленая рамка */
+            border-radius: 15px; /* Скругленные углы */
+            padding: 10px; /* Уменьшены внутренние отступы */
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Легкая тень */
+            text-align: left; /* Текст слева */
+            display: inline-block;
+            width: 300px; /* Установим фиксированную ширину для блока */
+            margin-bottom: 20px;
         }
 
         .result-container .result-text {
-            margin: 10px 0;
-            font-size: 1.2em;
-            color: #006400;
+            font-family: 'Patrick Hand', cursive, sans-serif; /* Шрифт Patrick Hand */
+            color: #006400; /* Темно-зеленый цвет текста */
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 8px; /* Уменьшен отступ между строками */
         }
 
         .buttons-container {
@@ -121,22 +123,68 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            border: 2px solid #006400;
-            background-color: #d4edda;
+            border: 2px solid #006400; /* Темно-зеленая рамка вокруг таблицы */
+            background-color: #d4edda; /* Бледно-зеленый фон */
         }
 
         th, td {
-            border: 1px solid #006400;
+            border: 1px solid #006400; /* Темно-зеленая рамка для ячеек */
             padding: 8px;
-            text-align: center;
+            text-align: center; /* Текст по центру */
         }
 
         th {
-            background-color: #006400;
-            color: white;
+            background-color: #006400; /* Темно-зеленый фон для заголовков */
+            color: white; /* Белый текст для заголовков */
             font-weight: bold;
         }
 
+        #results-table-body tr td {
+            text-align: center;
+        }
+
+        #results-table-body tr {
+            height: 40px;
+        }
+
+        /* Для изменения цвета заголовка "Топ для останніх 10ти учасників" */
+        .top-title {
+            font-family: 'Patrick Hand', cursive, sans-serif;
+            color: #ff5733; /* Ярко-оранжевый цвет для заголовка */
+            font-size: 1.8em; /* Увеличен размер текста */
+            margin-bottom: 20px;
+        }
+
+        /* Для выделения строки с результатами */
+        .highlighted-row {
+            background-color: #90EE90; /* Ярко-зеленый фон */
+            border: 2px solid #006400; /* Темно-зеленая рамка */
+            font-family: 'Patrick Hand', cursive, sans-serif;
+            color: #006400; /* Темно-зеленый текст */
+        }
+
+        /* Для разных цветов в столбце "Результаты" */
+        .green-result {
+            color: #006400; /* Темно-зеленый */
+            font-weight: bold; /* Жирный шрифт */
+        }
+
+        .blue-result {
+            color: #00008B; /* Темно-синий */
+            font-weight: bold; /* Жирный шрифт */
+        }
+
+        .maroon-result {
+            color: #800000; /* Бордовый */
+            font-weight: bold; /* Жирный шрифт */
+        }
+
+        /* Для столбца результата - жирный шрифт */
+        td.result {
+            font-weight: bold; /* Жирный шрифт */
+        }
+
+        /* Футер */
         .footer {
             position: absolute;
             bottom: 5%;
@@ -159,6 +207,10 @@
             h1 {
                 font-size: 2em;
             }
+
+            .result-text {
+                font-size: 1.2em;
+            }
         }
     </style>
 </head>
@@ -176,8 +228,8 @@
                     <div class="result-text" id="user-result">Ваш результат: -</div>
                 </div>
                 <div class="buttons-container">
-                    <button onclick="location.href='/'">На головну</button>
-                    <button onclick="location.reload()">Почати заново</button>
+                    <button onclick="location.href='/game_alexandr'">На головну</button>
+                    <button onclick="location.href='/quiz'">Почати заново</button>
                 </div>
             </div>
             <div class="bottom-section">
