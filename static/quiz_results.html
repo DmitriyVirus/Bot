@@ -20,6 +20,7 @@
             height: 100vh;
             justify-content: center;
             align-items: center;
+            position: relative; /* Для футера */
         }
 
         .container {
@@ -146,6 +147,16 @@
             font-weight: bold; /* Жирный шрифт */
         }
 
+        /* Футер */
+        .footer {
+            position: absolute;
+            bottom: 5%;
+            right: 5%;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: black;
+        }
+
         @media (max-width: 768px) {
             .container {
                 flex-direction: column;
@@ -199,6 +210,10 @@
                 </tbody>
             </table>
         </div>
+    </div>
+
+    <div class="footer">
+        Directed by Olexander Golovaty
     </div>
 
     <script>
