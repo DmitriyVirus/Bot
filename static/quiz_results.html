@@ -24,7 +24,7 @@
     <h2>Ваш результат: <span id="final-score">Загрузка...</span></h2>
 
     <h3>Топ-10 участников</h3>
-    <table id="results-table">
+    <table>
         <thead>
             <tr>
                 <th>Имя</th>
@@ -32,8 +32,18 @@
                 <th>Очки</th>
             </tr>
         </thead>
-        <tbody>
-            <!-- Данные будут подгружены через JS -->
+        <tbody id="results-table-body">
+            <!-- Статичные строки таблицы -->
+            <tr><td colspan="3">Загрузка...</td></tr>
+            <tr><td colspan="3"></td></tr>
+            <tr><td colspan="3"></td></tr>
+            <tr><td colspan="3"></td></tr>
+            <tr><td colspan="3"></td></tr>
+            <tr><td colspan="3"></td></tr>
+            <tr><td colspan="3"></td></tr>
+            <tr><td colspan="3"></td></tr>
+            <tr><td colspan="3"></td></tr>
+            <tr><td colspan="3"></td></tr>
         </tbody>
     </table>
 
@@ -45,11 +55,13 @@
                 const data = await response.json();
 
                 if (data.status === "success") {
-                    const tableBody = document.getElementById("results-table").querySelector("tbody");
-                    tableBody.innerHTML = ""; // Очищаем таблицу
+                    const tableBody = document.getElementById("results-table-body");
+                    tableBody.innerHTML = ""; // Очищаем содержимое таблицы
 
                     // Заполняем таблицу строками
-                    data.table_data.forEach(row => {
+                    for (let i = 0; i < 10; i++) {
+                        const row = data.table_data[i] || ["-", "-", "-"]; // Пустая строка, если данных меньше 10
+
                         const tr = document.createElement("tr");
 
                         const nameCell = document.createElement("td");
@@ -65,11 +77,12 @@
                         tr.appendChild(scoreCell);
 
                         tableBody.appendChild(tr);
-                    });
+                    }
 
                     // Устанавливаем результат последнего пользователя
-                    if (data.table_data.length > 0) {
-                        document.getElementById("final-score").textContent = data.table_data[0][2];
+                    const lastUserResult = data.last_user_result;
+                    if (lastUserResult) {
+                        document.getElementById("final-score").textContent = `${lastUserResult.score} (Имя: ${lastUserResult.name}, Сложность: ${lastUserResult.difficulty})`;
                     } else {
                         document.getElementById("final-score").textContent = "Нет данных.";
                     }
