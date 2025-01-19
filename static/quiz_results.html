@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Результати вікторини</title>
     <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Great+Vibes&display=swap" rel="stylesheet">
-    <!-- Использование только дополнительного значка -->
     <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
     <link rel="shortcut icon" href="/static/favicon.ico">
     <style>
@@ -20,32 +19,31 @@
             height: 100vh;
             justify-content: center;
             align-items: center;
-            position: relative; /* Для футера */
+            position: relative;
+            font-family: Arial, sans-serif;
         }
 
         .container {
             display: flex;
             width: 100%;
             height: 100%;
+            flex-wrap: wrap; /* Поддержка адаптивных колонок */
         }
 
-        /* Левая часть с фоном */
         .left-section {
             background-image: url('https://i.pinimg.com/1200x/83/46/7d/83467d8f0484c8de9e3d6b12c704a3b6.jpg');
             background-position: center;
-            background-size: contain; /* Масштабируем картинку по высоте */
-            background-repeat: no-repeat; /* Запрещаем повторение картинки */
-            width: 50%;
-            height: 100vh;
+            background-size: cover;
+            background-repeat: no-repeat;
+            width: 100%;
+            height: 50vh;
         }
 
-        /* Правая часть с таблицей */
         .right-section {
-            width: 50%;
-            height: 100%;
-            padding: 20px;
-            overflow-y: auto;
-            background-color: rgba(255, 255, 255, 0.8); /* Полупрозрачный фон для правой части */
+            width: 100%;
+            height: auto;
+            padding: 2% 5%;
+            background-color: rgba(255, 255, 255, 0.8);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -53,52 +51,52 @@
         }
 
         h1 {
-            font-family: 'Great Vibes', cursive, sans-serif; /* Декоративный шрифт */
+            font-family: 'Great Vibes', cursive, sans-serif;
             font-size: 3em;
             text-align: center;
             margin-bottom: 20px;
-            color: #ff5733; /* Яркий оранжевый цвет текста */
-            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3); /* Легкая тень */
-            border-bottom: 3px solid #006400; /* Темно-зеленая линия под заголовком */
-            padding-bottom: 10px; /* Отступ под линией */
+            color: #ff5733;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+            border-bottom: 3px solid #006400;
+            padding-bottom: 10px;
         }
 
         .result-container {
-            background-color: #d4edda; /* Бледно-зеленый фон */
-            border: 2px solid #006400; /* Темно-зеленая рамка */
-            border-radius: 15px; /* Скругленные углы */
-            padding: 10px; /* Уменьшены внутренние отступы */
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Легкая тень */
-            text-align: left; /* Текст слева */
+            background-color: #d4edda;
+            border: 2px solid #006400;
+            border-radius: 15px;
+            padding: 10px;
+            text-align: left;
             display: inline-block;
-            width: 300px; /* Установим фиксированную ширину для блока */
             margin-bottom: 20px;
+            width: 90%;
+            max-width: 350px;
         }
 
         .result-text {
-            font-family: 'Patrick Hand', cursive, sans-serif; /* Шрифт Patrick Hand */
-            color: #006400; /* Темно-зеленый цвет текста */
+            font-family: 'Patrick Hand', cursive, sans-serif;
+            color: #006400;
             font-size: 1.5em;
             font-weight: bold;
-            margin-bottom: 8px; /* Уменьшен отступ между строками */
+            margin-bottom: 8px;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            border: 2px solid #006400; /* Темно-зеленая рамка вокруг таблицы */
-            background-color: #d4edda; /* Бледно-зеленый фон */
+            border: 2px solid #006400;
+            background-color: #d4edda;
         }
 
         th, td {
-            border: 1px solid #006400; /* Темно-зеленая рамка для ячеек */
+            border: 1px solid #006400;
             padding: 8px;
-            text-align: center; /* Текст по центру */
+            text-align: center;
         }
 
         th {
-            background-color: #006400; /* Темно-зеленый фон для заголовков */
-            color: white; /* Белый текст для заголовков */
+            background-color: #006400;
+            color: white;
             font-weight: bold;
         }
 
@@ -110,44 +108,39 @@
             height: 40px;
         }
 
-        /* Для изменения цвета заголовка "Топ для останніх 10ти учасників" */
         .top-title {
             font-family: 'Patrick Hand', cursive, sans-serif;
-            color: #ff5733; /* Ярко-оранжевый цвет для заголовка */
-            font-size: 1.8em; /* Увеличен размер текста */
+            color: #ff5733;
+            font-size: 1.8em;
             margin-bottom: 20px;
         }
 
-        /* Для выделения строки с результатами */
         .highlighted-row {
-            background-color: #90EE90; /* Ярко-зеленый фон */
-            border: 2px solid #006400; /* Темно-зеленая рамка */
+            background-color: #90EE90;
+            border: 2px solid #006400;
             font-family: 'Patrick Hand', cursive, sans-serif;
-            color: #006400; /* Темно-зеленый текст */
+            color: #006400;
         }
 
-        /* Для разных цветов в столбце "Результаты" */
         .green-result {
-            color: #006400; /* Темно-зеленый */
-            font-weight: bold; /* Жирный шрифт */
+            color: #006400;
+            font-weight: bold;
         }
 
         .blue-result {
-            color: #00008B; /* Темно-синий */
-            font-weight: bold; /* Жирный шрифт */
+            color: #00008B;
+            font-weight: bold;
         }
 
         .maroon-result {
-            color: #800000; /* Бордовый */
-            font-weight: bold; /* Жирный шрифт */
+            color: #800000;
+            font-weight: bold;
         }
 
-        /* Для столбца результата - жирный шрифт */
         td.result {
-            font-weight: bold; /* Жирный шрифт */
+            font-weight: bold;
         }
 
-        /* Футер */
         .footer {
             position: absolute;
             bottom: 5%;
@@ -157,22 +150,72 @@
             color: black;
         }
 
+        /* Медиазапросы для адаптивности */
         @media (max-width: 768px) {
             .container {
                 flex-direction: column;
             }
 
-            .left-section, .right-section {
+            .left-section {
+                height: 30vh; /* Уменьшаем высоту изображения */
+            }
+
+            .right-section {
+                padding: 5% 10%;
+            }
+
+            h1 {
+                font-size: 2.5em;
+            }
+
+            .result-container {
                 width: 100%;
-                height: auto;
+                max-width: 100%;
+            }
+
+            .result-text {
+                font-size: 1.2em;
+            }
+
+            .top-title {
+                font-size: 1.5em;
+            }
+
+            table {
+                font-size: 0.9em;
+            }
+
+            .footer {
+                position: relative;
+                bottom: 0;
+                right: 0;
+                font-size: 1em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .right-section {
+                padding: 10% 5%;
             }
 
             h1 {
                 font-size: 2em;
             }
 
+            .top-title {
+                font-size: 1.3em;
+            }
+
             .result-text {
-                font-size: 1.2em;
+                font-size: 1.1em;
+            }
+
+            table {
+                font-size: 0.8em;
+            }
+
+            .footer {
+                font-size: 0.9em;
             }
         }
     </style>
@@ -229,7 +272,7 @@
 
                     // Заполняем таблицу строками
                     for (let i = 0; i < 10; i++) {
-                        const row = data.table_data[i] || ["-", "-", "-"]; // Пустая строка, если данных меньше 10
+                        const row = data.table_data[i] || ["-", "-", "-"];
 
                         const tr = document.createElement("tr");
 
