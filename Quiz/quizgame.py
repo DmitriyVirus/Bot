@@ -25,7 +25,7 @@ def save_user_data(client, name, difficulty):
         raise
 
 # Главная страница викторины
-@app.get("/game_alexandr", include_in_schema=False)
+@router.get("/game_alexandr", include_in_schema=False)
 async def game_alexandr_page():
     return HTMLResponse(
         content=open(os.path.join(os.getcwd(), "static", "game_alexandr.html"), "r").read(),
@@ -33,11 +33,11 @@ async def game_alexandr_page():
     )
           
 # Страница викторины
-@app.get("/quiz", include_in_schema=False)
+@router.get("/quiz", include_in_schema=False)
 async def quiz_page():
     return FileResponse(os.path.join(os.getcwd(), "static", "quiz.html"))
 
-@app.post("/api/start-quiz", response_class=JSONResponse)
+@router.post("/api/start-quiz", response_class=JSONResponse)
 async def start_quiz(user_data: UserData):
     try:
         client = get_gspread_client()  # Получаем клиент для работы с Google Sheets
@@ -54,11 +54,11 @@ async def start_quiz(user_data: UserData):
         print(f"Error in start_quiz: {e}")
         return {"status": "error", "message": str(e)}
 
-@app.get("/quiz-start", include_in_schema=False)
+@router.get("/quiz-start", include_in_schema=False)
 async def quiz_start_page(request: Request):
     return FileResponse(os.path.join(os.getcwd(), "static", "quiz-start.html"))
 
-@app.get("/api/get-question")
+@router.get("/api/get-question")
 async def get_question():
     try:
         client = get_gspread_client()  # Получаем клиент для работы с Google Sheets
@@ -134,7 +134,7 @@ async def get_question():
         print(f"Error: {e}")
         return {"status": "error", "message": str(e)}
 
-@app.post("/api/check-answer-and-update")
+@router.post("/api/check-answer-and-update")
 async def check_answer_and_update(data: dict):
     try:
         question = data.get("question")
@@ -197,7 +197,7 @@ async def check_answer_and_update(data: dict):
         print(f"Error: {e}")
         return {"status": "error", "message": str(e)}
 
-@app.get("/quiz-results", response_class=HTMLResponse)
+@router.get("/quiz-results", response_class=HTMLResponse)
 async def quiz_results():
     try:
         return FileResponse(os.path.join(os.getcwd(), "static", "quiz_results.html"))
@@ -208,7 +208,7 @@ async def quiz_results():
             status_code=500
         )
 
-@app.get("/api/quiz-table-data", response_class=JSONResponse)
+@router.get("/api/quiz-table-data", response_class=JSONResponse)
 async def quiz_table_data():
     try:
         client = get_gspread_client()
@@ -264,7 +264,7 @@ async def quiz_table_data():
         print(f"Error: {e}")
         return {"status": "error", "message": str(e)}
 
-@app.get("/quiz_log")
+@router.get("/quiz_log")
 async def quiz_log_page():
     try:
         # Замените путь на нужный путь для вашего HTML-файла
