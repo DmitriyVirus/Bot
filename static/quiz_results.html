@@ -54,59 +54,46 @@
         .middle-section {
             flex: 2;
             display: flex;
-            justify-content: center;
+            justify-content: center; /* Центрируем содержимое по горизонтали */
+            align-items: center; /* Центрируем по вертикали */
+            gap: 20px; /* Расстояние между блоками */
             padding: 10px;
-            flex-direction: column; /* Вертикальное расположение элементов */
-            align-items: center; /* Центрирование элементов */
-            gap: 15px; /* Расстояние между блоками */
-            position: relative;
-        }
-
-        .bottom-section {
-            flex-grow: 1;
-            padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-            align-items: center;
         }
 
         .result-container {
-            background-color: #d4edda;
-            border: 2px solid #006400;
-            border-radius: 15px;
-            padding: 10px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            text-align: left;
+            background-color: #d4edda; 
+            border: 2px solid #006400; 
+            border-radius: 15px; 
+            padding: 5px; 
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); 
+            text-align: left; 
             display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: flex-start;
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: flex-start; 
             width: 300px;
             height: 140px;
+            position: relative; 
         }
 
         .result-container .result-text {
-            font-family: 'Patrick Hand', cursive, sans-serif;
+            font-family: 'Patrick Hand', cursive, sans-serif; 
             color: #006400;
             font-size: 1.5em;
             font-weight: bold;
-            margin-bottom: 8px;
-            width: 300px;
-            height: 140px;
+            margin-bottom: 8px; 
         }
 
         .buttons-container {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            gap: 5px;
-            padding: 5px;
+            align-items: flex-start;
+            justify-content: center;
+            gap: 10px;
         }
 
         .buttons-container button {
-            width: 100%;
+            width: 150px;
             padding: 15px;
             font-size: 1.2em;
             font-family: 'Patrick Hand', cursive, sans-serif;
@@ -115,7 +102,6 @@
             border: none;
             border-radius: 13px;
             cursor: pointer;
-            margin-bottom: 10px;
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
         }
 
@@ -127,7 +113,7 @@
             font-family: 'Great Vibes', cursive, sans-serif;
             font-size: 3em;
             text-align: center;
-            margin-top: 40px;
+            margin-top: 40px; 
             margin-bottom: 20px;
             color: #ff5733;
             text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
@@ -138,19 +124,19 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            border: 2px solid #006400;
-            background-color: #d4edda;
+            border: 2px solid #006400; 
+            background-color: #d4edda; 
         }
 
         th, td {
-            border: 1px solid #006400;
+            border: 1px solid #006400; 
             padding: 8px;
             text-align: center;
         }
 
         th {
-            background-color: #006400;
-            color: white;
+            background-color: #006400; 
+            color: white; 
             font-weight: bold;
         }
 
@@ -164,8 +150,8 @@
 
         .top-title {
             font-family: 'Patrick Hand', cursive, sans-serif;
-            color: #ff5733;
-            font-size: 1.8em;
+            color: #ff5733; 
+            font-size: 1.8em; 
             margin-bottom: 20px;
         }
 
@@ -173,21 +159,21 @@
             background-color: #90EE90;
             border: 2px solid #006400;
             font-family: 'Patrick Hand', cursive, sans-serif;
-            color: #006400;
+            color: #006400; 
         }
 
         .green-result {
-            color: #006400;
+            color: #006400; 
             font-weight: bold;
         }
 
         .blue-result {
-            color: #00008B;
-            font-weight: bold;
+            color: #00008B; 
+            font-weight: bold; 
         }
 
         .maroon-result {
-            color: #800000;
+            color: #800000; 
             font-weight: bold;
         }
 
@@ -254,7 +240,7 @@
                     </thead>
                     <tbody id="results-table-body">
                         <tr><td colspan="3">Загрузка...</td></tr>
-                        <!-- Data rows will be added dynamically here -->
+                        <!-- More rows will be added dynamically -->
                     </tbody>
                 </table>
             </div>
