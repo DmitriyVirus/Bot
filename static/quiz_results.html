@@ -293,6 +293,11 @@
                             row.cells[1].textContent = '-';
                             row.cells[2].textContent = '-';
                         }
+
+                        // Выделение строки с результатами текущего участника
+                        if (row.cells[0].textContent === data.last_user_result.name) {
+                            row.classList.add('highlighted-row'); // Добавление класса для выделения
+                        }
                     }
 
                     const lastUserResult = data.last_user_result;
