@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Результати вікторини</title>
     <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Great+Vibes&display=swap" rel="stylesheet">
+    <!-- Использование только дополнительного значка -->
     <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
     <link rel="shortcut icon" href="/static/favicon.ico">
     <style>
@@ -27,21 +28,23 @@
             height: 100%;
         }
 
+        /* Левая часть с фоном */
         .left-section {
             background-image: url('https://i.pinimg.com/1200x/83/46/7d/83467d8f0484c8de9e3d6b12c704a3b6.jpg');
             background-position: center;
-            background-size: contain;
-            background-repeat: no-repeat;
+            background-size: contain; /* Масштабируем картинку по высоте */
+            background-repeat: no-repeat; /* Запрещаем повторение картинки */
             width: 50%;
             height: 100vh;
         }
 
+        /* Правая часть с таблицей */
         .right-section {
             width: 50%;
             height: 100%;
             padding: 20px;
             overflow-y: auto;
-            background-color: rgba(255, 255, 255, 0.8);
+            background-color: rgba(255, 255, 255, 0.8); /* Полупрозрачный фон для правой части */
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -49,52 +52,52 @@
         }
 
         h1 {
-            font-family: 'Great Vibes', cursive, sans-serif;
+            font-family: 'Great Vibes', cursive, sans-serif; /* Декоративный шрифт */
             font-size: 3em;
             text-align: center;
             margin-bottom: 20px;
-            color: #ff5733;
-            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
-            border-bottom: 3px solid #006400;
-            padding-bottom: 10px;
+            color: #ff5733; /* Яркий оранжевый цвет текста */
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3); /* Легкая тень */
+            border-bottom: 3px solid #006400; /* Темно-зеленая линия под заголовком */
+            padding-bottom: 10px; /* Отступ под линией */
         }
 
         .result-container {
-            background-color: #d4edda;
-            border: 2px solid #006400;
-            border-radius: 15px;
-            padding: 10px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            text-align: left;
+            background-color: #d4edda; /* Бледно-зеленый фон */
+            border: 2px solid #006400; /* Темно-зеленая рамка */
+            border-radius: 15px; /* Скругленные углы */
+            padding: 10px; /* Уменьшены внутренние отступы */
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Легкая тень */
+            text-align: left; /* Текст слева */
             display: inline-block;
-            width: 300px;
+            width: 300px; /* Установим фиксированную ширину для блока */
             margin-bottom: 20px;
         }
 
         .result-text {
-            font-family: 'Patrick Hand', cursive, sans-serif;
-            color: #006400;
+            font-family: 'Patrick Hand', cursive, sans-serif; /* Шрифт Patrick Hand */
+            color: #006400; /* Темно-зеленый цвет текста */
             font-size: 1.5em;
             font-weight: bold;
-            margin-bottom: 8px;
+            margin-bottom: 8px; /* Уменьшен отступ между строками */
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            border: 2px solid #006400;
-            background-color: #d4edda;
+            border: 2px solid #006400; /* Темно-зеленая рамка вокруг таблицы */
+            background-color: #d4edda; /* Бледно-зеленый фон */
         }
 
         th, td {
-            border: 1px solid #006400;
+            border: 1px solid #006400; /* Темно-зеленая рамка для ячеек */
             padding: 8px;
-            text-align: center;
+            text-align: center; /* Текст по центру */
         }
 
         th {
-            background-color: #006400;
-            color: white;
+            background-color: #006400; /* Темно-зеленый фон для заголовков */
+            color: white; /* Белый текст для заголовков */
             font-weight: bold;
         }
 
@@ -102,35 +105,45 @@
             text-align: center;
         }
 
+        #results-table-body tr {
+            height: 40px;
+        }
+
+        /* Для изменения цвета заголовка "Топ для останніх 10ти учасників" */
         .top-title {
             font-family: 'Patrick Hand', cursive, sans-serif;
-            color: #ff5733;
-            font-size: 1.8em;
+            color: #ff5733; /* Ярко-оранжевый цвет для заголовка */
+            font-size: 1.8em; /* Увеличен размер текста */
             margin-bottom: 20px;
         }
 
-        .highlight-row {
-            border: 2px solid #006400;
-            background-color: #90EE90;
+        /* Для выделения строки с результатами */
+        .highlighted-row {
+            background-color: #90EE90; /* Ярко-зеленый фон */
+            border: 2px solid #006400; /* Темно-зеленая рамка */
             font-family: 'Patrick Hand', cursive, sans-serif;
-            color: #006400;
-            font-weight: bold;
+            color: #006400; /* Темно-зеленый текст */
         }
 
-        /* Стиль для различных значений результатов */
+        /* Для разных цветов в столбце "Результаты" */
         .green-result {
-            color: #008000; /* Зеленый для результатов от 8 до 10 */
-            font-weight: normal; /* Обычный шрифт */
+            color: #006400; /* Темно-зеленый */
+            font-weight: bold; /* Жирный шрифт */
         }
 
-        .yellow-result {
-            color: #FFD700; /* Желтый для результатов от 5 до 7 */
-            font-weight: normal; /* Обычный шрифт */
+        .blue-result {
+            color: #00008B; /* Темно-синий */
+            font-weight: bold; /* Жирный шрифт */
         }
 
-        .red-result {
-            color: #FF0000; /* Красный для результатов от 0 до 4 */
-            font-weight: normal; /* Обычный шрифт */
+        .maroon-result {
+            color: #800000; /* Бордовый */
+            font-weight: bold; /* Жирный шрифт */
+        }
+
+        /* Для столбца результата - жирный шрифт */
+        td.result {
+            font-weight: bold; /* Жирный шрифт */
         }
 
         @media (max-width: 768px) {
@@ -174,6 +187,15 @@
                 </thead>
                 <tbody id="results-table-body">
                     <tr><td colspan="3">Загрузка...</td></tr>
+                    <tr><td colspan="3"></td></tr>
+                    <tr><td colspan="3"></td></tr>
+                    <tr><td colspan="3"></td></tr>
+                    <tr><td colspan="3"></td></tr>
+                    <tr><td colspan="3"></td></tr>
+                    <tr><td colspan="3"></td></tr>
+                    <tr><td colspan="3"></td></tr>
+                    <tr><td colspan="3"></td></tr>
+                    <tr><td colspan="3"></td></tr>
                 </tbody>
             </table>
         </div>
@@ -190,19 +212,10 @@
                     const tableBody = document.getElementById("results-table-body");
                     tableBody.innerHTML = ""; // Очищаем содержимое таблицы
 
-                    const lastUserResult = data.last_user_result;
-                    if (lastUserResult) {
-                        document.getElementById("user-name").textContent = `Ім'я: ${lastUserResult.name}`;
-                        document.getElementById("user-level").textContent = `Рівень: ${lastUserResult.difficulty}`;
-                        document.getElementById("user-result").textContent = `Ваш результат: ${lastUserResult.score}`;
-                    } else {
-                        document.getElementById("user-name").textContent = "Ім'я: -";
-                        document.getElementById("user-level").textContent = "Рівень: -";
-                        document.getElementById("user-result").textContent = "Ваш результат: -";
-                    }
+                    // Заполняем таблицу строками
+                    for (let i = 0; i < 10; i++) {
+                        const row = data.table_data[i] || ["-", "-", "-"]; // Пустая строка, если данных меньше 10
 
-                    // Заполняем таблицу строками и выделяем строку с результатом пользователя
-                    data.table_data.forEach((row, index) => {
                         const tr = document.createElement("tr");
 
                         const nameCell = document.createElement("td");
@@ -215,25 +228,39 @@
 
                         const scoreCell = document.createElement("td");
                         scoreCell.textContent = row[2];
-                        tr.appendChild(scoreCell);
+                        scoreCell.classList.add('result'); // Применяем класс для жирного шрифта
 
-                        // Применяем стили к результатам
-                        const score = parseInt(row[2]);
+                        // Добавляем соответствующий класс в зависимости от значения результата
+                        const score = parseInt(row[2], 10);
                         if (score >= 8) {
-                            scoreCell.classList.add("green-result");
+                            scoreCell.classList.add('green-result');
                         } else if (score >= 5) {
-                            scoreCell.classList.add("yellow-result");
-                        } else {
-                            scoreCell.classList.add("red-result");
+                            scoreCell.classList.add('blue-result');
+                        } else if (score >= 0) {
+                            scoreCell.classList.add('maroon-result');
                         }
 
-                        // Выделяем строку с результатом текущего пользователя
-                        if (row[0] === lastUserResult.name && row[1] === lastUserResult.difficulty && row[2] === lastUserResult.score) {
-                            tr.classList.add("highlight-row");
+                        tr.appendChild(scoreCell);
+
+                        // Если это последний пользователь, выделяем строку
+                        if (row[0] === data.last_user_result.name) {
+                            tr.classList.add('highlighted-row');
                         }
 
                         tableBody.appendChild(tr);
-                    });
+                    }
+
+                    // Устанавливаем результат последнего пользователя
+                    const lastUserResult = data.last_user_result;
+                    if (lastUserResult) {
+                        document.getElementById("user-name").textContent = `Ім'я: ${lastUserResult.name}`;
+                        document.getElementById("user-level").textContent = `Рівень: ${lastUserResult.difficulty}`;
+                        document.getElementById("user-result").textContent = `Ваш результат: ${lastUserResult.score}`;
+                    } else {
+                        document.getElementById("user-name").textContent = "Ім'я: -";
+                        document.getElementById("user-level").textContent = "Рівень: -";
+                        document.getElementById("user-result").textContent = "Ваш результат: -";
+                    }
                 } else {
                     alert("Помилка: " + data.message);
                 }
