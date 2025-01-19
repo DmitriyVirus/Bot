@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Результаты викторины</title>
+    <title>Результати вікторини</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Great+Vibes&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -16,7 +17,6 @@
             height: 100vh;
             justify-content: center;
             align-items: center;
-            background-color: #f0f0f0; /* Цвет фона для всей страницы */
         }
 
         .container {
@@ -111,15 +111,15 @@
     <div class="container">
         <div class="left-section"></div>
         <div class="right-section">
-            <h1>Результаты викторины</h1>
+            <h1>Результати вікторини</h1>
             <h2>Ваш результат: <span id="final-score">Загрузка...</span></h2>
-            <h3>Топ-10 участников</h3>
+            <h3>Топ для останніх 10ти учасників</h3>
             <table>
                 <thead>
                     <tr>
-                        <th>Имя</th>
-                        <th>Сложность</th>
-                        <th>Очки</th>
+                        <th>Им'я</th>
+                        <th>Рівень</th>
+                        <th>Результат</th>
                     </tr>
                 </thead>
                 <tbody id="results-table-body">
@@ -175,14 +175,14 @@
                     if (lastUserResult) {
                         document.getElementById("final-score").textContent = `${lastUserResult.score} (Имя: ${lastUserResult.name}, Сложность: ${lastUserResult.difficulty})`;
                     } else {
-                        document.getElementById("final-score").textContent = "Нет данных.";
+                        document.getElementById("final-score").textContent = "Немає даних";
                     }
                 } else {
-                    alert("Ошибка: " + data.message);
+                    alert("Помилка: " + data.message);
                 }
             } catch (error) {
-                console.error("Ошибка загрузки данных:", error);
-                alert("Не удалось загрузить данные. Попробуйте позже.");
+                console.error("Помилка завантаження:", error);
+                alert("Спробуйте пізніше.");
             }
         }
 
