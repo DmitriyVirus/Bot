@@ -54,7 +54,7 @@ async def start_quiz(user_data: UserData):
         save_user_data(client, user_data.name, user_data.difficulty)
 
         # Возвращаем успешный ответ с указанием маршрута
-        return {"message": "Починаємо!", "redirect_to": "/quiz-start"}
+        return {"message": "Починаємо!", "redirect_to": "/quiz_start"}
 
     except Exception as e:
         print(f"Error in start_quiz: {e}")
