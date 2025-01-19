@@ -250,30 +250,6 @@ async def quiz_results():
             status_code=500
         )
 
-@app.get("/api/quiz-final-score", response_class=JSONResponse)
-async def quiz_final_score():
-    try:
-        client = get_gspread_client()
-        if not client:
-            return {"status": "error", "message": "Не удалось подключиться к Google Sheets."}
-
-        # Открываем таблицу пользователей
-        user_sheet = client.open("quiz").get_worksheet(1)  # Второй лист (индекс 1)
-        user_rows = user_sheet.get_all_values()
-
-        if len(user_rows) < 2:  # Если данных нет (только заголовки)
-            return {"status": "error", "message": "Нет данных для отображения результата."}
-
-        # Получаем данные последнего пользователя
-        last_row = user_rows[-1]
-        final_score = last_row[12] if len(last_row) > 12 else "0"  # 13-й столбец - итоговый результат
-
-        return {"status": "success", "final_score": final_score}
-
-    except Exception as e:
-        print(f"Error: {e}")
-        return {"status": "error", "message": str(e)}
-
 @app.get("/api/quiz-table-data", response_class=JSONResponse)
 async def quiz_table_data():
     try:
@@ -285,15 +261,26 @@ async def quiz_table_data():
         user_sheet = client.open("quiz").get_worksheet(1)  # Второй лист (индекс 1)
         user_rows = user_sheet.get_all_values()
 
-        if len(user_rows) < 2:  # Если данных нет (только заголовки)
+        if len(user_rows) <= 1:  # Если данных нет (только заголовки)
             return {"status": "error", "message": "Нет данных для отображения."}
 
-        # Извлекаем только 1-й, 2-й и 13-й столбцы (индексы 0, 1 и 12)
-        filtered_data = [[row[0], row[1], row[12] if len(row) > 12 else ""] for row in user_rows]
+        # Пропускаем первую строку (заголовки)
+        user_rows = user_rows[1:]
 
-        return {"status": "success", "table_data": filtered_data}
+        # Извлекаем только 1-й, 2-й и 13-й столбцы (индексы 0, 1 и 12)
+        filtered_data = [
+            [row[0], row[1], int(row[12]) if len(row) > 12 and row[12].isdigit() else 0]
+            for row in user_rows
+        ]
+
+        # Сортируем по значению 13-го столбца (от большего к меньшему)
+        sorted_data = sorted(filtered_data, key=lambda x: x[2], reverse=True)
+
+        # Берём только первые 10 строк
+        top_10_data = sorted_data[:10]
+
+        return {"status": "success", "table_data": top_10_data}
 
     except Exception as e:
         print(f"Error: {e}")
         return {"status": "error", "message": str(e)}
-
