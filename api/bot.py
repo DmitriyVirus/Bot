@@ -276,16 +276,19 @@ async def quiz_table_data():
         if not filtered_rows:
             return {"status": "error", "message": "Нет данных для отображения."}
 
-        # Берём только последние 10 строк с конца
-        last_10_rows = filtered_rows[-10:]
-
         # Извлекаем только 1-й, 2-й и 13-й столбцы (индексы 0, 1 и 12)
-        filtered_data = [
+        extracted_data = [
             [row[0], row[1], int(row[12]) if len(row) > 12 and row[12].isdigit() else 0]
-            for row in last_10_rows
+            for row in filtered_rows
         ]
 
-        return {"status": "success", "table_data": filtered_data}
+        # Сортируем по значению 13-го столбца (от большего к меньшему)
+        sorted_data = sorted(extracted_data, key=lambda x: x[2], reverse=True)
+
+        # Берём только последние 10 строк
+        top_10_data = sorted_data[:10]
+
+        return {"status": "success", "table_data": top_10_data}
 
     except Exception as e:
         print(f"Error: {e}")
