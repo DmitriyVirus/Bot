@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Результати вікторини</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <h1 id="result"></h1>
+    <a href="/game_alexandr">Почати знову</a>
+    <script>
+        // Этот скрипт динамически подставляет результат из данных, полученных от сервера
+        fetch("/api/quiz-final-score")
+            .then(response => response.json())
+            .then(data => {
+                const resultElement = document.getElementById("result");
+                if (data.status === "success") {
+                    resultElement.textContent = `Ваш результат: ${data.final_score}`;
+                } else {
+                    resultElement.textContent = "Ошибка загрузки результата.";
+                }
+            })
+            .catch(err => {
+                console.error("Error fetching quiz results:", err);
+                document.getElementById("result").textContent = "Ошибка загрузки результата.";
+            });
+    </script>
+</body>
+</html>
