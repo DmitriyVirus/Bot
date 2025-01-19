@@ -66,7 +66,7 @@
             background-color: #d4edda; /* Бледно-зеленый фон */
             border: 2px solid #006400; /* Темно-зеленая рамка */
             border-radius: 15px; /* Скругленные углы */
-            padding: 20px; /* Внутренние отступы, увеличены для широкой рамки */
+            padding: 10px 15px; /* Уменьшены внутренние отступы */
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Легкая тень */
             text-align: left; /* Текст слева */
             display: inline-block;
@@ -79,7 +79,7 @@
             color: #006400; /* Темно-зеленый цвет текста */
             font-size: 1.5em;
             font-weight: bold;
-            margin-bottom: 15px; /* Большее расстояние между результатом и именем */
+            margin-bottom: 10px; /* Уменьшен отступ между строками */
         }
 
         table {
@@ -107,6 +107,14 @@
 
         #results-table-body tr {
             height: 40px;
+        }
+
+        /* Для изменения цвета заголовка "Топ для останніх 10ти учасників" */
+        .top-title {
+            font-family: 'Patrick Hand', cursive, sans-serif;
+            color: #ff5733; /* Ярко-оранжевый цвет для заголовка */
+            font-size: 1.8em; /* Увеличен размер текста */
+            margin-bottom: 20px;
         }
 
         @media (max-width: 768px) {
@@ -139,7 +147,7 @@
                 <div class="result-text" id="user-level">Рівень: -</div>
                 <div class="result-text" id="user-result">Ваш результат: -</div>
             </div>
-            <h3>Топ для останніх 10ти учасників</h3>
+            <h3 class="top-title">Топ для останніх 10ти учасників</h3>
             <table>
                 <thead>
                     <tr>
