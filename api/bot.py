@@ -242,36 +242,34 @@ async def check_answer_and_update(data: dict):
 @app.get("/quiz-results", response_class=HTMLResponse)
 async def quiz_results():
     try:
+        return FileResponse(os.path.join(os.getcwd(), "static", "quiz_results.html"))
+    except Exception as e:
+        print(f"Error: {e}")
+        return HTMLResponse(
+            "<h1>Произошла ошибка при загрузке страницы результата. Попробуйте позже.</h1>",
+            status_code=500
+        )
+
+@app.get("/api/quiz-final-score", response_class=JSONResponse)
+async def quiz_final_score():
+    try:
         client = get_gspread_client()
         if not client:
-            return HTMLResponse(
-                "<h1>Не удалось подключиться к Google Sheets. Попробуйте позже.</h1>",
-                status_code=500
-            )
+            return {"status": "error", "message": "Не удалось подключиться к Google Sheets."}
 
         # Открываем таблицу пользователей
         user_sheet = client.open("quiz").get_worksheet(1)  # Второй лист (индекс 1)
         user_rows = user_sheet.get_all_values()
 
         if len(user_rows) < 2:  # Если данных нет (только заголовки)
-            return HTMLResponse("<h1>Нет данных для отображения результата.</h1>", status_code=400)
+            return {"status": "error", "message": "Нет данных для отображения результата."}
 
         # Получаем данные последнего пользователя
         last_row = user_rows[-1]
         final_score = last_row[12] if len(last_row) > 12 else "0"  # 13-й столбец - итоговый результат
 
-        return f"""
-        <html>
-            <head><title>Результати вікторини</title></head>
-            <body>
-                <h1>Ваш результат: {final_score}</h1>
-                <a href="/game_alexandr">Почати знову</a>
-            </body>
-        </html>
-        """
+        return {"status": "success", "final_score": final_score}
+
     except Exception as e:
         print(f"Error: {e}")
-        return HTMLResponse(
-            "<h1>Произошла ошибка при загрузке результата. Попробуйте позже.</h1>",
-            status_code=500
-        )
+        return {"status": "error", "message": str(e)}
