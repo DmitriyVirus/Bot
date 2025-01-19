@@ -66,11 +66,11 @@
             background-color: #d4edda; /* Бледно-зеленый фон */
             border: 2px solid #006400; /* Темно-зеленая рамка */
             border-radius: 15px; /* Скругленные углы */
-            padding: 15px; /* Внутренние отступы */
+            padding: 20px; /* Внутренние отступы, увеличены для широкой рамки */
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Легкая тень */
-            text-align: center; /* Центрирование текста */
+            text-align: left; /* Текст слева */
             display: inline-block;
-            width: auto;
+            width: 300px; /* Установим фиксированную ширину для блока */
             margin-bottom: 20px;
         }
 
@@ -131,14 +131,15 @@
         <div class="right-section">
             <h1>Результати вікторини</h1>
             <div class="result-container">
-                <div class="result-text" id="final-score">Загрузка...</div>
-                <div class="result-text" id="user-result">Ваш результат: - Им'я: -</div>
+                <div class="result-text" id="user-name">Ім'я: -</div>
+                <div class="result-text" id="user-level">Рівень: -</div>
+                <div class="result-text" id="user-result">Ваш результат: -</div>
             </div>
             <h3>Топ для останніх 10ти учасників</h3>
             <table>
                 <thead>
                     <tr>
-                        <th>Ім'я</th>
+                        <th>Им'я</th>
                         <th>Рівень</th>
                         <th>Результат</th>
                     </tr>
@@ -194,11 +195,13 @@
                     // Устанавливаем результат последнего пользователя
                     const lastUserResult = data.last_user_result;
                     if (lastUserResult) {
-                        document.getElementById("final-score").textContent = `Рівень: ${lastUserResult.difficulty}`;
-                        document.getElementById("user-result").textContent = `Ваш результат: ${lastUserResult.score} Им'я: ${lastUserResult.name}`;
+                        document.getElementById("user-name").textContent = `Ім'я: ${lastUserResult.name}`;
+                        document.getElementById("user-level").textContent = `Рівень: ${lastUserResult.difficulty}`;
+                        document.getElementById("user-result").textContent = `Ваш результат: ${lastUserResult.score}`;
                     } else {
-                        document.getElementById("final-score").textContent = "Немає даних";
-                        document.getElementById("user-result").textContent = "Ваш результат: - Им'я: -";
+                        document.getElementById("user-name").textContent = "Ім'я: -";
+                        document.getElementById("user-level").textContent = "Рівень: -";
+                        document.getElementById("user-result").textContent = "Ваш результат: -";
                     }
                 } else {
                     alert("Помилка: " + data.message);
