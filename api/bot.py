@@ -19,6 +19,7 @@ app.include_router(quiz_router)
 
 # Монтируем директорию для статических файлов
 app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/Quiz", StaticFiles(directory="Quiz"), name="static")
       
 # Установка webhook при старте
 @app.on_event("startup")
