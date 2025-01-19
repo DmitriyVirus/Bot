@@ -34,7 +34,7 @@ def save_user_data(client, name, difficulty):
 @router.get("/game_alexandr", include_in_schema=False)
 async def game_alexandr_page():
     return HTMLResponse(
-        content=open(os.path.join(os.getcwd(), "static", "game_alexandr.html"), "r").read(),
+        content=open(os.path.join(os.getcwd(), "Quiz", "game_alexandr.html"), "r").read(),
         status_code=200
     )
           
