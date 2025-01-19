@@ -55,30 +55,41 @@
             flex: 2;
             display: flex;
             justify-content: space-between;
-            padding: 20px;
+            padding: 10px;
+            flex-direction: row; /* Горизонтальное расположение элементов */
+            align-items: center; /* Выравнивание по вертикали */
+            gap: 0; /* Расстояние между контейнерами */
+            position: relative; /* Добавляем relative для правильного позиционирования дочернего элемента */
+
         }
 
         .bottom-section {
-            flex: 3;
+            flex-grow: 1; /* Позволяет .bottom-section расширяться, занимая доступное пространство */
             padding: 20px;
             overflow-y: auto;
+            display: flex;
+            flex-direction: column; /* Сделаем вертикальное выравнивание */
+            justify-content: flex-start; /* Поднимем элементы вверх */
+            align-items: center; /* Центрируем элементы по горизонтали */
         }
 
         .result-container {
             background-color: #d4edda; /* Бледно-зеленый фон */
-            border: 2px solid #006400; /* Темно-зеленая рамка */
+            border: 2px solid #006400; /* Уменьшена толщина рамки до 1px */
             border-radius: 15px; /* Скругленные углы */
-            padding: 10px; /* Внутренние отступы */
+            padding: 5px; /* Уменьшены внутренние отступы */
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Легкая тень */
-            text-align: center; /* Текст по центру */
+            text-align: left; /* Текст по левому краю */
             display: flex;
             flex-direction: column; /* Размещение элементов по вертикали */
             justify-content: center; /* Центрирование по вертикали */
-            align-items: center; /* Центрирование по горизонтали */
+            align-items: flex-start; /* Центрирование по горизонтали слева */
             width: 300px; /* Фиксированная ширина */
-            margin: 20px 0 0 20px; /* Отступы для расположения ниже и правее */
+            height: 140px;
+            position: relative; /* Чтобы можно было перемещать относительно родительского элемента */
+            margin-top: -20px; /* Перемещение вверх */
+            left: 20%; /* Смещаем на 20% вправо */
         }
-
 
         .result-container .result-text {
             font-family: 'Patrick Hand', cursive, sans-serif; /* Шрифт Patrick Hand */
@@ -86,17 +97,20 @@
             font-size: 1.5em;
             font-weight: bold;
             margin-bottom: 8px; /* Уменьшен отступ между строками */
+            width: 300px; /* Фиксированная ширина */
+            height: 140px;
         }
 
         .buttons-container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 30px;
-            margin-top: 10%;
-            padding: 15px;
-            border: 3px solid #4CAF50;
-            border-radius: 10px;
+            gap: 5px;
+            margin-top: 0;
+            padding: 5px;
+            position: relative; /* Чтобы можно было перемещать относительно родительского элемента */
+            margin-top: -10px; /* Перемещение вверх */
+            right: 25%; /* Смещаем на 20% вправо */
         }
 
         .buttons-container button {
@@ -121,6 +135,7 @@
             font-family: 'Great Vibes', cursive, sans-serif;
             font-size: 3em;
             text-align: center;
+            margin-top: 40px; /* Добавлен отступ сверху */
             margin-bottom: 20px;
             color: #ff5733;
             text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
