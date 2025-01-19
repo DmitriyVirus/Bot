@@ -27,12 +27,12 @@
 
         /* Левая часть с фоном */
         .left-section {
-            width: 50%;
-            height: 100%;
             background-image: url('https://i.pinimg.com/1200x/83/46/7d/83467d8f0484c8de9e3d6b12c704a3b6.jpg');
             background-position: center;
-            background-size: cover; /* Масштабируем изображение */
+            background-size: contain; /* Масштабируем картинку по высоте */
             background-repeat: no-repeat; /* Запрещаем повторение картинки */
+            width: 50%;
+            height: 100vh;
         }
 
         /* Правая часть с таблицей */
@@ -45,11 +45,16 @@
         }
 
         h1 {
-            font-family: 'Great Vibes', cursive, sans-serif;
-            font-size: 2.5em;
+            font-family: 'Great Vibes', cursive, sans-serif; /* Декоративный шрифт */
+            font-size: 3em;
             text-align: center;
-            color: #ff5733;
-            margin-bottom: 20px;
+            margin-bottom: 10%;
+            color: #ff5733; /* Яркий оранжевый цвет текста */
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3); /* Легкая тень */
+            border-bottom: 3px solid #006400; /* Темно-зеленая линия под заголовком */
+            padding-bottom: 10px; /* Отступ под линией */
+            display: inline-block;
+            width: auto;
         }
 
         #final-score {
