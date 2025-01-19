@@ -306,6 +306,12 @@ async def quiz_table_data():
         print(f"Error: {e}")
         return {"status": "error", "message": str(e)}
 
-@app.get("/quiz_log", include_in_schema=False)
-async def read_root():
-    return FileResponse(os.path.join(os.getcwd(), "quiz_log.html"))
+@app.get("/quiz_log")
+async def quiz_log_page():
+    try:
+        # Замените путь на нужный путь для вашего HTML-файла
+        content = open("static/quiz_log.html", "r").read()
+        return HTMLResponse(content=content, status_code=200)
+    except Exception as e:
+        # Возвращаем ошибку, если не удалось загрузить страницу
+        return HTMLResponse(f"<h1>Error loading page: {e}</h1>", status_code=500)
