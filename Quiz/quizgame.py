@@ -272,4 +272,4 @@ async def quiz_log_page():
         return HTMLResponse(content=content, status_code=200)
     except Exception as e:
         # Возвращаем ошибку, если не удалось загрузить страницу
-        return HTMLResponse(f"<h1>Error loading page: {e}</h1>", status_cod
+        return HTMLResponse(f"<h1>Error loading page: {e}</h1>", status_code=500)
