@@ -109,13 +109,28 @@
             margin-bottom: 20px;
         }
 
-        /* Стиль для выделения строки с результатом текущего пользователя */
         .highlight-row {
-            border: 2px solid #006400; /* Темно-зеленая рамка */
-            background-color: #90EE90; /* Ярко-зеленый фон */
+            border: 2px solid #006400;
+            background-color: #90EE90;
             font-family: 'Patrick Hand', cursive, sans-serif;
-            color: #006400; /* Темно-зеленый цвет текста */
+            color: #006400;
             font-weight: bold;
+        }
+
+        /* Стиль для различных значений результатов */
+        .green-result {
+            color: #008000; /* Зеленый для результатов от 8 до 10 */
+            font-weight: normal; /* Обычный шрифт */
+        }
+
+        .yellow-result {
+            color: #FFD700; /* Желтый для результатов от 5 до 7 */
+            font-weight: normal; /* Обычный шрифт */
+        }
+
+        .red-result {
+            color: #FF0000; /* Красный для результатов от 0 до 4 */
+            font-weight: normal; /* Обычный шрифт */
         }
 
         @media (max-width: 768px) {
@@ -201,6 +216,16 @@
                         const scoreCell = document.createElement("td");
                         scoreCell.textContent = row[2];
                         tr.appendChild(scoreCell);
+
+                        // Применяем стили к результатам
+                        const score = parseInt(row[2]);
+                        if (score >= 8) {
+                            scoreCell.classList.add("green-result");
+                        } else if (score >= 5) {
+                            scoreCell.classList.add("yellow-result");
+                        } else {
+                            scoreCell.classList.add("red-result");
+                        }
 
                         // Выделяем строку с результатом текущего пользователя
                         if (row[0] === lastUserResult.name && row[1] === lastUserResult.difficulty && row[2] === lastUserResult.score) {
