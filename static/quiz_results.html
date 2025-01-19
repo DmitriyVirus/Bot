@@ -47,6 +47,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            position: relative;
         }
 
         h1 {
@@ -58,13 +59,6 @@
             text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
             border-bottom: 3px solid #006400;
             padding-bottom: 10px;
-        }
-
-        .result-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 20px;
         }
 
         .result-container {
@@ -79,39 +73,86 @@
             margin-bottom: 20px;
         }
 
-        .result-text {
-            font-family: 'Patrick Hand', cursive, sans-serif;
-            color: #006400;
-            font-size: 1.5em;
-            font-weight: bold;
-            margin-bottom: 8px;
-        }
-
         .button-container {
             display: flex;
-            flex-direction: column;
             gap: 10px;
             margin-top: 10px;
-            width: 100%;
-            max-width: 300px;
         }
 
-        button {
-            background-color: #4CAF50;
+        .action-button {
+            padding: 10px 20px;
+            font-size: 1em;
+            font-family: 'Patrick Hand', cursive, sans-serif;
+            background-color: #006400;
             color: white;
             border: none;
-            padding: 10px 20px;
-            font-size: 1.2em;
+            border-radius: 5px;
             cursor: pointer;
-            border-radius: 10px;
-            width: 100%;
-            height: 60px;
-            transition: background-color 0.3s, border 0.3s;
+            transition: background-color 0.3s ease;
         }
 
-        button:hover {
-            background-color: #45a049;
-            border: 2px solid white;
+        .action-button:hover {
+            background-color: #004d00;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 2px solid #006400;
+            background-color: #d4edda;
+        }
+
+        th, td {
+            border: 1px solid #006400;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #006400;
+            color: white;
+            font-weight: bold;
+        }
+
+        #results-table-body tr td {
+            text-align: center;
+        }
+
+        #results-table-body tr {
+            height: 40px;
+        }
+
+        .top-title {
+            font-family: 'Patrick Hand', cursive, sans-serif;
+            color: #ff5733;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+        }
+
+        .highlighted-row {
+            background-color: #90EE90;
+            border: 2px solid #006400;
+            font-family: 'Patrick Hand', cursive, sans-serif;
+            color: #006400;
+        }
+
+        .green-result {
+            color: #006400;
+            font-weight: bold;
+        }
+
+        .blue-result {
+            color: #00008B;
+            font-weight: bold;
+        }
+
+        .maroon-result {
+            color: #800000;
+            font-weight: bold;
+        }
+
+        td.result {
+            font-weight: bold;
         }
 
         .footer {
@@ -140,6 +181,11 @@
             .result-text {
                 font-size: 1.2em;
             }
+
+            .button-container {
+                flex-direction: column;
+                align-items: center;
+            }
         }
     </style>
 </head>
@@ -148,22 +194,20 @@
         <div class="left-section"></div>
         <div class="right-section">
             <h1>Результати вікторини</h1>
-            <div class="result-wrapper">
-                <div class="result-container">
-                    <div class="result-text" id="user-name">Ім'я: Панас</div>
-                    <div class="result-text" id="user-level">Рівень: Легко</div>
-                    <div class="result-text" id="user-result">Ваш результат: 6</div>
-                </div>
+            <div class="result-container">
+                <div class="result-text" id="user-name">Ім'я: -</div>
+                <div class="result-text" id="user-level">Рівень: -</div>
+                <div class="result-text" id="user-result">Ваш результат: -</div>
                 <div class="button-container">
-                    <button onclick="location.href='https://bot-virus-l2.vercel.app/quiz'">Почати заново</button>
-                    <button onclick="location.href='https://bot-virus-l2.vercel.app/game_alexandr'">На головну</button>
+                    <button class="action-button" onclick="loadQuizResults()">Обновить</button>
+                    <button class="action-button" onclick="alert('Функционал в разработке')">Поделиться</button>
                 </div>
             </div>
-            <h3 class="top-title">Топ останніх спроб</h3>
+            <h3 class="top-title">Топ для останніх 10ти учасників</h3>
             <table>
                 <thead>
                     <tr>
-                        <th>Ім'я</th>
+                        <th>Им'я</th>
                         <th>Рівень</th>
                         <th>Результат</th>
                     </tr>
@@ -180,7 +224,69 @@
     </div>
 
     <script>
-        // Your JavaScript code for loading quiz results remains the same
+        async function loadQuizResults() {
+            try {
+                const response = await fetch("/api/quiz-table-data");
+                const data = await response.json();
+
+                if (data.status === "success") {
+                    const tableBody = document.getElementById("results-table-body");
+                    tableBody.innerHTML = "";
+
+                    for (let i = 0; i < 10; i++) {
+                        const row = data.table_data[i] || ["-", "-", "-"];
+                        const tr = document.createElement("tr");
+
+                        const nameCell = document.createElement("td");
+                        nameCell.textContent = row[0];
+                        tr.appendChild(nameCell);
+
+                        const difficultyCell = document.createElement("td");
+                        difficultyCell.textContent = row[1];
+                        tr.appendChild(difficultyCell);
+
+                        const scoreCell = document.createElement("td");
+                        scoreCell.textContent = row[2];
+                        scoreCell.classList.add('result');
+
+                        const score = parseInt(row[2], 10);
+                        if (score >= 8) {
+                            scoreCell.classList.add('green-result');
+                        } else if (score >= 5) {
+                            scoreCell.classList.add('blue-result');
+                        } else if (score >= 0) {
+                            scoreCell.classList.add('maroon-result');
+                        }
+
+                        tr.appendChild(scoreCell);
+
+                        if (row[0] === data.last_user_result.name) {
+                            tr.classList.add('highlighted-row');
+                        }
+
+                        tableBody.appendChild(tr);
+                    }
+
+                    const lastUserResult = data.last_user_result;
+                    if (lastUserResult) {
+                        document.getElementById("user-name").textContent = `Ім'я: ${lastUserResult.name}`;
+                        document.getElementById("user-level").textContent = `Рівень: ${lastUserResult.difficulty}`;
+                        document.getElementById("user-result").textContent = `Ваш результат: ${lastUserResult.score}`;
+                    } else {
+                        document.getElementById("user-name").textContent = "Ім'я: -";
+                        document.getElementById("user-level").textContent = "Рівень: -";
+                        document.getElementById("user-result").textContent = "Ваш результат: -";
+                    }
+                } else {
+                    alert("Помилка: " + data.message);
+                }
+            } catch (error) {
+                console.error("Помилка завантаження:", error);
+                alert("Спробуйте пізніше.");
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", loadQuizResults);
     </script>
 </body>
 </html>
