@@ -7,10 +7,26 @@
     <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-    <h1 id="result"></h1>
+    <h1 id="result">Ваш результат:</h1>
+    <h2>Дані з таблиці:</h2>
+    <div id="table-container">
+        <table id="data-table" border="1">
+            <thead>
+                <tr>
+                    <th>Ім'я</th>
+                    <th>Рівень</th>
+                    <th>Результат</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Данные будут добавлены через JavaScript -->
+            </tbody>
+        </table>
+    </div>
     <a href="/game_alexandr">Почати знову</a>
+
     <script>
-        // Этот скрипт динамически подставляет результат из данных, полученных от сервера
+        // Подставляем результат викторины
         fetch("/api/quiz-final-score")
             .then(response => response.json())
             .then(data => {
@@ -24,6 +40,32 @@
             .catch(err => {
                 console.error("Error fetching quiz results:", err);
                 document.getElementById("result").textContent = "Ошибка загрузки результата.";
+            });
+
+        // Загружаем данные таблицы
+        fetch("/api/quiz-table-data")
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    const tbody = document.querySelector("#data-table tbody");
+                    tbody.innerHTML = ""; // Очищаем таблицу перед добавлением
+
+                    // Добавляем строки с данными
+                    data.table_data.forEach(row => {
+                        const tr = document.createElement("tr");
+                        row.forEach(cell => {
+                            const td = document.createElement("td");
+                            td.textContent = cell;
+                            tr.appendChild(td);
+                        });
+                        tbody.appendChild(tr);
+                    });
+                } else {
+                    console.error(data.message);
+                }
+            })
+            .catch(err => {
+                console.error("Error fetching table data:", err);
             });
     </script>
 </body>
