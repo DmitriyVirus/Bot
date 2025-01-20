@@ -206,7 +206,7 @@ async def check_answer_and_update(data: dict):
 @router.get("/quiz-results", response_class=HTMLResponse)
 async def quiz_results():
     try:
-        return FileResponse(os.path.join(os.getcwd(), "static", "quiz_results.html"))
+        return FileResponse(os.path.join(os.getcwd(), "Quiz", "quiz_results.html"))
     except Exception as e:
         print(f"Error: {e}")
         return HTMLResponse(
