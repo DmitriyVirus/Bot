@@ -274,7 +274,7 @@ async def quiz_table_data():
 async def quiz_log_page():
     try:
         # Замените путь на нужный путь для вашего HTML-файла
-        content = open("static/quiz_log.html", "r").read()
+        content = open("Quiz/quiz_log.html", "r").read()
         return HTMLResponse(content=content, status_code=200)
     except Exception as e:
         # Возвращаем ошибку, если не удалось загрузить страницу
