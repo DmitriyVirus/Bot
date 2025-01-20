@@ -231,26 +231,26 @@ async def quiz_table_data():
         # Пропускаем первую строку (заголовки)
         user_rows = user_rows[1:]
 
-        # Фильтруем строки, чтобы оставить только те, где есть текст
+        # Фильтруем строки, чтобы оставить только те, где есть текст в необходимых столбцах
         filtered_rows = [
             row for row in user_rows
-            if any(cell.strip() for cell in row)  # Оставляем строки, где есть хотя бы одно непустое значение
+            if row[0].strip() and row[1].strip() and row[12].isdigit()  # Проверка на наличие имени, уровня и результата
         ]
 
         if not filtered_rows:
             return {"status": "error", "message": "Нет данных для отображения."}
 
+        # Получаем последние 10 строк
+        last_10_rows = filtered_rows[-10:]
+
         # Извлекаем только 1-й, 2-й и 13-й столбцы (индексы 0, 1 и 12)
         extracted_data = [
-            [row[0], row[1], int(row[12]) if len(row) > 12 and row[12].isdigit() else 0]
-            for row in filtered_rows
+            [row[0], row[1], int(row[12])]  # Преобразуем результат в целое число
+            for row in last_10_rows
         ]
 
-        # Сортируем по значению 13-го столбца (от большего к меньшему)
+        # Сортируем последние 10 строк по значению 13-го столбца (от большего к меньшему)
         sorted_data = sorted(extracted_data, key=lambda x: x[2], reverse=True)
-
-        # Получаем последние 10 строк
-        top_10_data = sorted_data[:10]
 
         # Получаем последнюю строку таблицы (не по сортировке, а именно из таблицы)
         last_user_row = filtered_rows[-1] if filtered_rows else None
@@ -262,7 +262,7 @@ async def quiz_table_data():
 
         return {
             "status": "success",
-            "table_data": top_10_data,
+            "table_data": sorted_data,
             "last_user_result": last_user_result,
         }
 
