@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Результати вікторини</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Great+Vibes&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <link rel="shortcut icon" href="/static/favicon.ico">
+    <link rel="stylesheet" href="./Quiz/quiz_results_styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="left-section"></div>
+        <div class="right-section">
+            <div class="top-section">
+                <h1>Результати вікторини</h1>
+            </div>
+            <div class="middle-section">
+                <div class="result-container">
+                    <div class="result-text" id="user-name">Ім'я: -</div>
+                    <div class="result-text" id="user-level">Рівень: -</div>
+                    <div class="result-text" id="user-result">Ваш результат: -</div>
+                </div>
+                <div class="buttons-container">
+                    <button onclick="location.href='/game_alexandr'">На головну</button>
+                    <button onclick="location.href='/quiz'">Почати заново</button>
+                </div>
+            </div>
+            <div class="bottom-section">
+                <h3 class="top-title">Топ останніх учасників</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ім'я</th>
+                            <th>Рівень</th>
+                            <th>Результат</th>
+                        </tr>
+                    </thead>
+                    <tbody id="results-table-body">
+                        <tr><td>Загрузка...</td><td>Загрузка...</td><td>Загрузка...</td></tr>
+                        <!-- Добавьте другие строки по мере необходимости -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        Directed by Olexander Golovaty
+    </div>
+
+    <script src="Quiz/quiz_results_scripts.js"></script>
+</body>
+</html>
