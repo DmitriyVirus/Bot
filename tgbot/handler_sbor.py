@@ -26,6 +26,23 @@ def get_user_from_sheet(user_id: int):
 
     return None  # Если пользователя не нашли
 
+# Получаем список всех алиасов из Google Sheets
+def get_aliases_from_sheet():
+    client = get_gspread_client()
+    if not client:
+        return []
+    sheet = client.open("your_google_sheet_name").sheet1  # Укажите имя таблицы
+    data = sheet.get_all_records()  # Получаем все данные из таблицы
+    aliases = set()
+    
+    # Собираем все алиасы из столбца с алиасами
+    for row in data:
+        aliases_column = row.get('aliases', '')  # Убедитесь, что это правильное имя столбца
+        if aliases_column:
+            aliases.update(aliases_column.split(","))
+    
+    return aliases
+
 # Хендлер для команды /inst
 @router.message(Command(commands=["inst"]))
 async def fix_handler(message: types.Message):
@@ -223,3 +240,49 @@ def create_keyboard():
     plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
     minus_button = InlineKeyboardButton(text="➖ Не участвовать", callback_data="join_minus")
     return InlineKeyboardMarkup(inline_keyboard=[[plus_button, minus_button]])
+
+# Обработчик для обработки команды пользователя
+@router.message()
+async def handle_user_text(message: types.Message):
+    try:
+        user_input = message.text.strip()
+        message_with_photo = message.reply_to_message
+
+        if not message_with_photo or not message_with_photo.caption:
+            return
+
+        participants = parse_participants(message_with_photo.caption)
+
+        # Получаем алиасы из таблицы
+        aliases = get_aliases_from_sheet()
+
+        # Проверяем формат ввода
+        if user_input.startswith("+"):
+            name_to_add = user_input[1:].strip()
+            if not name_to_add:
+                return
+
+            # Если имя совпадает с алиасом, добавляем в список участников
+            if any(alias.lower() == name_to_add.lower() for alias in aliases):
+                participants.append(name_to_add)
+        
+        elif user_input.startswith("-"):
+            name_to_remove = user_input[1:].strip()
+            if not name_to_remove:
+                return
+
+            # Если имя совпадает с алиасом, удаляем из списка участников
+            if any(alias.lower() == name_to_remove.lower() for alias in aliases):
+                if name_to_remove in participants:
+                    participants.remove(name_to_remove)
+
+        else:
+            return
+
+        # Обновляем подпись
+        time = "когда соберемся"  # Получите время из подписи, как в вашем коде
+        keyboard = create_keyboard()
+        await update_caption(message_with_photo, participants, None, time, keyboard)
+
+    except Exception as e:
+        logging.error(f"Ошибка при обработке текста от пользователя: {e}")
