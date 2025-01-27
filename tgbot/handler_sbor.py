@@ -194,7 +194,7 @@ async def handle_plus_message(message: types.Message):
 client = get_gspread_client()
 
 # Открываем нужную таблицу
-sheet = client.open("Имя вашей таблицы").sheet1  # Используем первый лист
+sheet = client.open("ourid").sheet1  # Используем первый лист
 
 # Функция для поиска имени по алиасу
 def get_name_by_alias(alias):
