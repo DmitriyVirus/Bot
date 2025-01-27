@@ -188,7 +188,6 @@ async def handle_user_text(message: types.Message):
         message_with_photo = message.reply_to_message  # Проверяем, отвечает ли пользователь на сообщение с фото
 
         if not message_with_photo or not message_with_photo.caption:
-            await message.answer("Пожалуйста, используйте эту функцию, отвечая на сообщение с фото.")
             return
 
         participants = parse_participants(message_with_photo.caption)  # Текущий список участников
