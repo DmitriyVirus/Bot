@@ -190,22 +190,40 @@ async def handle_plus_message(message: types.Message):
     keyboard = create_keyboard()
     await update_caption(message_obj, participants, None, f"{username} присоединился!", time, keyboard)
 
-@router.message(lambda message: message.text.startswith("- "))
-async def handle_minus_message(message: types.Message):
-    username = message.text[2:].strip()  # Получаем имя пользователя, например, "Дима"
-    user_id = message.from_user.id
-    message_obj = message.reply_to_message  # Ответ на сообщение с фото и участниками
+# Получаем клиента
+client = get_gspread_client()
 
-    if not message_obj or not message_obj.caption:
-        await message.answer("Не могу найти сообщение для удаления участника.")
-        return
+# Открываем нужную таблицу
+sheet = client.open("Имя вашей таблицы").sheet1  # Используем первый лист
 
-    participants = parse_participants(message_obj.caption)
-    if username not in participants:
-        await message.answer(f"{username} не участвует.")
-        return
+# Функция для поиска имени по алиасу
+def get_name_by_alias(alias):
+    try:
+        # Ищем алиас в столбце 'aliases'
+        cell = sheet.find(alias)
+        row = sheet.row_values(cell.row)
+        return row[4]  # Возвращаем имя из столбца 'name' (столбец 5)
+    except gspread.exceptions.CellNotFound:
+        return None  # Если алиас не найден, возвращаем None
 
-    participants.remove(username)  # Удаляем участника
-    time = extract_time_from_caption(message_obj.caption)
-    keyboard = create_keyboard()
-    await update_caption(message_obj, participants, None, f"{username} больше не участвует.", time, keyboard)
+# Пример использования в обработчике
+async def update_participants(callback, message, action, alias, participants):
+    # Получаем имя по алиасу
+    name = get_name_by_alias(alias)
+    if name:
+        if action == "+":
+            # Добавляем имя в список участников, если его там нет
+            if name not in participants:
+                participants.append(name)
+        elif action == "-":
+            # Удаляем имя из списка участников, если оно там есть
+            if name in participants:
+                participants.remove(name)
+        
+        # Формируем новый текст для подписи
+        new_caption = f"☠️Идем в инсты когда соберемся.☠️\n\n⚡⚡⚡Нажмите ➕ в сообщении для участия.⚡⚡⚡\n\nУчаствуют: {', '.join(participants)}"
+        # Обновляем подпись сообщения
+        await callback.edit_message_caption(message.chat.id, message.message_id, new_caption)
+        await callback.answer("Список участников обновлен!")
+    else:
+        await callback.answer("Не удалось найти имя по алиасу в таблице.")
