@@ -11,6 +11,12 @@ logging.basicConfig(level=logging.DEBUG)
 
 router = Router()
 
+# Функция для создания клавиатуры
+def create_keyboard():
+    plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
+    minus_button = InlineKeyboardButton(text="➖ Не участвовать", callback_data="join_minus")
+    return InlineKeyboardMarkup(inline_keyboard=[[plus_button, minus_button]])
+
 def get_user_from_sheet(user_id: int):
     client = get_gspread_client()  # Получаем клиент для Google Sheets
     if not client:
