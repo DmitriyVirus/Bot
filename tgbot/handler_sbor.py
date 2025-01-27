@@ -170,7 +170,7 @@ def create_keyboard():
     minus_button = InlineKeyboardButton(text="➖ Не участвовать", callback_data="join_minus")
     return InlineKeyboardMarkup(inline_keyboard=[[plus_button, minus_button]])
 
-@router.message(lambda message: message.text.startswith("+ ") and message.reply_to_message and message.reply_to_message.message_id == pinned_message_id)
+@router.message(lambda message: message.text.startswith("+ "))
 async def handle_plus_message(message: types.Message):
     username = message.text[2:].strip()  # Получаем имя пользователя, например, "Дима"
     user_id = message.from_user.id
@@ -190,10 +190,9 @@ async def handle_plus_message(message: types.Message):
     keyboard = create_keyboard()
     await update_caption(message_obj, participants, None, f"{username} присоединился!", time, keyboard)
 
-# Обработчик для команды "- имя_алиаса"
-@router.message(lambda message: message.text.startswith("- ") and message.reply_to_message and message.reply_to_message.message_id == pinned_message_id)
+@router.message(lambda message: message.text.startswith("- "))
 async def handle_minus_message(message: types.Message):
-    alias = message.text[2:].strip()  # Получаем алиас пользователя
+    username = message.text[2:].strip()  # Получаем имя пользователя, например, "Дима"
     user_id = message.from_user.id
     message_obj = message.reply_to_message  # Ответ на сообщение с фото и участниками
 
@@ -202,53 +201,11 @@ async def handle_minus_message(message: types.Message):
         return
 
     participants = parse_participants(message_obj.caption)
-    name_to_remove = get_name_by_alias(alias)  # Получаем имя по алиасу
-
-    if not name_to_remove:
-        await message.answer(f"Не удалось найти имя по алиасу {alias}.")
+    if username not in participants:
+        await message.answer(f"{username} не участвует.")
         return
 
-    if name_to_remove not in participants:
-        await message.answer(f"{name_to_remove} не участвует.")
-        return
-
-    participants.remove(name_to_remove)  # Удаляем участника
+    participants.remove(username)  # Удаляем участника
     time = extract_time_from_caption(message_obj.caption)
     keyboard = create_keyboard()
-    await update_caption(message_obj, participants, None, f"{name_to_remove} больше не участвует.", time, keyboard)
-
-# Получаем клиента
-client = get_gspread_client()
-
-# Открываем нужную таблицу
-sheet = client.open("ourid").sheet1  # Используем первый лист
-
-# Функция для поиска имени по алиасу
-def get_name_by_alias(alias):
-    try:
-        # Ищем алиас в столбце 'aliases'
-        cell = sheet.find(alias)
-        row = sheet.row_values(cell.row)
-        return row[4]  # Возвращаем имя из столбца 'name' (столбец 5)
-    except gspread.exceptions.CellNotFound:
-        return None  # Если алиас не найден, возвращаем None
-
-# Пример использования в обработчике
-async def update_participants(callback, message, action, alias, participants):
-    name = get_name_by_alias(alias)
-    if name:
-        if action == "+":
-            # Добавляем имя в список участников, если его там нет
-            if name not in participants:
-                participants.append(name)
-        elif action == "-":
-            # Удаляем имя из списка участников, если оно там есть
-            if name in participants:
-                participants.remove(name)
-
-        time = extract_time_from_caption(message.caption)
-        keyboard = create_keyboard()
-        await update_caption(message, participants, callback, f"Список участников обновлен!", time, keyboard)
-    else:
-        await callback.answer("Не удалось найти имя по алиасу в таблице.")
-
+    await update_caption(message_obj, participants, None, f"{username} больше не участвует.", time, keyboard)
