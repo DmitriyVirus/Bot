@@ -11,12 +11,6 @@ logging.basicConfig(level=logging.DEBUG)
 
 router = Router()
 
-# Функция для создания клавиатуры
-def create_keyboard():
-    plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
-    minus_button = InlineKeyboardButton(text="➖ Не участвовать", callback_data="join_minus")
-    return InlineKeyboardMarkup(inline_keyboard=[[plus_button, minus_button]])
-
 def get_user_from_sheet(user_id: int):
     client = get_gspread_client()  # Получаем клиент для Google Sheets
     if not client:
@@ -31,30 +25,6 @@ def get_user_from_sheet(user_id: int):
             return row.get('name')  # Возвращаем имя из столбца 'name'
 
     return None  # Если пользователя не нашли
-
-# Обновлённая функция для извлечения алиасов из Google Sheets
-def get_user_from_alias_or_name(user_input: str):
-    aliases = get_aliases_from_sheet()  # Получаем список алиасов
-    client = get_gspread_client()  # Получаем клиент для Google Sheets
-    if not client:
-        return None
-
-    sheet = client.open("ourid").sheet1  # Получаем первую таблицу
-    data = sheet.get_all_records()  # Получаем все данные из таблицы
-
-    # Проверяем, является ли введённое имя алиасом
-    for row in data:
-        aliases_column = row.get('aliases', '')
-        name = row.get('name')
-
-        # Если нашли соответствие по алиасу, возвращаем имя
-        if aliases_column:
-            alias_list = aliases_column.split(",")
-            if user_input in alias_list:
-                return name
-
-    # Если не нашли алиас, возвращаем саму строку, возможно это нормальное имя
-    return user_input.strip()
 
 # Хендлер для команды /inst
 @router.message(Command(commands=["inst"]))
@@ -83,6 +53,7 @@ async def fix_handler(message: types.Message):
         logging.info(f"Сообщение отправлено и закреплено с id: {sent_message.message_id}")
     except Exception as e:
         logging.error(f"Ошибка при обработке команды /inst: {e}")
+        await message.answer("Произошла ошибка. Попробуйте снова.")
 
 # Функция для разбора участников
 def parse_participants(caption: str):
@@ -140,10 +111,9 @@ async def update_caption(photo_message: types.Message, participants: list, callb
     try:
         await photo_message.edit_caption(caption=updated_text, parse_mode="Markdown", reply_markup=keyboard)
         await callback.answer(action_message)
-        if callback:
-            await callback.answer(action_message)
     except Exception as e:
         logging.error(f"Ошибка при обновлении подписи: {e}")
+        await callback.answer("Не удалось обновить подпись. Попробуйте снова.")
 
 # Обработчик для нажатия на кнопку "➕ Присоединиться"
 @router.callback_query(lambda callback: callback.data == "join_plus")
@@ -159,7 +129,8 @@ async def handle_plus_reaction(callback: types.CallbackQuery):
     display_name = get_user_from_sheet(user_id) or username  # Используем Google Sheets, если не нашли - fallback на first_name
 
     if display_name in participants:
-        return  # Убираем ответ бота
+        await callback.answer(f"Вы уже участвуете, {display_name}!")
+        return
 
     participants.append(display_name)
     logging.debug(f"[После добавления] Участники: {participants}")
@@ -185,73 +156,16 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
         participants.remove(display_name)
         logging.debug(f"[После удаления] Участники: {participants}")
     else:
-        return  # Убираем ответ бота
+        await callback.answer("Вы не участвуете.")
+        return
         
     time = extract_time_from_caption(message.caption)
     keyboard = create_keyboard()
     await update_caption(message, participants, callback, f"Вы больше не участвуете, {display_name}.", time, keyboard)
 
-# Обработчик для ввода текста
-@router.message()
-async def handle_user_text(message: types.Message):
-    try:
-        # Проверяем, отвечает ли пользователь на сообщение
-        if not message.reply_to_message:
-            return  # Если не отвечает на сообщение, выходим
+# Функция для создания клавиатуры
+def create_keyboard():
+    plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
+    minus_button = InlineKeyboardButton(text="➖ Не участвовать", callback_data="join_minus")
+    return InlineKeyboardMarkup(inline_keyboard=[[plus_button, minus_button]])
 
-        # Получаем закрепленное сообщение из чата
-        pinned_message = message.chat.pinned_message
-
-        # Если сообщение не закреплено или не отвечает на закрепленное сообщение, выходим
-        if pinned_message is None or pinned_message.message_id != message.reply_to_message.message_id:
-            return
-
-        user_input = message.text.strip()  # Убираем пробелы вокруг текста
-        message_with_photo = message.reply_to_message  # Проверяем, отвечает ли пользователь на сообщение с фото
-
-        if not message_with_photo or not message_with_photo.caption:
-            return
-
-        participants = parse_participants(message_with_photo.caption)  # Текущий список участников
-        logging.debug(f"Текущий список участников: {participants}")
-
-        # Добавление участника
-        if user_input.startswith("+"):
-            name_to_add = user_input[1:].strip()  # Убираем '+' и пробелы
-            if not name_to_add:
-                return
-
-            # Получаем имя пользователя из Google Sheets, проверяя алиасы
-            name_to_add = get_user_from_alias_or_name(name_to_add)
-
-            if name_to_add in participants:
-                return  # Убираем ответ бота
-            else:
-                participants.append(name_to_add)
-
-        # Удаление участника
-        elif user_input.startswith("-"):
-            name_to_remove = user_input[1:].strip()  # Убираем '-' и пробелы
-            if not name_to_remove:
-                return
-
-            # Получаем имя пользователя из Google Sheets, проверяя алиасы
-            name_to_remove = get_user_from_alias_or_name(name_to_remove)
-
-            if name_to_remove in participants:
-                participants.remove(name_to_remove)
-            else:
-                return
-
-        else:
-            return
-
-        # Обновляем подпись сообщения
-        time = extract_time_from_caption(message_with_photo.caption)  # Извлекаем время из подписи
-        keyboard = create_keyboard()  # Создаем клавиатуру
-        await update_caption(
-            message_with_photo, participants, None, "Список обновлен!", time, keyboard
-        )
-
-    except Exception as e:
-        logging.error(f"Ошибка при обработке текста от пользователя: {e}")
