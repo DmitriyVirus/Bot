@@ -32,22 +32,29 @@ def get_user_from_sheet(user_id: int):
 
     return None  # Если пользователя не нашли
 
-# Получаем список всех алиасов из Google Sheets
-def get_aliases_from_sheet():
-    client = get_gspread_client()
+# Обновлённая функция для извлечения алиасов из Google Sheets
+def get_user_from_alias_or_name(user_input: str):
+    aliases = get_aliases_from_sheet()  # Получаем список алиасов
+    client = get_gspread_client()  # Получаем клиент для Google Sheets
     if not client:
-        return []
-    sheet = client.open("ourid").sheet1  # Укажите имя таблицы
+        return None
+
+    sheet = client.open("ourid").sheet1  # Получаем первую таблицу
     data = sheet.get_all_records()  # Получаем все данные из таблицы
-    aliases = set()
-    
-    # Собираем все алиасы из столбца с алиасами
+
+    # Проверяем, является ли введённое имя алиасом
     for row in data:
-        aliases_column = row.get('aliases', '')  # Убедитесь, что это правильное имя столбца
+        aliases_column = row.get('aliases', '')
+        name = row.get('name')
+
+        # Если нашли соответствие по алиасу, возвращаем имя
         if aliases_column:
-            aliases.update(aliases_column.split(","))
-    
-    return aliases
+            alias_list = aliases_column.split(",")
+            if user_input in alias_list:
+                return name
+
+    # Если не нашли алиас, возвращаем саму строку, возможно это нормальное имя
+    return user_input.strip()
 
 # Хендлер для команды /inst
 @router.message(Command(commands=["inst"]))
@@ -133,6 +140,8 @@ async def update_caption(photo_message: types.Message, participants: list, callb
     try:
         await photo_message.edit_caption(caption=updated_text, parse_mode="Markdown", reply_markup=keyboard)
         await callback.answer(action_message)
+        if callback:
+            await callback.answer(action_message)
     except Exception as e:
         logging.error(f"Ошибка при обновлении подписи: {e}")
 
@@ -201,6 +210,9 @@ async def handle_user_text(message: types.Message):
             if not name_to_add:
                 return
 
+            # Получаем имя пользователя из Google Sheets, проверяя алиасы
+            name_to_add = get_user_from_alias_or_name(name_to_add)
+
             if name_to_add in participants:
                 return  # Убираем ответ бота
             else:
@@ -211,6 +223,9 @@ async def handle_user_text(message: types.Message):
             name_to_remove = user_input[1:].strip()  # Убираем '-' и пробелы
             if not name_to_remove:
                 return
+
+            # Получаем имя пользователя из Google Sheets, проверяя алиасы
+            name_to_remove = get_user_from_alias_or_name(name_to_remove)
 
             if name_to_remove in participants:
                 participants.remove(name_to_remove)
@@ -228,4 +243,4 @@ async def handle_user_text(message: types.Message):
         )
 
     except Exception as e:
-        logging.error(f"Ошибка при обработке текста от пользователя: {e}")
+        logging.error(f"Ошибка при обработке текста от пользователя: {e}") 
