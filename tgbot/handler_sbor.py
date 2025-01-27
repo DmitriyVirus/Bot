@@ -170,7 +170,7 @@ def create_keyboard():
     minus_button = InlineKeyboardButton(text="➖ Не участвовать", callback_data="join_minus")
     return InlineKeyboardMarkup(inline_keyboard=[[plus_button, minus_button]])
 
-@router.message(lambda message: message.text.startswith("+ "))
+@router.message(lambda message: message.text.startswith("+ ") and message.reply_to_message and message.reply_to_message.message_id == pinned_message_id)
 async def handle_plus_message(message: types.Message):
     username = message.text[2:].strip()  # Получаем имя пользователя, например, "Дима"
     user_id = message.from_user.id
@@ -190,6 +190,33 @@ async def handle_plus_message(message: types.Message):
     keyboard = create_keyboard()
     await update_caption(message_obj, participants, None, f"{username} присоединился!", time, keyboard)
 
+# Обработчик для команды "- имя_алиаса"
+@router.message(lambda message: message.text.startswith("- ") and message.reply_to_message and message.reply_to_message.message_id == pinned_message_id)
+async def handle_minus_message(message: types.Message):
+    alias = message.text[2:].strip()  # Получаем алиас пользователя
+    user_id = message.from_user.id
+    message_obj = message.reply_to_message  # Ответ на сообщение с фото и участниками
+
+    if not message_obj or not message_obj.caption:
+        await message.answer("Не могу найти сообщение для удаления участника.")
+        return
+
+    participants = parse_participants(message_obj.caption)
+    name_to_remove = get_name_by_alias(alias)  # Получаем имя по алиасу
+
+    if not name_to_remove:
+        await message.answer(f"Не удалось найти имя по алиасу {alias}.")
+        return
+
+    if name_to_remove not in participants:
+        await message.answer(f"{name_to_remove} не участвует.")
+        return
+
+    participants.remove(name_to_remove)  # Удаляем участника
+    time = extract_time_from_caption(message_obj.caption)
+    keyboard = create_keyboard()
+    await update_caption(message_obj, participants, None, f"{name_to_remove} больше не участвует.", time, keyboard)
+
 # Получаем клиента
 client = get_gspread_client()
 
@@ -208,7 +235,6 @@ def get_name_by_alias(alias):
 
 # Пример использования в обработчике
 async def update_participants(callback, message, action, alias, participants):
-    # Получаем имя по алиасу
     name = get_name_by_alias(alias)
     if name:
         if action == "+":
@@ -219,11 +245,10 @@ async def update_participants(callback, message, action, alias, participants):
             # Удаляем имя из списка участников, если оно там есть
             if name in participants:
                 participants.remove(name)
-        
-        # Формируем новый текст для подписи
-        new_caption = f"☠️Идем в инсты когда соберемся.☠️\n\n⚡⚡⚡Нажмите ➕ в сообщении для участия.⚡⚡⚡\n\nУчаствуют: {', '.join(participants)}"
-        # Обновляем подпись сообщения
-        await callback.edit_message_caption(message.chat.id, message.message_id, new_caption)
-        await callback.answer("Список участников обновлен!")
+
+        time = extract_time_from_caption(message.caption)
+        keyboard = create_keyboard()
+        await update_caption(message, participants, callback, f"Список участников обновлен!", time, keyboard)
     else:
         await callback.answer("Не удалось найти имя по алиасу в таблице.")
+
