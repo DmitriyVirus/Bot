@@ -89,7 +89,6 @@ def extract_time_from_caption(caption: str):
     time_match = re.search(r"Идем в инсты\s*(\d{1,2}:\d{2}|когда соберемся)", caption)
     return time_match.group(1) if time_match else "когда соберемся"
 
-# Функция для обновления подписи к фото
 async def update_caption(photo_message: types.Message, participants: list, callback: types.CallbackQuery, action_message: str, time: str, keyboard: InlineKeyboardMarkup):
     participants = list(dict.fromkeys(participants))
 
@@ -110,10 +109,12 @@ async def update_caption(photo_message: types.Message, participants: list, callb
 
     try:
         await photo_message.edit_caption(caption=updated_text, parse_mode="Markdown", reply_markup=keyboard)
-        await callback.answer(action_message)
+        if callback:
+            await callback.answer(action_message)
     except Exception as e:
         logging.error(f"Ошибка при обновлении подписи: {e}")
-        await callback.answer("Не удалось обновить подпись. Попробуйте снова.")
+        if callback:
+            await callback.answer("Не удалось обновить подпись. Попробуйте снова.")
 
 # Обработчик для нажатия на кнопку "➕ Присоединиться"
 @router.callback_query(lambda callback: callback.data == "join_plus")
