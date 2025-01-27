@@ -199,12 +199,12 @@ async def handle_user_text(message: types.Message):
         if not message.reply_to_message:
             return  # Если не отвечает на сообщение, выходим
 
-        # Получаем информацию о чате и проверяем, является ли сообщение закрепленным
-        chat = await message.chat.get_chat()
-        pinned_message = chat.pinned_message
+        # Получаем закрепленное сообщение из чата
+        pinned_message = message.chat.pinned_message
 
-        if pinned_message != message.reply_to_message:
-            return  # Если сообщение не закреплено, выходим
+        # Если сообщение не закреплено или не отвечает на закрепленное сообщение, выходим
+        if pinned_message is None or pinned_message.message_id != message.reply_to_message.message_id:
+            return
 
         user_input = message.text.strip()  # Убираем пробелы вокруг текста
         message_with_photo = message.reply_to_message  # Проверяем, отвечает ли пользователь на сообщение с фото
