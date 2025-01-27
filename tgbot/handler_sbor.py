@@ -168,3 +168,89 @@ def create_keyboard():
     plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
     minus_button = InlineKeyboardButton(text="➖ Не участвовать", callback_data="join_minus")
     return InlineKeyboardMarkup(inline_keyboard=[[plus_button, minus_button]])
+
+# Хендлер для добавления участника вручную
+@router.message(Command(commands=["add_participant"]))
+async def add_participant_handler(message: types.Message):
+    try:
+        # Извлекаем имя участника из сообщения
+        command_parts = message.text.split(maxsplit=1)
+        if len(command_parts) < 2:
+            await message.reply("Укажите имя участника для добавления. Пример: /add_participant Имя")
+            return
+
+        new_participant = command_parts[1].strip()
+        photo_message = await find_pinned_message(message.chat)
+
+        if not photo_message:
+            await message.reply("Закрепленное сообщение с участниками не найдено.")
+            return
+
+        participants = parse_participants(photo_message.caption)
+        logging.debug(f"[До добавления вручную] Участники: {participants}")
+
+        if new_participant in participants:
+            await message.reply(f"{new_participant} уже участвует!")
+            return
+
+        participants.append(new_participant)
+        logging.debug(f"[После добавления вручную] Участники: {participants}")
+
+        time = extract_time_from_caption(photo_message.caption)
+        keyboard = create_keyboard()
+        await update_caption(photo_message, participants, None, f"{new_participant} добавлен!", time, keyboard)
+
+        await message.reply(f"Участник {new_participant} успешно добавлен!")
+    except Exception as e:
+        logging.error(f"Ошибка при добавлении участника: {e}")
+        await message.reply("Произошла ошибка при добавлении участника.")
+
+# Хендлер для удаления участника вручную
+@router.message(Command(commands=["remove_participant"]))
+async def remove_participant_handler(message: types.Message):
+    try:
+        # Извлекаем имя участника из сообщения
+        command_parts = message.text.split(maxsplit=1)
+        if len(command_parts) < 2:
+            await message.reply("Укажите имя участника для удаления. Пример: /remove_participant Имя")
+            return
+
+        participant_to_remove = command_parts[1].strip()
+        photo_message = await find_pinned_message(message.chat)
+
+        if not photo_message:
+            await message.reply("Закрепленное сообщение с участниками не найдено.")
+            return
+
+        participants = parse_participants(photo_message.caption)
+        logging.debug(f"[До удаления вручную] Участники: {participants}")
+
+        if participant_to_remove not in participants:
+            await message.reply(f"{participant_to_remove} не найден в списке участников.")
+            return
+
+        participants.remove(participant_to_remove)
+        logging.debug(f"[После удаления вручную] Участники: {participants}")
+
+        time = extract_time_from_caption(photo_message.caption)
+        keyboard = create_keyboard()
+        await update_caption(photo_message, participants, None, f"{participant_to_remove} удален!", time, keyboard)
+
+        await message.reply(f"Участник {participant_to_remove} успешно удален!")
+    except Exception as e:
+        logging.error(f"Ошибка при удалении участника: {e}")
+        await message.reply("Произошла ошибка при удалении участника.")
+
+# Функция для поиска закрепленного сообщения с участниками
+async def find_pinned_message(chat: types.Chat):
+    try:
+        pinned_messages = await chat.get_pinned_messages()
+        if pinned_messages:
+            for msg in pinned_messages:
+                if msg.caption and "Участвуют" in msg.caption:
+                    return msg
+        return None
+    except Exception as e:
+        logging.error(f"Ошибка при получении закрепленных сообщений: {e}")
+        return None
+
