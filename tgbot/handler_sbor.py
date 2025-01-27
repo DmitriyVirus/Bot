@@ -170,19 +170,22 @@ def create_keyboard():
     minus_button = InlineKeyboardButton(text="➖ Не участвовать", callback_data="join_minus")
     return InlineKeyboardMarkup(inline_keyboard=[[plus_button, minus_button]])
 
+ALLOWED_USER_IDS = {1141764502, 1207400705, 913999355, 559273200, 809946596}  # Здесь указываем допустимые user_id
+
 @router.message(lambda message: message.text and message.text.startswith("+ "))
 async def handle_plus_message(message: types.Message):
-    username = message.text[2:].strip()  # Получаем имя пользователя, например, "Дима"
     user_id = message.from_user.id
+    if user_id not in ALLOWED_USER_IDS:
+        return
+
+    username = message.text[2:].strip()  # Получаем имя пользователя, например, "Дима"
     message_obj = message.reply_to_message  # Ответ на сообщение с фото и участниками
 
     if not message_obj or not message_obj.caption:
-        await message.answer("Не могу найти сообщение для добавления участника.")
         return
 
     participants = parse_participants(message_obj.caption)
     if username in participants:
-        await message.answer(f"{username} уже участвует.")
         return
 
     participants.append(username)  # Добавляем участника
@@ -192,17 +195,18 @@ async def handle_plus_message(message: types.Message):
 
 @router.message(lambda message: message.text and message.text.startswith("- "))
 async def handle_minus_message(message: types.Message):
-    username = message.text[2:].strip()  # Получаем имя пользователя, например, "Дима"
     user_id = message.from_user.id
+    if user_id not in ALLOWED_USER_IDS:
+        return
+
+    username = message.text[2:].strip()  # Получаем имя пользователя, например, "Дима"
     message_obj = message.reply_to_message  # Ответ на сообщение с фото и участниками
 
     if not message_obj or not message_obj.caption:
-        await message.answer("Не могу найти сообщение для удаления участника.")
         return
 
     participants = parse_participants(message_obj.caption)
     if username not in participants:
-        await message.answer(f"{username} не участвует.")
         return
 
     participants.remove(username)  # Удаляем участника
