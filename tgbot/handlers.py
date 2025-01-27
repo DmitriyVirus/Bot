@@ -355,7 +355,7 @@ async def leo_handler(message: Message):
 
 # Обработчик команды /leo
 @router.message(Command(commands=["leo2"]))  # Используем фильтр Command
-async def leo_handler(message: Message):
+async def leo2_handler(message: Message):
     video_file_id = "BAACAgIAAxkBAAIEFWeXoBlmVc80Ur6388o5KD0mcvm4AAJbcAACMke4SKrI6LtJuRAENgQ"  # Ваш file_id
     try:
         # Отправляем видео с использованием file_id
