@@ -170,7 +170,7 @@ def create_keyboard():
     minus_button = InlineKeyboardButton(text="➖ Не участвовать", callback_data="join_minus")
     return InlineKeyboardMarkup(inline_keyboard=[[plus_button, minus_button]])
 
-@router.message(lambda message: message.text.startswith("+ "))
+@router.message(lambda message: message.text and message.text.startswith("+ "))
 async def handle_plus_message(message: types.Message):
     username = message.text[2:].strip()  # Получаем имя пользователя, например, "Дима"
     user_id = message.from_user.id
@@ -190,7 +190,7 @@ async def handle_plus_message(message: types.Message):
     keyboard = create_keyboard()
     await update_caption(message_obj, participants, None, f"{username} присоединился!", time, keyboard)
 
-@router.message(lambda message: message.text.startswith("- "))
+@router.message(lambda message: message.text and message.text.startswith("- "))
 async def handle_minus_message(message: types.Message):
     username = message.text[2:].strip()  # Получаем имя пользователя, например, "Дима"
     user_id = message.from_user.id
