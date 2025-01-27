@@ -168,3 +168,110 @@ def create_keyboard():
     plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
     minus_button = InlineKeyboardButton(text="➖ Не участвовать", callback_data="join_minus")
     return InlineKeyboardMarkup(inline_keyboard=[[plus_button, minus_button]])
+
+def get_name_by_alias(alias: str):
+    client = get_gspread_client()  # Получаем клиент Google Sheets
+    if not client:
+        return None
+
+    sheet = client.open("ourid").sheet1  # Подключаемся к таблице
+    data = sheet.get_all_records()  # Получаем все данные из таблицы
+
+    # Перебираем строки и ищем соответствие в столбце 'aliases'
+    for row in data:
+        aliases = row.get('aliases', '').split(", ")  # Разделяем строки по запятой и пробелу
+        if alias.strip() in aliases:  # Проверяем наличие введенного алиаса
+            return row.get('name')  # Возвращаем значение из столбца 'name'
+
+    return None  # Если алиас не найден
+
+@router.message(Command(commands=["in"]))
+async def add_to_list_handler(message: types.Message):
+    try:
+        # Проверяем, указано ли имя или алиас
+        alias_match = re.search(r'/in\s+(.+)', message.text)
+        if not alias_match:
+            await message.answer("Укажите имя или алиас для добавления. Пример: /in Элисан")
+            return
+
+        alias = alias_match.group(1).strip()  # Получаем введенный текст
+        pinned_message = await message.chat.get_pinned_message()
+
+        if not pinned_message:
+            await message.answer("Закрепленное сообщение отсутствует.")
+            return
+
+        # Ищем имя по алиасу в Google Sheets
+        name = get_name_by_alias(alias)
+        if not name:
+            await message.answer(f"Имя или алиас '{alias}' не найден в базе.")
+            return
+
+        # Извлекаем текущих участников
+        participants = parse_participants(pinned_message.caption)
+        if name in participants:
+            await message.answer(f"{name} уже в списке участников.")
+            return
+
+        # Добавляем имя и обновляем подпись
+        participants.append(name)
+        time = extract_time_from_caption(pinned_message.caption)
+        keyboard = create_keyboard()
+        await update_caption(
+            photo_message=pinned_message,
+            participants=participants,
+            callback=None,
+            action_message="Имя добавлено.",
+            time=time,
+            keyboard=keyboard
+        )
+        await message.answer(f"{name} добавлен(а) в список участников.")
+    except Exception as e:
+        logging.error(f"Ошибка при обработке команды /in: {e}")
+        await message.answer("Произошла ошибка. Попробуйте снова.")
+
+@router.message(Command(commands=["in-"]))
+async def remove_from_list_handler(message: types.Message):
+    try:
+        # Проверяем, указано ли имя или алиас
+        alias_match = re.search(r'/in-\s+(.+)', message.text)
+        if not alias_match:
+            await message.answer("Укажите имя или алиас для удаления. Пример: /in- Элисан")
+            return
+
+        alias = alias_match.group(1).strip()  # Получаем введенный текст
+        pinned_message = await message.chat.get_pinned_message()
+
+        if not pinned_message:
+            await message.answer("Закрепленное сообщение отсутствует.")
+            return
+
+        # Ищем имя по алиасу в Google Sheets
+        name = get_name_by_alias(alias)
+        if not name:
+            await message.answer(f"Имя или алиас '{alias}' не найден в базе.")
+            return
+
+        # Извлекаем текущих участников
+        participants = parse_participants(pinned_message.caption)
+        if name not in participants:
+            await message.answer(f"{name} не найден(а) в списке участников.")
+            return
+
+        # Удаляем имя и обновляем подпись
+        participants.remove(name)
+        time = extract_time_from_caption(pinned_message.caption)
+        keyboard = create_keyboard()
+        await update_caption(
+            photo_message=pinned_message,
+            participants=participants,
+            callback=None,
+            action_message="Имя удалено.",
+            time=time,
+            keyboard=keyboard
+        )
+        await message.answer(f"{name} удален(а) из списка участников.")
+    except Exception as e:
+        logging.error(f"Ошибка при обработке команды /in-: {e}")
+        await message.answer("Произошла ошибка. Попробуйте снова.")
+
