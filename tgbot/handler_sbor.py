@@ -199,8 +199,11 @@ async def handle_user_text(message: types.Message):
         if not message.reply_to_message:
             return  # Если не отвечает на сообщение, выходим
 
-        # Проверяем, является ли сообщение закрепленным
-        if not message.reply_to_message.pinned:
+        # Получаем информацию о чате и проверяем, является ли сообщение закрепленным
+        chat = await message.chat.get_chat()
+        pinned_message = chat.pinned_message
+
+        if pinned_message != message.reply_to_message:
             return  # Если сообщение не закреплено, выходим
 
         user_input = message.text.strip()  # Убираем пробелы вокруг текста
@@ -251,4 +254,4 @@ async def handle_user_text(message: types.Message):
         )
 
     except Exception as e:
-        logging.error(f"Ошибка при обработке текста от пользователя: {e}") 
+        logging.error(f"Ошибка при обработке текста от пользователя: {e}")
