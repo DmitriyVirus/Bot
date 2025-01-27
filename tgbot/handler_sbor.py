@@ -31,7 +31,7 @@ def get_aliases_from_sheet():
     client = get_gspread_client()
     if not client:
         return []
-    sheet = client.open("your_google_sheet_name").sheet1  # Укажите имя таблицы
+    sheet = client.open("ourid").sheet1  # Укажите имя таблицы
     data = sheet.get_all_records()  # Получаем все данные из таблицы
     aliases = set()
     
@@ -70,7 +70,6 @@ async def fix_handler(message: types.Message):
         logging.info(f"Сообщение отправлено и закреплено с id: {sent_message.message_id}")
     except Exception as e:
         logging.error(f"Ошибка при обработке команды /inst: {e}")
-        await message.answer("Произошла ошибка. Попробуйте снова.")
 
 # Функция для разбора участников
 def parse_participants(caption: str):
@@ -130,7 +129,6 @@ async def update_caption(photo_message: types.Message, participants: list, callb
         await callback.answer(action_message)
     except Exception as e:
         logging.error(f"Ошибка при обновлении подписи: {e}")
-        await callback.answer("Не удалось обновить подпись. Попробуйте снова.")
 
 # Обработчик для нажатия на кнопку "➕ Присоединиться"
 @router.callback_query(lambda callback: callback.data == "join_plus")
@@ -146,8 +144,7 @@ async def handle_plus_reaction(callback: types.CallbackQuery):
     display_name = get_user_from_sheet(user_id) or username  # Используем Google Sheets, если не нашли - fallback на first_name
 
     if display_name in participants:
-        await callback.answer(f"Вы уже участвуете, {display_name}!")
-        return
+        return  # Убираем ответ бота
 
     participants.append(display_name)
     logging.debug(f"[После добавления] Участники: {participants}")
@@ -173,8 +170,7 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
         participants.remove(display_name)
         logging.debug(f"[После удаления] Участники: {participants}")
     else:
-        await callback.answer("Вы не участвуете.")
-        return
+        return  # Убираем ответ бота
         
     time = extract_time_from_caption(message.caption)
     keyboard = create_keyboard()
@@ -197,30 +193,25 @@ async def handle_user_text(message: types.Message):
         if user_input.startswith("+"):
             name_to_add = user_input[1:].strip()  # Убираем '+' и пробелы
             if not name_to_add:
-                await message.answer("Вы не указали имя для добавления.")
                 return
 
             if name_to_add in participants:
-                await message.answer(f"{name_to_add} уже участвует.")
+                return  # Убираем ответ бота
             else:
                 participants.append(name_to_add)
-                await message.answer(f"{name_to_add} добавлен в список.")
 
         # Удаление участника
         elif user_input.startswith("-"):
             name_to_remove = user_input[1:].strip()  # Убираем '-' и пробелы
             if not name_to_remove:
-                await message.answer("Вы не указали имя для удаления.")
                 return
 
             if name_to_remove in participants:
                 participants.remove(name_to_remove)
-                await message.answer(f"{name_to_remove} удален из списка.")
             else:
-                await message.answer(f"{name_to_remove} не найден в списке участников.")
+                return
 
         else:
-            await message.answer("Неверный формат. Используйте `+ Имя` для добавления или `- Имя` для удаления.")
             return
 
         # Обновляем подпись сообщения
@@ -229,59 +220,6 @@ async def handle_user_text(message: types.Message):
         await update_caption(
             message_with_photo, participants, None, "Список обновлен!", time, keyboard
         )
-
-    except Exception as e:
-        logging.error(f"Ошибка при обработке текста от пользователя: {e}")
-        await message.answer("Произошла ошибка. Попробуйте снова.")
-
-# Функция для создания клавиатуры
-def create_keyboard():
-    plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
-    minus_button = InlineKeyboardButton(text="➖ Не участвовать", callback_data="join_minus")
-    return InlineKeyboardMarkup(inline_keyboard=[[plus_button, minus_button]])
-
-# Обработчик для обработки команды пользователя
-@router.message()
-async def handle_user_text(message: types.Message):
-    try:
-        user_input = message.text.strip()
-        message_with_photo = message.reply_to_message
-
-        if not message_with_photo or not message_with_photo.caption:
-            return
-
-        participants = parse_participants(message_with_photo.caption)
-
-        # Получаем алиасы из таблицы
-        aliases = get_aliases_from_sheet()
-
-        # Проверяем формат ввода
-        if user_input.startswith("+"):
-            name_to_add = user_input[1:].strip()
-            if not name_to_add:
-                return
-
-            # Если имя совпадает с алиасом, добавляем в список участников
-            if any(alias.lower() == name_to_add.lower() for alias in aliases):
-                participants.append(name_to_add)
-        
-        elif user_input.startswith("-"):
-            name_to_remove = user_input[1:].strip()
-            if not name_to_remove:
-                return
-
-            # Если имя совпадает с алиасом, удаляем из списка участников
-            if any(alias.lower() == name_to_remove.lower() for alias in aliases):
-                if name_to_remove in participants:
-                    participants.remove(name_to_remove)
-
-        else:
-            return
-
-        # Обновляем подпись
-        time = "когда соберемся"  # Получите время из подписи, как в вашем коде
-        keyboard = create_keyboard()
-        await update_caption(message_with_photo, participants, None, time, keyboard)
 
     except Exception as e:
         logging.error(f"Ошибка при обработке текста от пользователя: {e}")
