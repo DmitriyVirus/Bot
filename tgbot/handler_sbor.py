@@ -169,7 +169,6 @@ def create_keyboard():
     minus_button = InlineKeyboardButton(text="➖ Не участвовать", callback_data="join_minus")
     return InlineKeyboardMarkup(inline_keyboard=[[plus_button, minus_button]])
 
-# Хендлер для добавления участника вручную
 @router.message(Command(commands=["add_participant"]))
 async def add_participant_handler(message: types.Message):
     try:
@@ -205,7 +204,6 @@ async def add_participant_handler(message: types.Message):
         logging.error(f"Ошибка при добавлении участника: {e}")
         await message.reply("Произошла ошибка при добавлении участника.")
 
-# Хендлер для удаления участника вручную
 @router.message(Command(commands=["remove_participant"]))
 async def remove_participant_handler(message: types.Message):
     try:
@@ -244,13 +242,13 @@ async def remove_participant_handler(message: types.Message):
 # Функция для поиска закрепленного сообщения с участниками
 async def find_pinned_message(chat: types.Chat):
     try:
-        pinned_messages = await chat.get_pinned_messages()
-        if pinned_messages:
-            for msg in pinned_messages:
-                if msg.caption and "Участвуют" in msg.caption:
-                    return msg
+        # Получаем закрепленное сообщение
+        pinned_message = chat.pinned_message
+        if pinned_message and pinned_message.caption and "Участвуют" in pinned_message.caption:
+            return pinned_message
         return None
     except Exception as e:
-        logging.error(f"Ошибка при получении закрепленных сообщений: {e}")
+        logging.error(f"Ошибка при получении закрепленного сообщения: {e}")
         return None
+
 
