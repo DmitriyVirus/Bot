@@ -195,6 +195,14 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
 @router.message()
 async def handle_user_text(message: types.Message):
     try:
+        # Проверяем, отвечает ли пользователь на сообщение
+        if not message.reply_to_message:
+            return  # Если не отвечает на сообщение, выходим
+
+        # Проверяем, является ли сообщение закрепленным
+        if not message.reply_to_message.pinned:
+            return  # Если сообщение не закреплено, выходим
+
         user_input = message.text.strip()  # Убираем пробелы вокруг текста
         message_with_photo = message.reply_to_message  # Проверяем, отвечает ли пользователь на сообщение с фото
 
