@@ -169,3 +169,42 @@ def create_keyboard():
     minus_button = InlineKeyboardButton(text="➖ Не участвовать", callback_data="join_minus")
     return InlineKeyboardMarkup(inline_keyboard=[[plus_button, minus_button]])
 
+@router.message(lambda message: message.text.startswith("+ "))
+async def handle_plus_message(message: types.Message):
+    username = message.text[2:].strip()  # Получаем имя пользователя, например, "Дима"
+    user_id = message.from_user.id
+    message_obj = message.reply_to_message  # Ответ на сообщение с фото и участниками
+
+    if not message_obj or not message_obj.caption:
+        await message.answer("Не могу найти сообщение для добавления участника.")
+        return
+
+    participants = parse_participants(message_obj.caption)
+    if username in participants:
+        await message.answer(f"{username} уже участвует.")
+        return
+
+    participants.append(username)  # Добавляем участника
+    time = extract_time_from_caption(message_obj.caption)
+    keyboard = create_keyboard()
+    await update_caption(message_obj, participants, None, f"{username} присоединился!", time, keyboard)
+
+@router.message(lambda message: message.text.startswith("- "))
+async def handle_minus_message(message: types.Message):
+    username = message.text[2:].strip()  # Получаем имя пользователя, например, "Дима"
+    user_id = message.from_user.id
+    message_obj = message.reply_to_message  # Ответ на сообщение с фото и участниками
+
+    if not message_obj or not message_obj.caption:
+        await message.answer("Не могу найти сообщение для удаления участника.")
+        return
+
+    participants = parse_participants(message_obj.caption)
+    if username not in participants:
+        await message.answer(f"{username} не участвует.")
+        return
+
+    participants.remove(username)  # Удаляем участника
+    time = extract_time_from_caption(message_obj.caption)
+    keyboard = create_keyboard()
+    await update_caption(message_obj, participants, None, f"{username} больше не участвует.", time, keyboard)
