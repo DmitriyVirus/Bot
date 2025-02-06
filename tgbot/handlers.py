@@ -408,7 +408,7 @@ async def klaar_handler(message: Message):
         print(f"Видео отправлено пользователю {message.from_user.id}")
     except Exception as e:
         await message.answer(f"Ошибка при отправке видео: {e}")
-        print(f"Ошибка при отправке видео: {e}"),
+        print(f"Ошибка при отправке видео: {e}")
 
 # Обработчик команды /kris
 @router.message(Command(commands=["kris"]))  # Используем фильтр Command
@@ -434,6 +434,18 @@ async def gg1_handler(message: Message):
     except Exception as e:
         await message.answer(f"Ошибка при отправке аудио: {e}")
         print(f"Ошибка при отправке аудио: {e}")
+
+# Обработчик команды /gg2
+@router.message(Command(commands=["gg2"]))  # Используем фильтр Command
+async def gg2_handler(message: Message):
+    video_file_id = "BAACAgIAAxkBAAIEFmek8eXnxDZfC7IvohKH6AP2stiOAALhaAACBmEgSWS7P8nmMeeSNgQ"  # Ваш file_id
+    try:
+        # Отправляем видео с использованием file_id
+        await message.answer_video(video_file_id)
+        print(f"Видео отправлено пользователю {message.from_user.id}")
+    except Exception as e:
+        await message.answer(f"Ошибка при отправке видео: {e}")
+        print(f"Ошибка при отправке видео: {e}")
 
 # Обработчик команды /hi
 @router.message(Command(commands=["hi"]))
