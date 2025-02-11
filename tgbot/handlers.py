@@ -447,6 +447,18 @@ async def gg2_handler(message: Message):
         await message.answer(f"Ошибка при отправке видео: {e}")
         print(f"Ошибка при отправке видео: {e}")
 
+# Обработчик команды /gg3
+@router.message(Command(commands=["gg3"]))  # Используем фильтр Command
+async def gg3_handler(message: Message):
+    video_file_id = "BAACAgIAAxkBAAIEF2erbGieXUSQeN_rrhRPkcm_LbWwAAI7agAC_f9ZSfauT3j18V0sNgQ"  # Ваш file_id
+    try:
+        # Отправляем видео с использованием file_id
+        await message.answer_video(video_file_id)
+        print(f"Видео отправлено пользователю {message.from_user.id}")
+    except Exception as e:
+        await message.answer(f"Ошибка при отправке видео: {e}")
+        print(f"Ошибка при отправке видео: {e}")
+
 # Обработчик команды /hi
 @router.message(Command(commands=["hi"]))
 async def send_welcome(message: Message):
