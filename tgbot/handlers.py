@@ -364,6 +364,18 @@ async def leo2_handler(message: Message):
     except Exception as e:
         await message.answer(f"Ошибка при отправке видео: {e}")
         print(f"Ошибка при отправке видео: {e}")
+
+# Обработчик команды /donater
+@router.message(Command(commands=["donater"]))  # Используем фильтр Command
+async def donater_handler(message: Message):
+    video_file_id = "BAACAgIAAxkBAAIEHWfAICIAAR4knQVf7fPPZXZl69P__wAC9GIAAtjlAAFKrG_drNc5ooE2BA"  # Ваш file_id
+    try:
+        # Отправляем видео с использованием file_id
+        await message.answer_video(video_file_id)
+        print(f"Видео отправлено пользователю {message.from_user.id}")
+    except Exception as e:
+        await message.answer(f"Ошибка при отправке видео: {e}")
+        print(f"Ошибка при отправке видео: {e}")
         
 # Обработчик команды /nakol
 @router.message(Command(commands=["nakol"]))  # Используем фильтр Command
