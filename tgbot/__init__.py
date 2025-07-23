@@ -1,3 +1,4 @@
+import os
 import asyncio
 from config import config  # Используем конфигурацию для токена
 from aiogram import Bot, Dispatcher, Router
@@ -17,7 +18,7 @@ router.include_router(google_sheets_router)
 
 class TGBot:
     def __init__(self, router: Router) -> None:
-        token = config('TOKEN')
+        token = os.getenv('TOKEN')
         self.bot = Bot(token)
         self.dp = Dispatcher()
         self.dp.include_router(router)  # Подключаем роутер
