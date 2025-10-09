@@ -38,7 +38,7 @@ async def fix_handler(message: types.Message):
         caption = (
             f"\u2620\ufe0f*Идем в инсты {time}*.\u2620\ufe0f\n\n"
             f"\u26a1\u26a1\u26a1*Нажмите \u2795 в сообщении для участия*\u26a1\u26a1\u26a1\n\n"
-            f"Участвуют (0): Придите кто-нибудь... "
+            f"Участвуют (0): "
         )
 
         sent_message = await message.bot.send_photo(
