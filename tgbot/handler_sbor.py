@@ -30,7 +30,7 @@ def get_user_from_sheet(user_id: int):
 async def ork_handler(message: types.Message):
     try:
         # Ищем время в сообщении, например "10:00"
-        time_match = re.search(r"(\d{1,2}:\d{2})", message.text)
+        time_match = re.search(r"(\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})?)", message.text)
         time = time_match.group(1) if time_match else "когда соберемся"
 
         photo_url = "https://funny.klev.club/uploads/posts/2024-03/thumbs/funny-klev-club-p-smeshnie-kartinki-orki-7.jpg"  # можешь вставить свою ссылку
@@ -61,7 +61,7 @@ async def ork_handler(message: types.Message):
 @router.message(Command(commands=["inst"]))
 async def fix_handler(message: types.Message):
     try:
-        time_match = re.search(r"(\d{1,2}:\d{2})", message.text)
+        time_match = re.search(r"(\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})?)", message.text)
         time = time_match.group(1) if time_match else "когда соберемся"
         photo_url = "https://battleclub.space/uploads/monthly_2022_07/baylor.jpg.02e0df864753bf47b1ef76303b993a1d.jpg"
         keyboard = create_keyboard()
@@ -117,7 +117,10 @@ def parse_participants(caption: str):
 
 # Функция для извлечения времени из подписи
 def extract_time_from_caption(caption: str):
-    time_match = re.search(r"Идем в инсты|Идем на орков\s*(\d{1,2}:\d{2}|когда соберемся)", caption)
+    time_match = re.search(
+        r"(?:Идем в инсты|Идем на орков)\s*(\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})?|когда соберемся)",
+        caption
+    )
     return time_match.group(1) if time_match else "когда соберемся"
 
 async def update_caption(photo_message: types.Message, participants: list, callback: types.CallbackQuery,
