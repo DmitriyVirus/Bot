@@ -120,26 +120,37 @@ def extract_time_from_caption(caption: str):
     time_match = re.search(r"Идем в инсты|Идем на орков\s*(\d{1,2}:\d{2}|когда соберемся)", caption)
     return time_match.group(1) if time_match else "когда соберемся"
 
-async def update_caption(photo_message: types.Message, participants: list, callback: types.CallbackQuery, action_message: str, time: str, keyboard: InlineKeyboardMarkup):
+async def update_caption(photo_message: types.Message, participants: list, callback: types.CallbackQuery,
+                         action_message: str, time: str, keyboard: InlineKeyboardMarkup):
     participants = list(dict.fromkeys(participants))
 
     # Основной список участников и скамейка запасных
     main_participants = participants[:7]
     bench_participants = participants[7:]
 
+    # --- ВАЖНО ---
+    # Сохраняем оригинальный заголовок, а не подставляем "Идем в инсты"
+    header_match = re.search(r"^\s*[*_]?(.+?)\s*[*_]?[\n\r]", photo_message.caption or "")
+    header = header_match.group(1) if header_match else f"Идем в {time}"
+
     # Формируем текст
     main_text = f"Участвуют ({len(main_participants)}): {', '.join(main_participants)}"
     updated_text = (
-        f"\u2620\ufe0f*Идем в инсты {time}*.\u2620\ufe0f\n\n"
-        f"\u26a1\u26a1\u26a1*Нажмите \u2795 в сообщении для участия*.\u26a1\u26a1\u26a1\n\n"
+        f"*{header}*\n\n"
+        f"💀 *Желающие плюсуем* 💀\n\n"
         f"{main_text}"
     )
+
     if bench_participants:
         bench_text = f"Скамейка запасных ({len(bench_participants)}): {', '.join(bench_participants)}"
         updated_text += f"\n\n{bench_text}"
 
     try:
-        await photo_message.edit_caption(caption=updated_text, parse_mode="Markdown", reply_markup=keyboard)
+        await photo_message.edit_caption(
+            caption=updated_text,
+            parse_mode="Markdown",
+            reply_markup=keyboard
+        )
         if callback:
             await callback.answer(action_message)
     except Exception as e:
