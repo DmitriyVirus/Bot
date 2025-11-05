@@ -33,7 +33,7 @@ async def ork_handler(message: types.Message):
         time_match = re.search(r"(\d{1,2}:\d{2})", message.text)
         time = time_match.group(1) if time_match else "когда соберемся"
 
-        photo_url = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSQXnkDu_RtbxBWNNSuG38g4IPTaH1NXWlorg&s"  # можешь вставить свою ссылку
+        photo_url = "https://funny.klev.club/uploads/posts/2024-03/thumbs/funny-klev-club-p-smeshnie-kartinki-orki-7.jpg"  # можешь вставить свою ссылку
         keyboard = create_keyboard()
 
         caption = (
