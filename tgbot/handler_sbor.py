@@ -137,7 +137,7 @@ async def update_caption(photo_message: types.Message, participants: list, callb
     main_text = f"Участвуют ({len(main_participants)}): {', '.join(main_participants)}"
     updated_text = (
         f"*{header}*\n\n"
-        f"💀 *Желающие плюсуем* 💀\n\n"
+        f"\u26a1\u26a1\u26a1*Нажмите \u2795 в сообщении для участия*\u26a1\u26a1\u26a1\n\n"
         f"{main_text}"
     )
 
