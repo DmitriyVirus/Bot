@@ -26,6 +26,37 @@ def get_user_from_sheet(user_id: int):
 
     return None  # Если пользователя не нашли
 
+@router.message(Command(commands=["ork"]))
+async def ork_handler(message: types.Message):
+    try:
+        # Ищем время в сообщении, например "10:00"
+        time_match = re.search(r"(\d{1,2}:\d{2})", message.text)
+        time = time_match.group(1) if time_match else "когда соберемся"
+
+        photo_url = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSQXnkDu_RtbxBWNNSuG38g4IPTaH1NXWlorg&s"  # можешь вставить свою ссылку
+        keyboard = create_keyboard()
+
+        caption = (
+            f"⚔️ *Идем на орков в {time}!* ⚔️\n\n"
+            f"💀 *Желающие плюсуем* 💀\n\n"
+            f"Участвуют (0): "
+        )
+
+        sent_message = await message.bot.send_photo(
+            chat_id=message.chat.id,
+            photo=photo_url,
+            caption=caption,
+            parse_mode="Markdown",
+            reply_markup=keyboard
+        )
+
+        await message.chat.pin_message(sent_message.message_id)
+        logging.info(f"Сообщение отправлено и закреплено с id: {sent_message.message_id}")
+
+    except Exception as e:
+        logging.error(f"Ошибка при обработке команды /ork: {e}")
+        await message.answer("Произошла ошибка. Попробуйте снова.")
+
 # Хендлер для команды /inst
 @router.message(Command(commands=["inst"]))
 async def fix_handler(message: types.Message):
@@ -86,7 +117,7 @@ def parse_participants(caption: str):
 
 # Функция для извлечения времени из подписи
 def extract_time_from_caption(caption: str):
-    time_match = re.search(r"Идем в инсты\s*(\d{1,2}:\d{2}|когда соберемся)", caption)
+    time_match = re.search(r"Идем в инсты|Идем на орков\s*(\d{1,2}:\d{2}|когда соберемся)", caption)
     return time_match.group(1) if time_match else "когда соберемся"
 
 async def update_caption(photo_message: types.Message, participants: list, callback: types.CallbackQuery, action_message: str, time: str, keyboard: InlineKeyboardMarkup):
