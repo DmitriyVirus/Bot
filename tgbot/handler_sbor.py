@@ -215,7 +215,7 @@ def create_keyboard():
     minus_button = InlineKeyboardButton(text="➖ Не участвовать", callback_data="join_minus")
     return InlineKeyboardMarkup(inline_keyboard=[[plus_button, minus_button]])
 
-ALLOWED_USER_IDS = {1141764502, 1207400705, 913999355, 559273200, 809946596, 400813982, 706756744, 391990168, 462683759, 6392141586, 1705787763}  # Здесь указываем допустимые user_id
+ALLOWED_USER_IDS = {1141764502, 1207400705, 913999355, 559273200, 809946596, 400813982, 706756744, 391990168, 462683759, 6392141586, 337645798, 1705787763,}  # Здесь указываем допустимые user_id
 
 @router.message(lambda message: message.text and message.text.startswith("+ "))
 async def handle_plus_message(message: types.Message):
