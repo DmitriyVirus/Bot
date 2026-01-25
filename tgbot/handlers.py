@@ -413,7 +413,7 @@ async def dno_handler(message: Message):
 # Обработчик команды /klaar
 @router.message(Command(commands=["klaar"]))  # Используем фильтр Command
 async def klaar_handler(message: Message):
-    video_file_id = "BAACAgIAAxkBAAIDgWdar1ZHi4Baas954WdvLHCKOv35AAIlYAAC3ejZSvIFDXGe8drUNgQ"  # Ваш file_id
+    video_file_id = "BAACAgIAAxkBAAM7aXYW5bPrARfNhJmmEm99P7U-E2UAAiyPAAImO7FLQnyALHSZCl84BA"  # Ваш file_id
     try:
         # Отправляем видео с использованием file_id
         await message.answer_video(video_file_id)
@@ -571,3 +571,4 @@ async def good_mornig_every_day_GG(message: types.Message):
     except Exception as e:
         logging.error(f"Ошибка при обработке команды /goodmornigeverydayGG: {e}")
         await message.answer("Произошла ошибка. Попробуйте снова.")
+
