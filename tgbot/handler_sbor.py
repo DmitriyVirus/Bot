@@ -26,6 +26,36 @@ def get_user_from_sheet(user_id: int):
 
     return None  # Если пользователя не нашли
 
+@router.message(Command(commands=["inn"]))
+async def inn_handler(message: types.Message):
+    try:
+        time_match = re.search(r"(\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})?)", message.text)
+        time = time_match.group(1) if time_match else "когда соберемся"
+
+        photo_url = "https://l2classic.club/forum/uploads/monthly_2021_12/heine.thumb.png.bf81e04aee0f5370c1d18b5a99b55cd7.png"
+        keyboard = create_keyboard()
+
+        caption = (
+            f"🌿 *Сбор в Иннадрил {time}* 🌿\n\n"
+            f"⚡⚡⚡*Нажмите ➕ в сообщении для участия*⚡⚡⚡\n\n"
+            f"Участвуют (0): "
+        )
+
+        sent_message = await message.bot.send_photo(
+            chat_id=message.chat.id,
+            photo=photo_url,
+            caption=caption,
+            parse_mode="Markdown",
+            reply_markup=keyboard
+        )
+
+        await message.chat.pin_message(sent_message.message_id)
+
+    except Exception as e:
+        logging.error(f"Ошибка при обработке команды /inn: {e}")
+        await message.answer("Произошла ошибка. Попробуйте снова.")
+
+
 @router.message(Command(commands=["ork"]))
 async def ork_handler(message: types.Message):
     try:
@@ -115,13 +145,14 @@ def parse_participants(caption: str):
     logging.debug(f"Общий список участников: {participants}")
     return participants
 
-# Функция для извлечения времени из подписи
 def extract_time_from_caption(caption: str):
     time_match = re.search(
-        r"(?:Идем в инсты|Идем на орков)\s*(\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})?|когда соберемся)",
+        r"(?:Идем в инсты|Идем на орков|Сбор в Иннадрил)\s*"
+        r"(\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})?|когда соберемся)",
         caption
     )
     return time_match.group(1) if time_match else "когда соберемся"
+
 
 async def update_caption(photo_message: types.Message, participants: list, callback: types.CallbackQuery,
                          action_message: str, time: str, keyboard: InlineKeyboardMarkup):
