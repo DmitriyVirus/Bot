@@ -146,12 +146,8 @@ def parse_participants(caption: str):
     return participants
 
 def extract_time_from_caption(caption: str):
-    time_match = re.search(
-        r"(?:Идем в инсты|Идем на орков|Сбор в Иннадрил)\s*"
-        r"(\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})?|когда соберемся)",
-        caption
-    )
-    return time_match.group(1) if time_match else "когда соберемся"
+    time_match = re.search(r"\b\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})?\b", caption)
+    return time_match.group(0) if time_match else "когда соберемся"
 
 
 async def update_caption(photo_message: types.Message, participants: list, callback: types.CallbackQuery,
