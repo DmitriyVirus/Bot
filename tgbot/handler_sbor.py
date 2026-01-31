@@ -63,7 +63,7 @@ async def inn_handler(message: types.Message):
         time_match = re.search(r"(\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})?)", message.text)
         time = time_match.group(1) if time_match else "когда соберемся"
 
-        photo_url = "https://i.pinimg.com/736x/d5/c4/0e/d5c40ee331dc615c1023214a34b854b4.jpg"
+        photo_url = "https://i.pinimg.com/736x/2f/4d/55/2f4d556777763c9018c7b026f281e235.jpg"
         keyboard = create_keyboard()
 
         caption = (
