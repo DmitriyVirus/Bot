@@ -26,6 +26,37 @@ def get_user_from_sheet(user_id: int):
 
     return None  # Если пользователя не нашли
 
+@router.message(Command(commands=["bal"]))
+async def bal_handler(message: types.Message):
+    try:
+        # Ищем время в тексте команды
+        time_match = re.search(r"(\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})?)", message.text)
+        time = time_match.group(1) if time_match else "когда соберемся"
+
+        photo_url = "https://i.pinimg.com/736x/c1/9f/e0/c19fe044879586dbeb6ea8fbd947456f.jpg"
+        keyboard = create_keyboard()
+
+        caption = (
+            f"🔥 *Идем в гости к Балуану {time}* 🔥\n\n"
+            f"⚡⚡⚡*Нажмите ➕ в сообщении для участия*⚡⚡⚡\n\n"
+            f"Участвуют (0): "
+        )
+
+        sent_message = await message.bot.send_photo(
+            chat_id=message.chat.id,
+            photo=photo_url,
+            caption=caption,
+            parse_mode="Markdown",
+            reply_markup=keyboard
+        )
+
+        await message.chat.pin_message(sent_message.message_id)
+
+    except Exception as e:
+        logging.error(f"Ошибка при обработке команды /bal: {e}")
+        await message.answer("Произошла ошибка. Попробуйте снова.")
+
+
 @router.message(Command(commands=["inn"]))
 async def inn_handler(message: types.Message):
     try:
