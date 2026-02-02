@@ -1,6 +1,6 @@
 import logging
 from aiogram import Router, types
-from aiogram.filters import Command, Text
+from aiogram.filters import Command
 from tgbot.gspread_client import get_gspread_client
 
 router = Router()
@@ -54,22 +54,20 @@ async def edit_callback(callback: types.CallbackQuery):
     await callback.answer()
 
 
-@router.message()
+# Хендлер для сохранения нового значения после ввода
+@router.message(lambda message: message.from_user.id in edit_sessions)
 async def save_new_value(message: types.Message):
     """Сохраняет новое значение в таблице после ввода пользователя"""
     user_id = message.from_user.id
-    if user_id not in edit_sessions:
-        return  # Нет активной сессии редактирования
+    session = edit_sessions[user_id]
+    row = session["row"]
+    column = session["column"]
+    new_value = message.text.strip()
 
     sheet = get_sheet()
     if not sheet:
         await message.answer("Не удалось подключиться к Google Sheets.")
         return
-
-    session = edit_sessions[user_id]
-    row = session["row"]
-    column = session["column"]
-    new_value = message.text.strip()
 
     # Получаем индекс колонки
     headers = sheet.row_values(1)
