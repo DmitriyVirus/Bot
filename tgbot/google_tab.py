@@ -9,9 +9,8 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 # FSM-словарь для хранения состояния редактирования
 edit_sessions = {}
 
-ROWS_PER_PAGE = 5  # количество строк на страницу
-
 def get_sheet():
+    """Подключение к Google Sheets"""
     client = get_gspread_client()
     if client:
         return client.open("ourid").sheet1
@@ -19,51 +18,36 @@ def get_sheet():
 
 @router.message(Command("google_tab"))
 async def google_tab(message: types.Message):
-    """
-    /google_tab 1 - первые 5 строк
-    /google_tab 2 - следующие 5 строк и т.д.
-    """
+    """Вывод только первой строки таблицы"""
+    logging.info(f"Handler google_tab called by user {message.from_user.id}")
+
     sheet = get_sheet()
     if not sheet:
         await message.answer("Не удалось подключиться к Google Sheets.")
         return
 
-    # Получаем номер страницы из команды
-    text = message.text.strip()
-    parts = text.split()
-    page = 1
-    if len(parts) > 1 and parts[1].isdigit():
-        page = int(parts[1])
-        if page < 1:
-            page = 1
-
-    start_row = (page - 1) * ROWS_PER_PAGE + 2  # пропускаем заголовок
-    end_row = start_row + ROWS_PER_PAGE
-
     records = sheet.get_all_records()
     headers = sheet.row_values(1)
-    total_rows = len(records)
 
-    if start_row - 2 >= total_rows:
-        await message.answer(f"❌ Страница {page} пуста. Всего строк: {total_rows}")
+    if not records:
+        await message.answer("Таблица пустая.")
         return
 
-    # Ограничиваем вывод страницей
-    for i, record in enumerate(records[start_row - 2:end_row - 2], start=start_row):
-        buttons = [
-            types.InlineKeyboardButton(
-                text=str(record.get(key, "")),
-                callback_data=f"edit|{i}|{key}"
-            )
-            for key in headers
-        ]
-        keyboard = types.InlineKeyboardMarkup(row_width=len(buttons))
-        keyboard.add(*buttons)
-        await message.answer(f"Строка {i-1}:", reply_markup=keyboard)
+    # Берём только первую строку
+    record = records[0]
+    row_index = 2  # первая строка данных, т.к. row 1 — заголовки
 
-    # Информация о страницах
-    total_pages = (total_rows + ROWS_PER_PAGE - 1) // ROWS_PER_PAGE
-    await message.answer(f"Страница {page}/{total_pages}. Всего строк: {total_rows}")
+    buttons = [
+        types.InlineKeyboardButton(
+            text=str(record.get(key, "")),
+            callback_data=f"edit|{row_index}|{key}"
+        )
+        for key in headers
+    ]
+    keyboard = types.InlineKeyboardMarkup(row_width=len(buttons))
+    keyboard.add(*buttons)
+
+    await message.answer(f"Строка 1:", reply_markup=keyboard)
 
 
 @router.callback_query(lambda c: c.data.startswith("edit"))
