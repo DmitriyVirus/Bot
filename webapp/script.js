@@ -1,16 +1,3 @@
-// Количество строк на странице
-const PAGE_SIZE = 5;
-let currentPage = 0;
-
-// Все данные таблицы
-let sheetData = [];
-
-async function fetchSheetData() {
-    const res = await fetch("/api/get_sheet");
-    sheetData = await res.json();
-    renderPage();
-}
-
 function renderPage() {
     const inputsDiv = document.getElementById("inputs");
     inputsDiv.innerHTML = "";
@@ -23,7 +10,7 @@ function renderPage() {
         const rowDiv = document.createElement("div");
         rowDiv.className = "row-block";
 
-        const realRowIndex = start + rowIndex; // индекс в таблице (для update и delete)
+        const realRowIndex = start + rowIndex + 2; // +2 — потому что первая строка заголовки
 
         for (const key in row) {
             const label = document.createElement("label");
@@ -40,7 +27,7 @@ function renderPage() {
             rowDiv.appendChild(document.createElement("br"));
         }
 
-        // ===== КНОПКА УДАЛИТЬ СТРОКУ =====
+        // Кнопка удалить
         const delBtn = document.createElement("button");
         delBtn.type = "button";
         delBtn.innerText = "Удалить строку";
@@ -50,7 +37,7 @@ function renderPage() {
             await fetch("/api/delete_row", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ row_index: realRowIndex + 1 }) // +1 т.к. Google Sheets отсчет с 1
+                body: JSON.stringify({ row_index: realRowIndex })
             });
 
             await fetchSheetData();
@@ -61,50 +48,3 @@ function renderPage() {
         inputsDiv.appendChild(document.createElement("hr"));
     });
 }
-
-// Навигация
-document.getElementById("prevBtn").onclick = () => {
-    if (currentPage > 0) {
-        currentPage--;
-        renderPage();
-    }
-};
-
-document.getElementById("nextBtn").onclick = () => {
-    if ((currentPage + 1) * PAGE_SIZE < sheetData.length) {
-        currentPage++;
-        renderPage();
-    }
-};
-
-// Сохранение
-document.getElementById("editForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const inputs = document.querySelectorAll("#inputs input");
-    const tempRows = {};
-
-    inputs.forEach(input => {
-        const rowIndex = input.dataset.rowIndex;
-        const key = input.dataset.key;
-
-        if (!tempRows[rowIndex]) tempRows[rowIndex] = {};
-        tempRows[rowIndex][key] = input.value;
-    });
-
-    const updatedData = Object.values(tempRows);
-
-    const res = await fetch("/api/update_sheet", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedData)
-    });
-
-    const result = await res.json();
-    alert(result.message || "Сохранено");
-
-    await fetchSheetData();
-});
-
-// Инициализация
-fetchSheetData();
