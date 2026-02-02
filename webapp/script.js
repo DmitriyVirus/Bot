@@ -23,7 +23,7 @@ function renderPage() {
         const rowDiv = document.createElement("div");
         rowDiv.className = "row-block";
 
-        const realRowIndex = start + rowIndex + 2; // +2, т.к. первая строка заголовки в Google Sheets
+        const realRowIndex = start + rowIndex; // индекс в таблице (для update и delete)
 
         for (const key in row) {
             const label = document.createElement("label");
@@ -50,7 +50,7 @@ function renderPage() {
             await fetch("/api/delete_row", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ row_index: realRowIndex })
+                body: JSON.stringify({ row_index: realRowIndex + 1 }) // +1 т.к. Google Sheets отсчет с 1
             });
 
             await fetchSheetData();
@@ -77,7 +77,7 @@ document.getElementById("nextBtn").onclick = () => {
     }
 };
 
-// Сохранение изменений
+// Сохранение
 document.getElementById("editForm").addEventListener("submit", async (e) => {
     e.preventDefault();
 
@@ -92,10 +92,7 @@ document.getElementById("editForm").addEventListener("submit", async (e) => {
         tempRows[rowIndex][key] = input.value;
     });
 
-    const updatedData = Object.entries(tempRows).map(([rowIndex, values]) => ({
-        row_index: parseInt(rowIndex),
-        ...values
-    }));
+    const updatedData = Object.values(tempRows);
 
     const res = await fetch("/api/update_sheet", {
         method: "POST",
