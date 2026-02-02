@@ -1,23 +1,13 @@
+// Количество строк на странице
 const PAGE_SIZE = 5;
 let currentPage = 0;
+
+// Все данные таблицы
 let sheetData = [];
-
-const columnMap = {
-    user_id: "ID",
-    username: "@ имя в ТГ",
-    first_name: "Имя",
-    last_name: "Фамилия",
-    name: "Ник+Имя",
-    aliases: "Прозвища",
-    about: "Инфа"
-};
-
-const editableFields = ["name", "aliases", "about"];
 
 async function fetchSheetData() {
     const res = await fetch("/api/get_sheet");
     sheetData = await res.json();
-    currentPage = 0;
     renderPage();
 }
 
@@ -27,91 +17,35 @@ function renderPage() {
 
     const start = currentPage * PAGE_SIZE;
     const end = Math.min(start + PAGE_SIZE, sheetData.length);
+    const rowsToShow = sheetData.slice(start, end);
 
-    sheetData.slice(start, end).forEach(row => {
+    rowsToShow.forEach((row, rowIndex) => {
         const rowDiv = document.createElement("div");
         rowDiv.className = "row-block";
 
-        for (const key in columnMap) {
-            if (!(key in row)) continue;
+        const realRowIndex = start + rowIndex; // ВАЖНО
 
-            const label = document.createElement("span");
-            label.innerText = columnMap[key];
+        for (const key in row) {
+            const label = document.createElement("label");
+            label.innerText = key;
+
+            const input = document.createElement("input");
+            input.type = "text";
+            input.value = row[key] ?? "";
+            input.dataset.key = key;
+            input.dataset.rowIndex = realRowIndex;
+
             rowDiv.appendChild(label);
-
-            if (editableFields.includes(key)) {
-                const input = document.createElement("input");
-                input.type = "text";
-                input.value = row[key] || "";
-                input.dataset.key = key;
-                input.dataset.userId = String(row.user_id); // ВАЖНО
-                rowDiv.appendChild(input);
-            } else {
-                const div = document.createElement("div");
-                div.className = "readonly-field";
-                div.innerText = row[key] ?? "";
-                rowDiv.appendChild(div);
-            }
-
+            rowDiv.appendChild(input);
             rowDiv.appendChild(document.createElement("br"));
         }
 
-        const delBtn = document.createElement("button");
-        delBtn.innerText = "Удалить участника";
-        delBtn.onclick = () => deleteRow(row.user_id, row.username);
-        rowDiv.appendChild(delBtn);
-
         inputsDiv.appendChild(rowDiv);
+        inputsDiv.appendChild(document.createElement("hr"));
     });
 }
 
-async function deleteRow(userId, username) {
-    if (!confirm(`Удалить участника ${username}?`)) return;
-
-    const res = await fetch("/api/delete_row", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: String(userId) })
-    });
-
-    if (!res.ok) {
-        alert("Ошибка удаления");
-        return;
-    }
-
-    await fetchSheetData();
-}
-
-document.getElementById("editForm").addEventListener("submit", async e => {
-    e.preventDefault();
-
-    const inputs = document.querySelectorAll("#inputs input");
-    const updates = {};
-
-    inputs.forEach(input => {
-        const userId = input.dataset.userId;
-        const key = input.dataset.key;
-
-        if (!updates[userId]) {
-            updates[userId] = { user_id: userId };
-        }
-        updates[userId][key] = input.value;
-    });
-
-    const res = await fetch("/api/update_sheet", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(Object.values(updates))
-    });
-
-    if (!res.ok) {
-        alert("Ошибка сохранения");
-        return;
-    }
-
-    await fetchSheetData();
-});
-
+// Навигация
 document.getElementById("prevBtn").onclick = () => {
     if (currentPage > 0) {
         currentPage--;
@@ -126,4 +60,36 @@ document.getElementById("nextBtn").onclick = () => {
     }
 };
 
+// Сохранение
+document.getElementById("editForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const inputs = document.querySelectorAll("#inputs input");
+    const tempRows = {};
+
+    inputs.forEach(input => {
+        const rowIndex = input.dataset.rowIndex;
+        const key = input.dataset.key;
+
+        if (!tempRows[rowIndex]) tempRows[rowIndex] = {};
+        tempRows[rowIndex][key] = input.value;
+    });
+
+    const updatedData = Object.values(tempRows);
+
+    console.log("Отправляем:", updatedData);
+
+    const res = await fetch("/api/update_sheet", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedData)
+    });
+
+    const result = await res.json();
+    alert(result.message || "Сохранено");
+
+    await fetchSheetData();
+});
+
+// Инициализация
 fetchSheetData();
