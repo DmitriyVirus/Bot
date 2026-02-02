@@ -26,6 +26,6 @@ async def google_tab(message: types.Message):
     )
 
     await message.answer(
-        "Нажмите кнопку ниже, чтобы открыть таблицу для редактирования:",
+        "Таблицы для редактирования:",
         reply_markup=keyboard
     )
