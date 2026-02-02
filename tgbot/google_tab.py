@@ -6,7 +6,7 @@ from tgbot.gspread_client import get_gspread_client
 router = Router()
 logging.basicConfig(level=logging.INFO)
 
-WEBAPP_URL = "https://your-vercel-app.vercel.app/google_tab"  # сюда вставь ссылку на веб-приложение
+WEBAPP_URL = "https://bot-virus-l2.vercel.app/google_tab"  # сюда вставь ссылку на веб-приложение
 
 @router.message(Command("google_tab"))
 async def google_tab(message: types.Message):
