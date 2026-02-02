@@ -50,7 +50,7 @@ function renderPage() {
             await fetch("/api/delete_row", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ row_index: realRowIndex + 1 }) // +1 т.к. Google Sheets отсчет с 1
+                body: JSON.stringify({ row_index: realRowIndex + 2 }) // +1 т.к. Google Sheets отсчет с 1
             });
 
             await fetchSheetData();
