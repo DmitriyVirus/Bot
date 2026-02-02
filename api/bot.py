@@ -61,38 +61,13 @@ async def update_sheet(request: Request):
 
     sheet = get_gspread_client().open("ourid").sheet1
     headers = sheet.row_values(1)
-    records = sheet.get_all_records()
 
-    for updated in data:
-        uid = updated.get("user_id")
-        if not uid:
-            continue
+    for i, row in enumerate(data):
+        row_index = i + 2  # ⬅️ КАК РАНЬШЕ
 
-        for i, row in enumerate(records):
-            if row.get("user_id") == uid:
-                real_row = i + 2
-                for key in ["name", "aliases", "about"]:
-                    if key in updated and key in headers:
-                        col = headers.index(key) + 1
-                        sheet.update_cell(real_row, col, updated[key])
-                break
+        for key, value in row.items():
+            if key in headers:
+                col_index = headers.index(key) + 1
+                sheet.update_cell(row_index, col_index, value)
 
-    return JSONResponse({"message": "Сохранено"})
-
-@app.post("/api/delete_row")
-async def delete_row(request: Request):
-    data = await request.json()
-    user_id = data.get("user_id")
-
-    if not user_id:
-        raise HTTPException(status_code=400, detail="user_id required")
-
-    sheet = get_gspread_client().open("ourid").sheet1
-    records = sheet.get_all_records()
-
-    for i, row in enumerate(records):
-        if row.get("user_id") == user_id:
-            sheet.delete_rows(i + 2)
-            return JSONResponse({"message": "Удалено"})
-
-    raise HTTPException(status_code=404, detail="Не найден")
+    return JSONResponse({"message": "Данные успешно сохранены!"})
