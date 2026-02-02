@@ -1,133 +1,70 @@
-// Количество строк на странице
-const PAGE_SIZE = 5;
-let currentPage = 0;
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.responses import JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
+import os
+import json
+from tgbot.gspread_client import get_gspread_client
+from tgbot import tgbot
 
-// Данные из таблицы
-let sheetData = [];
+app = FastAPI()
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
-// Соответствие ключей и отображаемых названий
-const columnMap = {
-    user_id: "ID",
-    username: "@ имя в ТГ",
-    first_name: "Имя",
-    last_name: "Фамилия",
-    name: "Ник+Имя",
-    aliases: "Прозвища",
-    about: "Инфа"
-};
+@app.get("/", include_in_schema=False)
+async def root():
+    return FileResponse(os.path.join(os.getcwd(), "index.html"))
 
-// Поля, которые можно редактировать
-const editableFields = ["name", "aliases", "about"];
+@app.post("/api/bot")
+async def telegram_webhook(request: Request):
+    update = await request.json()
+    await tgbot.update_bot(update)
+    return {}
 
-async function fetchSheetData() {
-    const res = await fetch("/api/get_sheet");
-    sheetData = await res.json();
-    currentPage = 0;
-    renderPage();
-}
+@app.get("/api/get_sheet")
+async def get_sheet():
+    sheet = get_gspread_client().open("ourid").sheet1
+    return sheet.get_all_records()
 
-function renderPage() {
-    const inputsDiv = document.getElementById("inputs");
-    inputsDiv.innerHTML = "";
+@app.post("/api/update_sheet")
+async def update_sheet(request: Request):
+    updates = await request.json()
 
-    const start = currentPage * PAGE_SIZE;
-    const end = Math.min(start + PAGE_SIZE, sheetData.length);
-    const rowsToShow = sheetData.slice(start, end);
+    sheet = get_gspread_client().open("ourid").sheet1
+    headers = sheet.row_values(1)
+    records = sheet.get_all_records()
 
-    rowsToShow.forEach(row => {
-        const rowDiv = document.createElement("div");
-        rowDiv.className = "row-block";
+    updated_count = 0
 
-        for (const key in columnMap) {
-            if (!(key in row)) continue;
+    for upd in updates:
+        uid = str(upd.get("user_id"))
 
-            const label = document.createElement("span");
-            label.innerText = columnMap[key];
-            rowDiv.appendChild(label);
+        for i, row in enumerate(records):
+            if str(row.get("user_id")) == uid:
+                real_row = i + 2
 
-            if (editableFields.includes(key)) {
-                const input = document.createElement("input");
-                input.type = "text";
-                input.value = row[key] || "";
-                input.dataset.key = key;
-                input.dataset.userId = row.user_id;
-                rowDiv.appendChild(input);
-            } else {
-                const div = document.createElement("div");
-                div.className = "readonly-field";
-                div.innerText = row[key] ?? "";
-                rowDiv.appendChild(div);
-            }
+                for key in ("name", "aliases", "about"):
+                    if key in upd:
+                        col = headers.index(key) + 1
+                        sheet.update_cell(real_row, col, upd[key])
 
-            rowDiv.appendChild(document.createElement("br"));
-        }
+                updated_count += 1
+                break
 
-        const delBtn = document.createElement("button");
-        delBtn.type = "button";
-        delBtn.innerText = "Удалить участника";
-        delBtn.onclick = () => deleteRow(row.user_id, row.username);
-        rowDiv.appendChild(delBtn);
+    return JSONResponse({
+        "status": "ok",
+        "updated": updated_count
+    })
 
-        inputsDiv.appendChild(rowDiv);
-    });
-}
+@app.post("/api/delete_row")
+async def delete_row(request: Request):
+    data = await request.json()
+    uid = str(data.get("user_id"))
 
-// Удаление строки
-async function deleteRow(userId, username) {
-    if (!confirm(`Удалить участника ${username}?`)) return;
+    sheet = get_gspread_client().open("ourid").sheet1
+    records = sheet.get_all_records()
 
-    await fetch("/api/delete_row", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: userId })
-    });
+    for i, row in enumerate(records):
+        if str(row.get("user_id")) == uid:
+            sheet.delete_row(i + 2)
+            return {"status": "deleted"}
 
-    await fetchSheetData();
-}
-
-// Навигация
-function setupNavigation() {
-    document.getElementById("prevBtn").onclick = () => {
-        if (currentPage > 0) {
-            currentPage--;
-            renderPage();
-        }
-    };
-
-    document.getElementById("nextBtn").onclick = () => {
-        if ((currentPage + 1) * PAGE_SIZE < sheetData.length) {
-            currentPage++;
-            renderPage();
-        }
-    };
-}
-
-// Сохранение
-document.getElementById("editForm").addEventListener("submit", async e => {
-    e.preventDefault();
-
-    const inputs = document.querySelectorAll("#inputs input");
-    const updates = {};
-
-    inputs.forEach(input => {
-        const userId = input.dataset.userId;
-        const key = input.dataset.key;
-
-        if (!updates[userId]) {
-            updates[userId] = { user_id: userId };
-        }
-        updates[userId][key] = input.value;
-    });
-
-    await fetch("/api/update_sheet", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(Object.values(updates))
-    });
-
-    await fetchSheetData();
-});
-
-// Инициализация
-fetchSheetData();
-setupNavigation();
+    raise HTTPException(status_code=404, detail="User not found")
