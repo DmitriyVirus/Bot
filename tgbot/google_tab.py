@@ -3,20 +3,15 @@ from aiogram import Router, types
 from aiogram.filters import Command
 from tgbot.gspread_client import get_gspread_client
 
-# Настройка логирования
+router = Router()
 logging.basicConfig(level=logging.INFO)
 
-# Инициализация роутера
-router = Router()
-
-# URL твоего веб-приложения для редактирования строки
-WEBAPP_URL = "https://example.com/webapp.html"  # <- замени на свой URL
+WEBAPP_URL = "https://your-vercel-app.vercel.app/google_tab"  # сюда вставь ссылку на веб-приложение
 
 @router.message(Command("google_tab"))
 async def google_tab(message: types.Message):
     """
-    Выводит первую строку Google Таблицы, каждое значение в отдельной строке
-    с кнопкой для открытия веб-приложения.
+    Отправляет первую строку таблицы с кнопкой для открытия Web App
     """
     logging.info(f"Handler /google_tab called by user {message.from_user.id}")
 
@@ -34,20 +29,16 @@ async def google_tab(message: types.Message):
             await message.answer("Таблица пустая.")
             return
 
-        # Берём первую строку
-        record = records[0]
-        lines = [f"{key}: {record.get(key, '')}" for key in headers]
+        record = records[0]  # берем первую строку
+        text = "\n".join([f"{key}: {record.get(key, '')}" for key in headers])
 
-        # Формируем текст для отправки
-        text = "\n".join(lines)
-
-        # Создаём клавиатуру с кнопкой для Web App
-        keyboard = types.InlineKeyboardMarkup()
-        button = types.InlineKeyboardButton(
-            text="Редактировать строку",
-            web_app=types.WebAppInfo(url=WEBAPP_URL)
+        # Кнопка Web App
+        webapp_button = types.WebAppInfo(url=WEBAPP_URL)
+        keyboard = types.InlineKeyboardMarkup(
+            inline_keyboard=[
+                [types.InlineKeyboardButton(text="Редактировать первую строку", web_app=webapp_button)]
+            ]
         )
-        keyboard.add(button)
 
         await message.answer(text, reply_markup=keyboard)
 
