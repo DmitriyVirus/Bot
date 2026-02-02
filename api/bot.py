@@ -72,13 +72,12 @@ async def update_sheet(request: Request):
             if row.get("user_id") == uid:
                 real_row = i + 2
                 for key in ["name", "aliases", "about"]:
-                    if key in updated:
+                    if key in updated and key in headers:
                         col = headers.index(key) + 1
                         sheet.update_cell(real_row, col, updated[key])
                 break
 
     return JSONResponse({"message": "Сохранено"})
-
 
 @app.post("/api/delete_row")
 async def delete_row(request: Request):
@@ -93,7 +92,7 @@ async def delete_row(request: Request):
 
     for i, row in enumerate(records):
         if row.get("user_id") == user_id:
-            sheet.delete_row(i + 2)
+            sheet.delete_rows(i + 2)
             return JSONResponse({"message": "Удалено"})
 
     raise HTTPException(status_code=404, detail="Не найден")
