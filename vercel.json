@@ -1,12 +1,20 @@
 {
   "version": 2,
   "builds": [
-    { "src": "api/bot.py", "use": "@vercel/python" }
+    { "src": "api/bot.py", "use": "@vercel/python" },
+    { "src": "webapp/**/*", "use": "@vercel/static" }
   ],
   "routes": [
     { "src": "/api/bot", "dest": "/api/bot.py" },
-    { "src": "/favicon.ico", "dest": "/static/favicon.ico" },
-    { "src": "/(.*)", "dest": "/api/bot.py" },
-    { "src": "/send_reminder1", "dest": "/api/bot.py" }
+    { "src": "/send_reminder1", "dest": "/api/bot.py" },
+
+    // Веб-приложение
+    { "src": "/google_tab", "dest": "/webapp/google_tab.html" },
+
+    // Статика для JS/CSS
+    { "src": "/webapp/(.*)", "dest": "/webapp/$1" },
+
+    // Все остальные запросы на бота
+    { "src": "/(.*)", "dest": "/api/bot.py" }
   ]
 }
