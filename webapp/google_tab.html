@@ -5,42 +5,79 @@
 <title>Редактирование таблицы</title>
 <link rel="stylesheet" href="style.css">
 <style>
-  #controlsWrapper {
+body {
+    font-family: Arial, sans-serif;
+}
+.row-block {
+    padding: 8px;
+    background-color: #f9f9f9;
+    margin-bottom: 10px;
+    border-radius: 6px;
+}
+.row-block span {
+    display: inline-block;
+    width: 150px;
+    font-weight: bold;
+}
+.row-block input {
+    width: 300px;
+    margin-bottom: 5px;
+}
+.row-block .readonly-field {
+    display: inline-block;
+    width: 300px;
+    padding: 4px 8px;
+    background-color: #e0e0e0;
+    border-radius: 4px;
+    margin-bottom: 5px;
+}
+.row-block button {
+    margin-top: 5px;
+    padding: 6px 12px;
+    background-color: #ff6666;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.row-block button:hover {
+    background-color: #ff4c4c;
+}
+
+#controlsWrapper {
     display: flex;
     justify-content: flex-start;
     gap: 10px;
     margin-top: 10px;
-  }
-
-  #prevBtn, #nextBtn {
+}
+#prevBtn, #nextBtn {
     width: 100px;
     height: 40px;
-  }
-
-  #saveBtn {
-    width: 220px; /* примерно вдвое шире */
+}
+#saveBtn {
+    width: 220px;
     height: 40px;
-  }
-
-  .row-block {
-    margin-bottom: 10px;
-  }
-
-  .row-block input[readonly] {
-    background-color: #f0f0f0;
-  }
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+#saveBtn:hover {
+    background-color: #45a049;
+}
 </style>
 </head>
 <body>
 <h2>Редактирование таблицы</h2>
 
 <form id="editForm">
-  <div id="inputs"></div>
-  <div id="controlsWrapper">
-    <button type="button" id="prevBtn">Назад</button>
-    <button type="button" id="nextBtn">Вперед</button>
-    <button type="submit" id="saveBtn">Сохранить</button>
-  </div>
+    <div id="inputs"></div>
+    <div id="controlsWrapper">
+        <button type="button" id="prevBtn">Назад</button>
+        <button type="button" id="nextBtn">Вперед</button>
+        <button type="submit" id="saveBtn">Сохранить</button>
+    </div>
 </form>
 
 <script src="webapp/script.js"></script>
