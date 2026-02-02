@@ -66,7 +66,7 @@ def add_user_to_sheet(user_id: int, username: str, first_name: str, last_name: s
     except Exception as e:
         logging.error(f"An error occurred while adding the user: {e}")
 
-# Функция для получения данных из Google Таблицы
+
 # Функция для получения данных из Google Таблицы
 def fetch_data_from_sheet(client):
     """
