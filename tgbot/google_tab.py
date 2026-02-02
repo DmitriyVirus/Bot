@@ -1,94 +1,130 @@
 import logging
 from aiogram import Router, types
-from aiogram.filters import Command
+from aiogram.filters import Command, Text
 from tgbot.gspread_client import get_gspread_client
 
 router = Router()
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO)
 
-# FSM-словарь для хранения состояния редактирования
-edit_sessions = {}
+ROWS_PER_PAGE = 1  # показываем по одной строке (можно увеличить)
 
-def get_sheet():
-    """Подключение к Google Sheets"""
-    client = get_gspread_client()
-    if client:
-        return client.open("ourid").sheet1
-    return None
-
+# -----------------------------
+# Команда /google_tab
+# -----------------------------
 @router.message(Command("google_tab"))
 async def google_tab(message: types.Message):
-    """Вывод только первой строки таблицы"""
-    logging.info(f"Handler google_tab called by user {message.from_user.id}")
+    await send_row(message, row_number=2)  # row 1 = заголовки, row 2 = первая строка
 
-    sheet = get_sheet()
-    if not sheet:
-        await message.answer("Не удалось подключиться к Google Sheets.")
+
+# -----------------------------
+# Функция для отправки строки
+# -----------------------------
+async def send_row(message_or_callback, row_number: int, edit_text=None):
+    """
+    Отправляет указанную строку таблицы в сообщении с возможностью редактирования
+    """
+    client = get_gspread_client()
+    if not client:
+        await message_or_callback.answer("Ошибка подключения к Google Sheets.")
         return
 
-    records = sheet.get_all_records()
-    headers = sheet.row_values(1)
+    try:
+        sheet = client.open("ourid").sheet1
+        headers = sheet.row_values(1)
+        all_rows = sheet.get_all_records()
+        max_row_index = len(all_rows) + 1  # +1 для row_number (т.к. 1 = заголовки)
 
-    if not records:
-        await message.answer("Таблица пустая.")
-        return
+        if row_number < 2:
+            row_number = 2
+        elif row_number > max_row_index:
+            row_number = max_row_index
 
-    # Берём только первую строку
-    record = records[0]
-    row_index = 2  # первая строка данных, т.к. row 1 — заголовки
+        record_index = row_number - 2  # индекс в records
+        record = all_rows[record_index] if 0 <= record_index < len(all_rows) else {}
 
-    buttons = [
-        types.InlineKeyboardButton(
-            text=str(record.get(key, "")),
-            callback_data=f"edit|{row_index}|{key}"
+        # Формируем текст сообщения
+        text_lines = []
+        for key in headers:
+            value = record.get(key, "")
+            if edit_text and key in edit_text:
+                value = edit_text[key]
+            text_lines.append(f"{key}: {value}")
+        text_lines.append("\nВведите новые значения в формате 'Имя: НовоеЗначение'")
+        text = "\n".join(text_lines)
+
+        # Кнопки
+        keyboard = types.InlineKeyboardMarkup(row_width=3)
+        keyboard.add(
+            types.InlineKeyboardButton("⬅ Назад", callback_data=f"prev|{row_number}"),
+            types.InlineKeyboardButton("➡ Вперед", callback_data=f"next|{row_number}"),
+            types.InlineKeyboardButton("✅ ОК", callback_data=f"ok|{row_number}")
         )
-        for key in headers
-    ]
-    keyboard = types.InlineKeyboardMarkup(row_width=len(buttons))
-    keyboard.add(*buttons)
 
-    await message.answer(f"Строка 1:", reply_markup=keyboard)
+        # Отправка сообщения или редактирование существующего
+        if isinstance(message_or_callback, types.CallbackQuery):
+            await message_or_callback.message.edit_text(text, reply_markup=keyboard)
+        else:
+            await message_or_callback.answer(text, reply_markup=keyboard)
 
-
-@router.callback_query(lambda c: c.data.startswith("edit"))
-async def edit_callback(callback: types.CallbackQuery):
-    """Обработка нажатия на ячейку для редактирования"""
-    _, row, column = callback.data.split("|")
-    row = int(row)
-    user_id = callback.from_user.id
-
-    edit_sessions[user_id] = {"row": row, "column": column}
-    await callback.message.answer(f"Введите новое значение для '{column}' (строка {row-1}):")
-    await callback.answer()
+    except Exception as e:
+        logging.error(f"Ошибка при отправке строки: {e}")
+        await message_or_callback.answer("Произошла ошибка при получении данных из таблицы.")
 
 
-@router.message(lambda message: message.from_user.id in edit_sessions)
-async def save_new_value(message: types.Message):
-    """Сохраняет новое значение в таблице после ввода пользователя"""
-    user_id = message.from_user.id
-    session = edit_sessions[user_id]
-    row = session["row"]
-    column = session["column"]
-    new_value = message.text.strip()
-
-    sheet = get_sheet()
-    if not sheet:
-        await message.answer("Не удалось подключиться к Google Sheets.")
-        return
-
-    headers = sheet.row_values(1)
-    try:
-        col_index = headers.index(column) + 1
-    except ValueError:
-        await message.answer(f"Колонка '{column}' не найдена.")
-        del edit_sessions[user_id]
+# -----------------------------
+# Callback: ОК
+# -----------------------------
+@router.callback_query(Text(startswith="ok"))
+async def ok_callback(callback: types.CallbackQuery):
+    client = get_gspread_client()
+    if not client:
+        await callback.message.answer("Ошибка подключения к Google Sheets.")
         return
 
     try:
-        sheet.update_cell(row, col_index, new_value)
-        await message.answer(f"✅ Значение '{column}' в строке {row-1} обновлено на '{new_value}'!")
+        sheet = client.open("ourid").sheet1
+        row_number = int(callback.data.split("|")[1])
+        headers = sheet.row_values(1)
+        old_record = sheet.row_values(row_number)
+
+        # Берём текст из сообщения
+        lines = callback.message.text.split("\n")
+        new_values = {}
+        for line in lines:
+            if ": " in line:
+                key, val = line.split(": ", 1)
+                if key in headers:
+                    new_values[key] = val.strip()
+
+        # Обновляем только изменённые значения
+        for i, key in enumerate(headers, start=1):
+            old_val = old_record[i - 1] if i - 1 < len(old_record) else ""
+            new_val = new_values.get(key, old_val)
+            if old_val != new_val:
+                sheet.update_cell(row_number, i, new_val)
+
+        await callback.message.answer(f"✅ Строка {row_number-1} обновлена!")
+        await callback.answer()
+
     except Exception as e:
         logging.error(f"Ошибка обновления Google Sheets: {e}")
-        await message.answer("❌ Ошибка при обновлении таблицы. Попробуйте снова.")
+        await callback.message.answer("❌ Ошибка при обновлении таблицы.")
+        await callback.answer()
 
-    del edit_sessions[user_id]
+
+# -----------------------------
+# Callback: Назад
+# -----------------------------
+@router.callback_query(Text(startswith="prev"))
+async def prev_callback(callback: types.CallbackQuery):
+    row_number = int(callback.data.split("|")[1])
+    await send_row(callback, row_number=row_number - 1)
+
+
+# -----------------------------
+# Callback: Вперед
+# -----------------------------
+@router.callback_query(Text(startswith="next"))
+async def next_callback(callback: types.CallbackQuery):
+    row_number = int(callback.data.split("|")[1])
+    await send_row(callback, row_number=row_number + 1)
