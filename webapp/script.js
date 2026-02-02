@@ -16,8 +16,8 @@ const columnMap = {
     "about": "Инфа"
 };
 
-// Поля, которые нельзя редактировать
-const readonlyFields = ["user_id", "username", "first_name", "last_name"];
+// Поля, которые можно редактировать
+const editableFields = ["name", "aliases", "about"];
 
 async function fetchSheetData() {
     try {
@@ -41,23 +41,26 @@ function renderPage() {
     rowsToShow.forEach((row, rowIndex) => {
         const rowDiv = document.createElement("div");
         rowDiv.className = "row-block";
-        rowDiv.dataset.rowIndex = start + rowIndex;
 
         for (const key in row) {
-            const label = document.createElement("label");
+            const label = document.createElement("span");
             label.innerText = columnMap[key] || key;
-            const input = document.createElement("input");
-            input.type = "text";
-            input.value = row[key];
-            input.dataset.key = key;
-            input.dataset.rowIndex = start + rowIndex;
 
-            if (readonlyFields.includes(key)) {
-                input.readOnly = true;
+            if (editableFields.includes(key)) {
+                const input = document.createElement("input");
+                input.type = "text";
+                input.value = row[key];
+                input.dataset.key = key;
+                input.dataset.rowIndex = start + rowIndex;
+                rowDiv.appendChild(label);
+                rowDiv.appendChild(input);
+            } else {
+                const span = document.createElement("div");
+                span.className = "readonly-field";
+                span.innerText = row[key];
+                rowDiv.appendChild(label);
+                rowDiv.appendChild(span);
             }
-
-            rowDiv.appendChild(label);
-            rowDiv.appendChild(input);
             rowDiv.appendChild(document.createElement("br"));
         }
 
@@ -69,7 +72,6 @@ function renderPage() {
         rowDiv.appendChild(delBtn);
 
         inputsDiv.appendChild(rowDiv);
-        inputsDiv.appendChild(document.createElement("hr"));
     });
 }
 
