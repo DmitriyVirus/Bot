@@ -34,7 +34,7 @@ function renderPage() {
     const end = Math.min(start + PAGE_SIZE, sheetData.length);
     const rowsToShow = sheetData.slice(start, end);
 
-    rowsToShow.forEach((row) => {
+    rowsToShow.forEach(row => {
         const rowDiv = document.createElement("div");
         rowDiv.className = "row-block";
 
@@ -43,7 +43,6 @@ function renderPage() {
 
             const label = document.createElement("span");
             label.innerText = columnMap[key];
-
             rowDiv.appendChild(label);
 
             if (editableFields.includes(key)) {
@@ -63,8 +62,8 @@ function renderPage() {
             rowDiv.appendChild(document.createElement("br"));
         }
 
-        // Кнопка удаления
         const delBtn = document.createElement("button");
+        delBtn.type = "button";
         delBtn.innerText = "Удалить участника";
         delBtn.onclick = () => deleteRow(row.user_id, row.username);
         rowDiv.appendChild(delBtn);
@@ -104,7 +103,7 @@ function setupNavigation() {
 }
 
 // Сохранение
-document.getElementById("editForm").addEventListener("submit", async (e) => {
+document.getElementById("editForm").addEventListener("submit", async e => {
     e.preventDefault();
 
     const inputs = document.querySelectorAll("#inputs input");
@@ -114,7 +113,9 @@ document.getElementById("editForm").addEventListener("submit", async (e) => {
         const userId = input.dataset.userId;
         const key = input.dataset.key;
 
-        if (!updates[userId]) updates[userId] = { user_id: userId };
+        if (!updates[userId]) {
+            updates[userId] = { user_id: userId };
+        }
         updates[userId][key] = input.value;
     });
 
