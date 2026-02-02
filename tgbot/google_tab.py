@@ -11,16 +11,17 @@ WEBAPP_URL = "https://bot-virus-l2.vercel.app/google_tab"
 @router.message(Command("google_tab"))
 async def google_tab(message: types.Message):
     """
-    Отправляет кнопку для открытия Web App, где пользователь сможет редактировать таблицу.
+    Отправляет кнопку для открытия веб-сайта, где пользователь сможет редактировать таблицу.
+    Работает в личке и в группах.
     """
     logging.info(f"Handler /google_tab called by user {message.from_user.id}")
 
-    webapp_button = types.WebAppInfo(url=WEBAPP_URL)
+    # Простая кнопка-ссылка вместо WebApp
     keyboard = types.InlineKeyboardMarkup(
         inline_keyboard=[
             [types.InlineKeyboardButton(
                 text="Редактировать таблицу имен",
-                web_app=webapp_button
+                url=WEBAPP_URL  # обычная ссылка вместо web_app
             )]
         ]
     )
