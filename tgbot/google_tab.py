@@ -1,12 +1,15 @@
 import logging
 from aiogram import Router, types
-from aiogram.filters import Command, Text
+from aiogram.filters import Command
 from tgbot.gspread_client import get_gspread_client
 
 router = Router()
 logging.basicConfig(level=logging.INFO)
 
 ROWS_PER_PAGE = 1  # показываем по одной строке (можно увеличить)
+
+# FSM-словарь для хранения состояния редактирования
+edit_sessions = {}
 
 # -----------------------------
 # Команда /google_tab
@@ -74,7 +77,7 @@ async def send_row(message_or_callback, row_number: int, edit_text=None):
 # -----------------------------
 # Callback: ОК
 # -----------------------------
-@router.callback_query(Text(startswith="ok"))
+@router.callback_query(lambda c: c.data.startswith("ok"))
 async def ok_callback(callback: types.CallbackQuery):
     client = get_gspread_client()
     if not client:
@@ -115,7 +118,7 @@ async def ok_callback(callback: types.CallbackQuery):
 # -----------------------------
 # Callback: Назад
 # -----------------------------
-@router.callback_query(Text(startswith="prev"))
+@router.callback_query(lambda c: c.data.startswith("prev"))
 async def prev_callback(callback: types.CallbackQuery):
     row_number = int(callback.data.split("|")[1])
     await send_row(callback, row_number=row_number - 1)
@@ -124,7 +127,7 @@ async def prev_callback(callback: types.CallbackQuery):
 # -----------------------------
 # Callback: Вперед
 # -----------------------------
-@router.callback_query(Text(startswith="next"))
+@router.callback_query(lambda c: c.data.startswith("next"))
 async def next_callback(callback: types.CallbackQuery):
     row_number = int(callback.data.split("|")[1])
     await send_row(callback, row_number=row_number + 1)
