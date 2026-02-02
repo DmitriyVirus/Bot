@@ -48,3 +48,26 @@ async def tgbot_webhook_route(request: Request):
         print(f"Error processing update: {e}")
         return {"error": str(e)}
 
+@app.get("/api/get_sheet")
+async def get_sheet():
+    client = get_gspread_client()
+    sheet = client.open("ourid").sheet1
+    records = sheet.get_all_records()
+    return JSONResponse(records)
+
+@app.post("/api/update_sheet")
+async def update_sheet(request: Request):
+    data = await request.json()
+    client = get_gspread_client()
+    sheet = client.open("ourid").sheet1
+    headers = sheet.row_values(1)
+
+    for i, row in enumerate(data):
+        row_index = i + 2  # первая строка заголовки
+        for key, value in row.items():
+            if key in headers:
+                col_index = headers.index(key) + 1
+                sheet.update_cell(row_index, col_index, value)
+
+    return JSONResponse({"message": "Данные успешно сохранены!"})
+
