@@ -7,20 +7,14 @@ from decouple import config
 from pydantic import BaseModel
 from aiogram import Bot, Router, types
 from fastapi.staticfiles import StaticFiles
-from Quiz.quizgame import router as quiz_router
 from tgbot.gspread_client import get_gspread_client
 from fastapi import FastAPI, Request, HTTPException
-from Quiz.quizgame import UserData, AnswerCheck, save_user_data
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, HTMLResponse
 
 app = FastAPI()
 
-app.include_router(quiz_router)
-
 # Монтируем директорию для статических файлов
 app.mount("/static", StaticFiles(directory="static"), name="static")
-app.mount("/Quiz", StaticFiles(directory="Quiz"), name="static")
-
       
 # Установка webhook при старте
 @app.on_event("startup")
@@ -53,3 +47,4 @@ async def tgbot_webhook_route(request: Request):
     except Exception as e:
         print(f"Error processing update: {e}")
         return {"error": str(e)}
+
