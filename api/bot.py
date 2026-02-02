@@ -71,3 +71,16 @@ async def update_sheet(request: Request):
                 sheet.update_cell(row_index, col_index, value)
 
     return JSONResponse({"message": "Данные успешно сохранены!"})
+
+@app.post("/api/delete_row")
+async def delete_row(request: Request):
+    data = await request.json()
+    row_index = data.get("row_index")
+
+    if not row_index:
+        raise HTTPException(status_code=400, detail="row_index required")
+
+    sheet = get_gspread_client().open("ourid").sheet1
+    sheet.delete_rows(row_index)  # используем delete_rows, а не delete_row
+
+    return JSONResponse({"message": "Строка удалена"})
