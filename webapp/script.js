@@ -2,14 +2,26 @@
 const PAGE_SIZE = 5;
 let currentPage = 0;
 
-// Загружаем данные из Google Sheets через API бота
-// Здесь пример: данные берутся из JSON API (можно реализовать на сервере)
-let sheetData = []; // сюда попадут все строки таблицы
+// Данные из таблицы
+let sheetData = [];
+
+// Соответствие ключей и отображаемых названий
+const columnMap = {
+    "user_id": "ID",
+    "username": "@ имя в ТГ",
+    "first_name": "Имя",
+    "last_name": "Фамилия",
+    "name": "Ник+Имя",
+    "aliases": "Прозвища",
+    "about": "Инфа"
+};
+
+// Поля, которые нельзя редактировать
+const readonlyFields = ["user_id", "username", "first_name", "last_name"];
 
 async function fetchSheetData() {
     try {
-        // Здесь сделаем fetch к эндпоинту бота или серверу
-        const res = await fetch('/api/get_sheet'); // нужно сделать такой эндпоинт на сервере
+        const res = await fetch('/api/get_sheet');
         sheetData = await res.json();
         renderPage();
     } catch (err) {
@@ -18,7 +30,6 @@ async function fetchSheetData() {
     }
 }
 
-// Отображаем текущую страницу
 function renderPage() {
     const inputsDiv = document.getElementById("inputs");
     inputsDiv.innerHTML = "";
@@ -34,43 +45,79 @@ function renderPage() {
 
         for (const key in row) {
             const label = document.createElement("label");
-            label.innerText = key;
+            label.innerText = columnMap[key] || key;
             const input = document.createElement("input");
             input.type = "text";
             input.value = row[key];
             input.dataset.key = key;
             input.dataset.rowIndex = start + rowIndex;
 
+            if (readonlyFields.includes(key)) {
+                input.readOnly = true;
+            }
+
             rowDiv.appendChild(label);
             rowDiv.appendChild(input);
             rowDiv.appendChild(document.createElement("br"));
         }
+
+        // Кнопка удаления участника
+        const delBtn = document.createElement("button");
+        delBtn.type = "button";
+        delBtn.innerText = "Удалить участника";
+        delBtn.addEventListener("click", () => deleteRow(start + rowIndex));
+        rowDiv.appendChild(delBtn);
 
         inputsDiv.appendChild(rowDiv);
         inputsDiv.appendChild(document.createElement("hr"));
     });
 }
 
-// Кнопки перехода между страницами
-document.getElementById("prevBtn").addEventListener("click", () => {
-    if (currentPage > 0) {
-        currentPage--;
-        renderPage();
+// Удаление строки
+async function deleteRow(rowIndex) {
+    const row = sheetData[rowIndex];
+    if (!confirm(`Удалить участника ${row.username}?`)) return;
+
+    try {
+        const res = await fetch('/api/delete_row', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ rowIndex })
+        });
+        const result = await res.json();
+        alert(result.message || "Участник удалён!");
+        await fetchSheetData();
+    } catch (err) {
+        console.error("Ошибка при удалении:", err);
+        alert("Ошибка при удалении участника.");
     }
-});
-document.getElementById("nextBtn").addEventListener("click", () => {
-    if ((currentPage + 1) * PAGE_SIZE < sheetData.length) {
-        currentPage++;
-        renderPage();
-    }
-});
+}
+
+// Навигация страниц
+function setupNavigation() {
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+
+    prevBtn.addEventListener("click", () => {
+        if (currentPage > 0) {
+            currentPage--;
+            renderPage();
+        }
+    });
+
+    nextBtn.addEventListener("click", () => {
+        if ((currentPage + 1) * PAGE_SIZE < sheetData.length) {
+            currentPage++;
+            renderPage();
+        }
+    });
+}
 
 // Сохранение изменений
 document.getElementById("editForm").addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const updatedData = [];
-
     const inputs = document.querySelectorAll("#inputs input");
     const tempRows = {};
 
@@ -85,10 +132,7 @@ document.getElementById("editForm").addEventListener("submit", async (e) => {
         updatedData.push(tempRows[index]);
     }
 
-    console.log("Данные для отправки:", updatedData);
-
     try {
-        // Отправляем изменения на сервер
         const res = await fetch('/api/update_sheet', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -96,7 +140,6 @@ document.getElementById("editForm").addEventListener("submit", async (e) => {
         });
         const result = await res.json();
         alert(result.message || "Данные сохранены!");
-        // Можно перезагрузить страницу
         await fetchSheetData();
     } catch (err) {
         console.error("Ошибка при сохранении:", err);
@@ -106,3 +149,4 @@ document.getElementById("editForm").addEventListener("submit", async (e) => {
 
 // Инициализация
 fetchSheetData();
+setupNavigation();
