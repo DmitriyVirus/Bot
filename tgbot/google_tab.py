@@ -6,7 +6,7 @@ router = Router()
 logging.basicConfig(level=logging.INFO)
 
 WEBAPP_URL = "https://bot-virus-l2.vercel.app/google_tab"
-BOT_USERNAME = "DDvirus_bot"  # ← ЗАМЕНИ на username бота, без @
+BOT_USERNAME = "DDvirus_bot"  # без @
 
 ALLOWED_USER_IDS = {
     1141764502, 6392141586
@@ -22,25 +22,20 @@ async def google_tab(message: types.Message):
 
     # 🔒 Проверка доступа
     if user_id not in ALLOWED_USER_IDS:
-        await message.answer("⛔ У тебя нет доступа.")
-        return
+        return  # тихо игнорируем
 
     # Кнопка, открывающая ЛС с ботом
     keyboard = types.InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                types.InlineKeyboardButton(
-                    text="Открыть в боте",
-                    url=f"https://t.me/DDvirus_bot?start=google_tab"
-                )
-            ]
-        ]
+        inline_keyboard=[[
+            types.InlineKeyboardButton(
+                text="Открыть в боте",
+                url=f"https://t.me/{BOT_USERNAME}?start=google_tab"
+            )
+        ]]
     )
 
-    await message.answer(
-        "Для редактирования таблицы ТЫК:",
-        reply_markup=keyboard
-    )
+    # Отправляем только кнопку, без текста
+    await message.answer(text="⠀", reply_markup=keyboard)  # "⠀" — пустой символ, чтобы сообщение не было пустым
 
 
 # =========================
@@ -51,30 +46,23 @@ async def start_handler(message: types.Message):
     user_id = message.from_user.id
     args = message.text.split(maxsplit=1)
 
-    # интересует только start=google_tab
+    # Проверяем только start=google_tab
     if len(args) == 2 and args[1] == "google_tab":
-
-        # 🔒 Проверка доступа
         if user_id not in ALLOWED_USER_IDS:
-            await message.answer("⛔ У тебя нет доступа.")
-            return
+            return  # ничего не пишем
 
         keyboard = types.InlineKeyboardMarkup(
-            inline_keyboard=[
-                [
-                    types.InlineKeyboardButton(
-                        text="Редактировать таблицу участников",
-                        web_app=types.WebAppInfo(url=WEBAPP_URL)
-                    )
-                ]
-            ]
+            inline_keyboard=[[
+                types.InlineKeyboardButton(
+                    text="Редактировать таблицу участников",
+                    web_app=types.WebAppInfo(url=WEBAPP_URL)
+                )
+            ]]
         )
 
-        await message.answer(
-            "Открывай таблицу:",
-            reply_markup=keyboard
-        )
+        # Только кнопка, без текста
+        await message.answer(text="⠀", reply_markup=keyboard)
         return
 
-    # обычный /start
+    # обычный /start — для всех остальных
     await message.answer("Привет!")
