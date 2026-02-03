@@ -6,7 +6,7 @@ from tgbot.gspread_client import get_gspread_client
 router = Router()
 logging.basicConfig(level=logging.INFO)
 
-WEBAPP_URL = "https://bot-virus-l2.vercel.app/google_tab"
+WEBAPP_URL = "https://bot-virus-l2.vercel.app"
 BOT_USERNAME = "DDvirus_bot"  # ← ЗАМЕНИ на username бота, без @
 
 # =========================
@@ -58,7 +58,7 @@ async def google_tab(message: types.Message):
     )
 
     await message.answer(
-        "Для редактирования таблицы ТЫК:",
+        "Для редактирования таблицы жми:",
         reply_markup=keyboard
     )
 
@@ -82,7 +82,25 @@ async def start_handler(message: types.Message):
                 [
                     types.InlineKeyboardButton(
                         text="Редактировать таблицу участников",
-                        web_app=types.WebAppInfo(url=WEBAPP_URL)
+                        web_app=types.WebAppInfo(url=f"{WEBAPP_URL}/google_tab")
+                    )
+                ],
+                [
+                    types.InlineKeyboardButton(
+                        text="Права добавления",
+                        web_app=types.WebAppInfo(url=f"{WEBAPP_URL}/permissions")
+                    )
+                ],
+                [
+                    types.InlineKeyboardButton(
+                        text="Автосбор",
+                        web_app=types.WebAppInfo(url=f"{WEBAPP_URL}/autosbor")
+                    )
+                ],
+                [
+                    types.InlineKeyboardButton(
+                        text="Админы",
+                        web_app=types.WebAppInfo(url=f"{WEBAPP_URL}/admins")
                     )
                 ]
             ]
