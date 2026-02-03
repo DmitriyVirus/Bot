@@ -6,7 +6,6 @@ from aiogram.filters import Command
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from tgbot.gspread_client import get_gspread_client
 
-# Настройка логирования
 logging.basicConfig(level=logging.DEBUG)
 
 router = Router()
@@ -34,7 +33,7 @@ def is_user_allowed_in_addition(user_id: int) -> bool:
         return False
 
 # =========================
-# Остальной код команд без изменений
+# Функции для работы с участниками
 # =========================
 def create_keyboard():
     plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
@@ -88,13 +87,104 @@ async def update_caption(photo_message: types.Message, participants: list, callb
             await callback.answer("Не удалось обновить подпись. Попробуйте снова.")
 
 # =========================
-# Обработчики для "+ имя" / "- имя"
+# Команды /bal, /inn, /ork, /inst
+# =========================
+@router.message(Command(commands=["bal"]))
+async def bal_handler(message: types.Message):
+    try:
+        time_match = re.search(r"(\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})?)", message.text)
+        time = time_match.group(1) if time_match else "когда соберемся"
+
+        photo_url = "https://i.pinimg.com/736x/ba/6c/7c/ba6c7c9c1bbde89410e5bcd8736166b2.jpg"
+        keyboard = create_keyboard()
+        caption = f"🔥 *Идем в гости к Балуану {time}* 🔥\n\n⚡⚡⚡*Нажмите ➕ в сообщении для участия*⚡⚡⚡\n\nУчаствуют (0): "
+
+        sent_message = await message.bot.send_photo(
+            chat_id=message.chat.id,
+            photo=photo_url,
+            caption=caption,
+            parse_mode="Markdown",
+            reply_markup=keyboard
+        )
+        await message.chat.pin_message(sent_message.message_id)
+    except Exception as e:
+        logging.error(f"Ошибка при обработке команды /bal: {e}")
+        await message.answer("Произошла ошибка. Попробуйте снова.")
+
+@router.message(Command(commands=["inn"]))
+async def inn_handler(message: types.Message):
+    try:
+        time_match = re.search(r"(\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})?)", message.text)
+        time = time_match.group(1) if time_match else "когда соберемся"
+
+        photo_url = "https://i.pinimg.com/736x/2f/4d/55/2f4d556777763c9018c7b026f281e235.jpg"
+        keyboard = create_keyboard()
+        caption = f"🌿 *Сбор в Иннадрил {time}* 🌿\n\n⚡⚡⚡*Нажмите ➕ в сообщении для участия*⚡⚡⚡\n\nУчаствуют (0): "
+
+        sent_message = await message.bot.send_photo(
+            chat_id=message.chat.id,
+            photo=photo_url,
+            caption=caption,
+            parse_mode="Markdown",
+            reply_markup=keyboard
+        )
+        await message.chat.pin_message(sent_message.message_id)
+    except Exception as e:
+        logging.error(f"Ошибка при обработке команды /inn: {e}")
+        await message.answer("Произошла ошибка. Попробуйте снова.")
+
+@router.message(Command(commands=["ork"]))
+async def ork_handler(message: types.Message):
+    try:
+        time_match = re.search(r"(\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})?)", message.text)
+        time = time_match.group(1) if time_match else "когда соберемся"
+
+        photo_url = "https://funny.klev.club/uploads/posts/2024-03/thumbs/funny-klev-club-p-smeshnie-kartinki-orki-7.jpg"
+        keyboard = create_keyboard()
+        caption = f"⚔️ *Идем на орков в {time}!* ⚔️\n\n⚡⚡⚡*Нажмите ➕ в сообщении для участия*⚡⚡⚡\n\nУчаствуют (0): "
+
+        sent_message = await message.bot.send_photo(
+            chat_id=message.chat.id,
+            photo=photo_url,
+            caption=caption,
+            parse_mode="Markdown",
+            reply_markup=keyboard
+        )
+        await message.chat.pin_message(sent_message.message_id)
+    except Exception as e:
+        logging.error(f"Ошибка при обработке команды /ork: {e}")
+        await message.answer("Произошла ошибка. Попробуйте снова.")
+
+@router.message(Command(commands=["inst"]))
+async def fix_handler(message: types.Message):
+    try:
+        time_match = re.search(r"(\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})?)", message.text)
+        time = time_match.group(1) if time_match else "когда соберемся"
+
+        photo_url = "https://battleclub.space/uploads/monthly_2022_07/baylor.jpg.02e0df864753bf47b1ef76303b993a1d.jpg"
+        keyboard = create_keyboard()
+        caption = f"☠️*Идем в инсты {time}*☠️\n\n⚡⚡⚡*Нажмите ➕ в сообщении для участия*⚡⚡⚡\n\nУчаствуют (0): "
+
+        sent_message = await message.bot.send_photo(
+            chat_id=message.chat.id,
+            photo=photo_url,
+            caption=caption,
+            parse_mode="Markdown",
+            reply_markup=keyboard
+        )
+        await message.chat.pin_message(sent_message.message_id)
+    except Exception as e:
+        logging.error(f"Ошибка при обработке команды /inst: {e}")
+        await message.answer("Произошла ошибка. Попробуйте снова.")
+
+# =========================
+# Хендлеры для "+ имя" / "- имя" с проверкой в "Добавление"
 # =========================
 @router.message(lambda message: message.text and message.text.startswith("+ "))
 async def handle_plus_message(message: types.Message):
     user_id = message.from_user.id
     if not is_user_allowed_in_addition(user_id):
-        return  # Если пользователь не внесён в лист "Добавление" — игнорируем
+        return
 
     username = message.text[2:].strip()
     message_obj = message.reply_to_message
@@ -114,7 +204,7 @@ async def handle_plus_message(message: types.Message):
 async def handle_minus_message(message: types.Message):
     user_id = message.from_user.id
     if not is_user_allowed_in_addition(user_id):
-        return  # Если пользователь не внесён в лист "Добавление" — игнорируем
+        return
 
     username = message.text[2:].strip()
     message_obj = message.reply_to_message
