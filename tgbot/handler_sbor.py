@@ -273,12 +273,22 @@ def create_keyboard():
     minus_button = InlineKeyboardButton(text="➖ Не участвовать", callback_data="join_minus")
     return InlineKeyboardMarkup(inline_keyboard=[[plus_button, minus_button]])
 
-ALLOWED_USER_IDS = {1141764502, 1207400705, 913999355, 559273200, 809946596, 400813982, 706756744, 391990168, 462683759, 6392141586, 337645798, 1705787763, 759908869, 1116046078, 6791000606}  # Здесь указываем допустимые user_id
+def get_allowed_user_ids():
+    client = get_gspread_client()
+    if not client:
+        return set()
+    try:
+        sheet = client.open("ourid").worksheet("Добавление")  # лист с ID пользователей
+        data = sheet.get_all_records()
+        return set(int(row["id"]) for row in data if "id" in row and row["id"])
+    except Exception as e:
+        logging.error(f"Ошибка при получении get_allowed_user_ids(): {e}")
+        return set()
 
 @router.message(lambda message: message.text and message.text.startswith("+ "))
 async def handle_plus_message(message: types.Message):
     user_id = message.from_user.id
-    if user_id not in ALLOWED_USER_IDS:
+    if user_id not in get_allowed_user_ids():
         return
 
     username = message.text[2:].strip()  # Получаем имя пользователя, например, "Дима"
@@ -299,7 +309,7 @@ async def handle_plus_message(message: types.Message):
 @router.message(lambda message: message.text and message.text.startswith("- "))
 async def handle_minus_message(message: types.Message):
     user_id = message.from_user.id
-    if user_id not in ALLOWED_USER_IDS:
+    if user_id not in get_allowed_user_ids():
         return
 
     username = message.text[2:].strip()  # Получаем имя пользователя, например, "Дима"
