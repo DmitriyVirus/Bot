@@ -9,7 +9,7 @@ WEBAPP_URL = "https://bot-virus-l2.vercel.app/google_tab"
 BOT_USERNAME = "DDvirus_bot"  # ← ЗАМЕНИ на username бота, без @
 
 ALLOWED_USER_IDS = {
-    1141764502
+    1141764502, 6392141586
 }
 
 # =========================
@@ -38,7 +38,7 @@ async def google_tab(message: types.Message):
     )
 
     await message.answer(
-        "Для редактирования таблицы открой бота в личных сообщениях:",
+        "Для редактирования таблицы ТЫК:",
         reply_markup=keyboard
     )
 
@@ -63,7 +63,7 @@ async def start_handler(message: types.Message):
             inline_keyboard=[
                 [
                     types.InlineKeyboardButton(
-                        text="Редактировать таблицу имен",
+                        text="Редактировать таблицу участников",
                         web_app=types.WebAppInfo(url=WEBAPP_URL)
                     )
                 ]
