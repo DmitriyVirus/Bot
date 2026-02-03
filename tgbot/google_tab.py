@@ -9,8 +9,7 @@ WEBAPP_URL = "https://bot-virus-l2.vercel.app/google_tab"
 BOT_USERNAME = "DDvirus_bot"  # ← ЗАМЕНИ на username бота, без @
 
 ALLOWED_USER_IDS = {
-    1141764502, 1207400705, 913999355, 559273200,
-    809946596, 400813982, 706756744
+    1141764502
 }
 
 # =========================
