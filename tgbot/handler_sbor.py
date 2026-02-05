@@ -130,13 +130,23 @@ async def send_event_photo(message: types.Message, photo_url: str, header_prefix
     text = message.text
     keyboard = create_keyboard()
 
-    # Извлекаем время
-    time_match = re.search(r"(\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})?)", text)
-    time = time_match.group(1) if time_match else "когда соберемся"
+    # Извлекаем время (диапазон или одно время)
+    time_match = re.search(r"\b\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})?\b", text)
+    time = time_match.group(0) if time_match else "когда соберемся"
 
-    # Извлекаем номер столбца (число после времени или просто число)
-    col_match = re.search(r"\b\d+\b(?!:)", text)
-    col_index = int(col_match.group(0)) if col_match else None
+    # Извлекаем число (номер столбца) **после времени**
+    col_index = None
+    if time_match:
+        # Берем всё, что идёт после времени
+        after_time = text[time_match.end():]
+        col_match = re.search(r"\b\d+\b", after_time)
+        if col_match:
+            col_index = int(col_match.group(0))
+    else:
+        # Если времени нет, ищем просто число в тексте
+        col_match = re.search(r"\b\d+\b", text)
+        if col_match:
+            col_index = int(col_match.group(0))
 
     # Проверка на разрешенного пользователя
     user_id = message.from_user.id
