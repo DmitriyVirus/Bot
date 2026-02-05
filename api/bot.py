@@ -41,30 +41,31 @@ async def read_root():
 async def tgbot_webhook_route(request: Request):
     try:
         update_dict = await request.json()
-        print("Received update:", json.dumps(update_dict, indent=4))  # Логирование обновления
+        print("Received update:", json.dumps(update_dict, indent=4))
         await tgbot.update_bot(update_dict)
         return ''
     except Exception as e:
         print(f"Error processing update: {e}")
         return {"error": str(e)}
 
+# ==============================
+# Основной лист "ID" в DareDevils
+# ==============================
 @app.get("/api/get_sheet")
 async def get_sheet():
     client = get_gspread_client()
-    sheet = client.open("ourid").sheet1
+    sheet = client.open("DareDevils").worksheet("ID")  # ← Явное открытие листа "ID"
     records = sheet.get_all_records()
     return JSONResponse(records)
 
 @app.post("/api/update_sheet")
 async def update_sheet(request: Request):
     data = await request.json()
-
-    sheet = get_gspread_client().open("ourid").sheet1
+    sheet = get_gspread_client().open("DareDevils").worksheet("ID")  # ← Явное открытие листа "ID"
     headers = sheet.row_values(1)
 
     for i, row in enumerate(data):
-        row_index = i + 2  # ⬅️ КАК РАНЬШЕ
-
+        row_index = i + 2  # строки начинаются со второй
         for key, value in row.items():
             if key in headers:
                 col_index = headers.index(key) + 1
@@ -80,58 +81,54 @@ async def delete_row(request: Request):
     if not row_index:
         raise HTTPException(status_code=400, detail="row_index required")
 
-    sheet = get_gspread_client().open("ourid").sheet1
-    sheet.delete_rows(row_index)  # используем delete_rows, а не delete_row
-
+    sheet = get_gspread_client().open("DareDevils").worksheet("ID")  # ← Явное открытие листа "ID"
+    sheet.delete_rows(row_index)
     return JSONResponse({"message": "Строка удалена"})
 
+# ==============================
+# Лист Админы
+# ==============================
 @app.get("/api/get_admins")
 def get_admins():
     client = get_gspread_client()
-    sheet = client.open("ourid").worksheet("Админы")
+    sheet = client.open("DareDevils").worksheet("Админы")
     return sheet.get_all_records()
 
 @app.post("/api/delete_admin")
 def delete_admin(data: dict):
     row_index = data["row_index"]
-
     client = get_gspread_client()
-    sheet = client.open("ourid").worksheet("Админы")
+    sheet = client.open("DareDevils").worksheet("Админы")
     sheet.delete_rows(row_index)
-
-    return {"status": "ok"}
-
-@app.get("/api/get_permissions")
-def get_permissions():
-    client = get_gspread_client()
-    sheet = client.open("ourid").worksheet("Добавление")
-    return sheet.get_all_records()
-
-@app.post("/api/delete_permission")
-def delete_permission(data: dict):
-    row_index = data["row_index"]
-
-    client = get_gspread_client()
-    sheet = client.open("ourid").worksheet("Добавление")
-    sheet.delete_rows(row_index)
-
     return {"status": "ok"}
 
 @app.post("/api/add_admin")
 def add_admin(data: dict):
     client = get_gspread_client()
-    sheet = client.open("ourid").worksheet("Админы")
-
+    sheet = client.open("DareDevils").worksheet("Админы")
     sheet.append_row([data["id"], data["name"]])
+    return {"status": "ok"}
+
+# ==============================
+# Лист Добавление
+# ==============================
+@app.get("/api/get_permissions")
+def get_permissions():
+    client = get_gspread_client()
+    sheet = client.open("DareDevils").worksheet("Добавление")
+    return sheet.get_all_records()
+
+@app.post("/api/delete_permission")
+def delete_permission(data: dict):
+    row_index = data["row_index"]
+    client = get_gspread_client()
+    sheet = client.open("DareDevils").worksheet("Добавление")
+    sheet.delete_rows(row_index)
     return {"status": "ok"}
 
 @app.post("/api/add_permission")
 def add_permission(data: dict):
     client = get_gspread_client()
-    sheet = client.open("ourid").worksheet("Добавление")
-
+    sheet = client.open("DareDevils").worksheet("Добавление")
     sheet.append_row([data["id"], data["name"]])
     return {"status": "ok"}
-
-
-
