@@ -143,26 +143,28 @@ def get_autosbor():
     sheet = get_gspread_client().open("DareDevils").worksheet("Автосбор")
     all_values = sheet.get_all_values()
 
-    if not all_values or len(all_values) < 7:
+    if not all_values or len(all_values[0]) == 0:
         return JSONResponse([])
 
-    header = all_values[0]
-    rows = all_values[1:7]
-
+    num_rows = 7  # <<< изменено: теперь берём 7 строк, включая первую
+    num_cols = len(all_values[0])  # количество колонок по первой строке
     result = []
 
-    for col_index, collector in enumerate(header):
+    for col_index in range(num_cols):
         values = []
-        for row in rows:
+        for row_index in range(num_rows):
+            row = all_values[row_index] if row_index < len(all_values) else []
             values.append(row[col_index] if col_index < len(row) else "")
 
         result.append({
-            "name": collector,
+            "name": f"Столбец {col_index + 1}",  # <<< изменено: динамический заголовок
             "values": values
         })
 
     return JSONResponse(result)
 
+
+# ===== POST сохранение =====
 @app.post("/api/save_autosbor")
 async def save_autosbor(request: Request):
     data = await request.json()
@@ -170,12 +172,12 @@ async def save_autosbor(request: Request):
     column_index = data.get("column_index")
     values = data.get("values")
 
-    if column_index is None or not isinstance(values, list) or len(values) != 6:
+    if column_index is None or not isinstance(values, list) or len(values) != 7:  # <<< изменено: 7 строк
         raise HTTPException(400)
 
     sheet = get_gspread_client().open("DareDevils").worksheet("Автосбор")
 
     for i, value in enumerate(values):
-        sheet.update_cell(i + 2, column_index + 1, value)
+        sheet.update_cell(i + 1, column_index + 1, value)  # <<< изменено: включаем первую строку
 
     return JSONResponse({"status": "ok"})
