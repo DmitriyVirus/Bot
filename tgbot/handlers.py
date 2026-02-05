@@ -11,6 +11,12 @@ from tgbot.triggers import TRIGGERS, WELCOME_TEXT, COMMANDS_LIST, FIRST, ABOUT, 
 from tgbot.gspread_client import get_gspread_client
 from tgbot.google_sheets import fetch_data_from_sheet
 
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
 # Использование клиента
 client = get_gspread_client()
 if client:
@@ -583,5 +589,6 @@ async def good_mornig_every_day_GG(message: types.Message):
     except Exception as e:
         logging.error(f"Ошибка при обработке команды /goodmornigeverydayGG: {e}")
         await message.answer("Произошла ошибка. Попробуйте снова.")
+
 
 
