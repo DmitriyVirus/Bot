@@ -7,6 +7,7 @@ from aiogram.filters import Command
 from aiogram.types import Message
 import gspread
 import pandas as pd
+from io import BytesIO
 from google.auth.transport.requests import Request
 from google.oauth2.service_account import Credentials
 from tgbot.gspread_client import get_gspread_client
@@ -179,7 +180,9 @@ async def handle_message(message: Message):
         logging.error(f"Error while processing message: {e}")
 
 
-# Функция для создания бэкапа всей таблицы и отправки в Telegram
+# ==========================
+# Бэкап таблицы DareDevils в памяти и отправка в Telegram
+# ==========================
 async def send_full_backup_excel(message: types.Message, sheet_name="DareDevils"):
     client = get_gspread_client()
     if not client:
@@ -193,27 +196,32 @@ async def send_full_backup_excel(message: types.Message, sheet_name="DareDevils"
             await message.answer("Таблица пуста, бэкап не создан.")
             return
 
-        filename = f"backup_{sheet_name}.xlsx"
+        output = BytesIO()  # создаём файл в памяти
 
         # Создаем Excel с вкладками для каждого листа
-        with pd.ExcelWriter(filename, engine="openpyxl") as writer:
+        with pd.ExcelWriter(output, engine="openpyxl") as writer:
             for ws in worksheets:
-                data = ws.get_all_records()
-                df = pd.DataFrame(data)
+                data = ws.get_all_values()
+                if data:
+                    df = pd.DataFrame(data[1:], columns=data[0])  # первая строка как заголовки
+                else:
+                    df = pd.DataFrame()
                 df.to_excel(writer, sheet_name=ws.title[:31] or "Sheet", index=False)
+            writer.save()
+
+        output.seek(0)  # возвращаем курсор в начало файла
 
         # Отправляем файл в Telegram
-        with open(filename, "rb") as f:
-            await message.answer_document(types.InputFile(f, filename))
-
-        # Удаляем временный файл
-        os.remove(filename)
+        await message.answer_document(
+            types.InputFile(output, filename=f"backup_{sheet_name}.xlsx")
+        )
 
     except Exception as e:
         await message.answer(f"Ошибка при создании бэкапа: {e}")
         logging.error(e)
 
-# Хендлер команды /backup без проверки прав
+
+# Хендлер команды /backup
 @router.message(Command("backup"))
 async def backup_handler(message: types.Message):
     await send_full_backup_excel(message, sheet_name="DareDevils")
