@@ -23,8 +23,9 @@ function renderPage() {
         const rowDiv = document.createElement("div");
         rowDiv.className = "row-block";
 
-        const realRowIndex = start + rowIndex; // индекс в таблице (для update и delete)
+        const realRowIndex = start + rowIndex;
 
+        // ===== ПОЛЯ =====
         for (const key in row) {
             const label = document.createElement("label");
             label.innerText = key;
@@ -40,7 +41,7 @@ function renderPage() {
             rowDiv.appendChild(document.createElement("br"));
         }
 
-        // ===== КНОПКА УДАЛИТЬ СТРОКУ =====
+        // ===== КНОПКА УДАЛИТЬ =====
         const delBtn = document.createElement("button");
         delBtn.type = "button";
         delBtn.innerText = "Удалить строку";
@@ -50,13 +51,54 @@ function renderPage() {
             await fetch("/api/delete_row", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ row_index: realRowIndex + 2 }) // +1 т.к. Google Sheets отсчет с 1
+                body: JSON.stringify({ row_index: realRowIndex + 2 })
             });
 
             await fetchSheetData();
         };
 
         rowDiv.appendChild(delBtn);
+
+        // ===== КНОПКА В АДМИНЫ =====
+        const adminBtn = document.createElement("button");
+        adminBtn.type = "button";
+        adminBtn.innerText = "В админы";
+        adminBtn.style.backgroundColor = "#4CAF50";
+        adminBtn.onclick = async () => {
+            await fetch("/api/add_admin", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    id: row.id,
+                    name: row.name
+                })
+            });
+
+            alert("Добавлен в админы");
+        };
+
+        rowDiv.appendChild(adminBtn);
+
+        // ===== КНОПКА ПРАВА =====
+        const permBtn = document.createElement("button");
+        permBtn.type = "button";
+        permBtn.innerText = "Права";
+        permBtn.style.backgroundColor = "#2196F3";
+        permBtn.onclick = async () => {
+            await fetch("/api/add_permission", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    id: row.id,
+                    name: row.name
+                })
+            });
+
+            alert("Добавлен в права добавления");
+        };
+
+        rowDiv.appendChild(permBtn);
+
         inputsDiv.appendChild(rowDiv);
         inputsDiv.appendChild(document.createElement("hr"));
     });
