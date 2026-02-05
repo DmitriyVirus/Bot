@@ -56,7 +56,6 @@ function renderPage() {
 
             await fetchSheetData();
         };
-
         rowDiv.appendChild(delBtn);
 
         // ===== КНОПКА В АДМИНЫ =====
@@ -69,14 +68,13 @@ function renderPage() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    id: row.id,
-                    name: row.name
+                    id: row["user_id"], // <- изменено
+                    name: row["name"]   // <- изменено
                 })
             });
 
             alert("Добавлен в админы");
         };
-
         rowDiv.appendChild(adminBtn);
 
         // ===== КНОПКА ПРАВА =====
@@ -89,14 +87,13 @@ function renderPage() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    id: row.id,
-                    name: row.name
+                    id: row["user_id"], // <- изменено
+                    name: row["name"]   // <- изменено
                 })
             });
 
             alert("Добавлен в права добавления");
         };
-
         rowDiv.appendChild(permBtn);
 
         inputsDiv.appendChild(rowDiv);
