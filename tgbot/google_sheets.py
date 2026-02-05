@@ -1,16 +1,14 @@
+import os
 import json
 import logging
-import os
-from dotenv import load_dotenv
-from aiogram import Bot, Router, types
-from aiogram.filters import Command
-from aiogram.types import Message
 import gspread
-import pandas as pd
-from io import BytesIO
+from dotenv import load_dotenv
+from aiogram.types import Message
+from aiogram.filters import Command
+from aiogram import Bot, Router, types
 from google.auth.transport.requests import Request
-from google.oauth2.service_account import Credentials
 from tgbot.gspread_client import get_gspread_client
+from google.oauth2.service_account import Credentials
 
 # Настроим логирование
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(asctime)s - %(message)s')
@@ -178,50 +176,3 @@ async def handle_message(message: Message):
         add_user_to_sheet(user_id, username, first_name, last_name)
     except Exception as e:
         logging.error(f"Error while processing message: {e}")
-
-
-# ==========================
-# Бэкап таблицы DareDevils в памяти и отправка в Telegram
-# ==========================
-async def send_full_backup_excel(message: types.Message, sheet_name="DareDevils"):
-    client = get_gspread_client()
-    if not client:
-        await message.answer("Не удалось подключиться к Google Sheets.")
-        return
-
-    try:
-        spreadsheet = client.open(sheet_name)
-        worksheets = spreadsheet.worksheets()
-        if not worksheets:
-            await message.answer("Таблица пуста, бэкап не создан.")
-            return
-
-        output = BytesIO()  # создаём файл в памяти
-
-        # Создаем Excel с вкладками для каждого листа
-        with pd.ExcelWriter(output, engine="openpyxl") as writer:
-            for ws in worksheets:
-                data = ws.get_all_values()
-                if data:
-                    df = pd.DataFrame(data[1:], columns=data[0])  # первая строка как заголовки
-                else:
-                    df = pd.DataFrame()
-                df.to_excel(writer, sheet_name=ws.title[:31] or "Sheet", index=False)
-            writer.save()
-
-        output.seek(0)  # возвращаем курсор в начало файла
-
-        # Отправляем файл в Telegram
-        await message.answer_document(
-            types.InputFile(output, filename=f"backup_{sheet_name}.xlsx")
-        )
-
-    except Exception as e:
-        await message.answer(f"Ошибка при создании бэкапа: {e}")
-        logging.error(e)
-
-
-# Хендлер команды /backup
-@router.message(Command("backup"))
-async def backup_handler(message: types.Message):
-    await send_full_backup_excel(message, sheet_name="DareDevils")
