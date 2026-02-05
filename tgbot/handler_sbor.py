@@ -143,9 +143,6 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
     keyboard = create_keyboard()
     await update_caption(message, participants, callback, f"Вы больше не участвуете, {display_name}.", time, keyboard)
 
-# ==========================
-# Обработчики сообщений + и -
-# ==========================
 @router.message(lambda message: message.text and message.text.startswith("+ "))
 async def handle_plus_message(message: types.Message):
     user_id = message.from_user.id
@@ -168,6 +165,13 @@ async def handle_plus_message(message: types.Message):
     keyboard = create_keyboard()
     await update_caption(message_obj, participants, None, f"{username} присоединился!", time, keyboard)
 
+    # Удаляем сообщение пользователя после обновления
+    try:
+        await message.delete()
+    except Exception as e:
+        logging.error(f"Не удалось удалить сообщение пользователя: {e}")
+
+
 @router.message(lambda message: message.text and message.text.startswith("- "))
 async def handle_minus_message(message: types.Message):
     user_id = message.from_user.id
@@ -189,3 +193,9 @@ async def handle_minus_message(message: types.Message):
     time = extract_time_from_caption(caption)
     keyboard = create_keyboard()
     await update_caption(message_obj, participants, None, f"{username} больше не участвует.", time, keyboard)
+
+    # Удаляем сообщение пользователя после обновления
+    try:
+        await message.delete()
+    except Exception as e:
+        logging.error(f"Не удалось удалить сообщение пользователя: {e}")
