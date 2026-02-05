@@ -22,7 +22,8 @@ def is_user_allowed(user_id: int) -> bool:
         logging.warning("Google Sheets client not available")
         return False
     try:
-        sheet = client.open("ourid").worksheet("Админы")
+        # Явное открытие листа "Админы" в файле "DareDevils"
+        sheet = client.open("DareDevils").worksheet("Админы")
         records = sheet.get_all_records()
         for record in records:
             if str(record.get("id")) == str(user_id):
