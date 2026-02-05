@@ -140,37 +140,28 @@ def add_permission(data: dict):
 
 @app.get("/api/get_autosbor")
 def get_autosbor():
-    client = get_gspread_client()
-    sheet = client.open("DareDevils").worksheet("Автосбор")
-
-    # Получаем всю таблицу
+    sheet = get_gspread_client().open("DareDevils").worksheet("Автосбор")
     all_values = sheet.get_all_values()
 
     if not all_values or len(all_values) < 7:
-        return []
+        return JSONResponse([])
 
-    rows = all_values[:7]  # первые 7 строк
-    cols_count = len(rows[0])
+    header = all_values[0]
+    rows = all_values[1:7]
 
     result = []
 
-    for col in range(cols_count):
-        collector_name = rows[0][col] if col < len(rows[0]) else ""
-
+    for col_index, collector in enumerate(header):
         values = []
-        for row in range(1, 7):
-            try:
-                values.append(rows[row][col])
-            except IndexError:
-                values.append("")
+        for row in rows:
+            values.append(row[col_index] if col_index < len(row) else "")
 
         result.append({
-            "name": collector_name,
+            "name": collector,
             "values": values
         })
 
     return JSONResponse(result)
-
 
 @app.post("/api/save_autosbor")
 async def save_autosbor(request: Request):
@@ -180,12 +171,10 @@ async def save_autosbor(request: Request):
     values = data.get("values")
 
     if column_index is None or not isinstance(values, list) or len(values) != 6:
-        raise HTTPException(status_code=400, detail="Invalid data")
+        raise HTTPException(400)
 
-    client = get_gspread_client()
-    sheet = client.open("DareDevils").worksheet("Автосбор")
+    sheet = get_gspread_client().open("DareDevils").worksheet("Автосбор")
 
-    # строки 2–7 (индексация с 1)
     for i, value in enumerate(values):
         sheet.update_cell(i + 2, column_index + 1, value)
 
