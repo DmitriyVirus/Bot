@@ -101,3 +101,19 @@ def delete_admin(data: dict):
 
     return {"status": "ok"}
 
+@app.get("/api/get_permissions")
+def get_permissions():
+    client = get_gspread_client()
+    sheet = client.open("ourid").worksheet("Добавление")
+    return sheet.get_all_records()
+
+@app.post("/api/delete_permission")
+def delete_permission(data: dict):
+    row_index = data["row_index"]
+
+    client = get_gspread_client()
+    sheet = client.open("ourid").worksheet("Добавление")
+    sheet.delete_rows(row_index)
+
+    return {"status": "ok"}
+
