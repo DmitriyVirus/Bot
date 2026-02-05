@@ -11,12 +11,16 @@ logging.basicConfig(level=logging.DEBUG)
 
 router = Router()
 
+# ==========================
+# Получение имени пользователя из листа ID
+# ==========================
 def get_user_from_sheet(user_id: int):
     client = get_gspread_client()  # Получаем клиент для Google Sheets
     if not client:
         return None
 
-    sheet = client.open("ourid").sheet1  # Получаем первую таблицу
+    # Явное открытие листа "ID" в файле "DareDevils"
+    sheet = client.open("DareDevils").worksheet("ID")
     data = sheet.get_all_records()  # Получаем все данные из таблицы
 
     # Ищем пользователя по user_id
@@ -26,10 +30,28 @@ def get_user_from_sheet(user_id: int):
 
     return None  # Если пользователя не нашли
 
+# ==========================
+# Получение списка разрешенных ID пользователей
+# ==========================
+def get_allowed_user_ids():
+    client = get_gspread_client()
+    if not client:
+        return set()
+    try:
+        # Явное открытие листа "ID" в файле "DareDevils"
+        sheet = client.open("DareDevils").worksheet("ID")
+        data = sheet.get_all_records()
+        return set(int(row["id"]) for row in data if "id" in row and row["id"])
+    except Exception as e:
+        logging.error(f"Ошибка при получении get_allowed_user_ids(): {e}")
+        return set()
+
+# ==========================
+# Хендлеры команд /bal, /inn, /ork, /inst
+# ==========================
 @router.message(Command(commands=["bal"]))
 async def bal_handler(message: types.Message):
     try:
-        # Ищем время в тексте команды
         time_match = re.search(r"(\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})?)", message.text)
         time = time_match.group(1) if time_match else "когда соберемся"
 
@@ -55,7 +77,6 @@ async def bal_handler(message: types.Message):
     except Exception as e:
         logging.error(f"Ошибка при обработке команды /bal: {e}")
         await message.answer("Произошла ошибка. Попробуйте снова.")
-
 
 @router.message(Command(commands=["inn"]))
 async def inn_handler(message: types.Message):
@@ -86,15 +107,13 @@ async def inn_handler(message: types.Message):
         logging.error(f"Ошибка при обработке команды /inn: {e}")
         await message.answer("Произошла ошибка. Попробуйте снова.")
 
-
 @router.message(Command(commands=["ork"]))
 async def ork_handler(message: types.Message):
     try:
-        # Ищем время в сообщении, например "10:00"
         time_match = re.search(r"(\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})?)", message.text)
         time = time_match.group(1) if time_match else "когда соберемся"
 
-        photo_url = "https://funny.klev.club/uploads/posts/2024-03/thumbs/funny-klev-club-p-smeshnie-kartinki-orki-7.jpg"  # можешь вставить свою ссылку
+        photo_url = "https://funny.klev.club/uploads/posts/2024-03/thumbs/funny-klev-club-p-smeshnie-kartinki-orki-7.jpg"
         keyboard = create_keyboard()
 
         caption = (
@@ -118,7 +137,6 @@ async def ork_handler(message: types.Message):
         logging.error(f"Ошибка при обработке команды /ork: {e}")
         await message.answer("Произошла ошибка. Попробуйте снова.")
 
-# Хендлер для команды /inst
 @router.message(Command(commands=["inst"]))
 async def fix_handler(message: types.Message):
     try:
@@ -147,31 +165,26 @@ async def fix_handler(message: types.Message):
         logging.error(f"Ошибка при обработке команды /inst: {e}")
         await message.answer("Произошла ошибка. Попробуйте снова.")
 
-# Функция для разбора участников
+# ==========================
+# Функции работы с участниками
+# ==========================
 def parse_participants(caption: str):
     logging.debug(f"Исходная подпись:\n{caption}")
 
-    # Извлекаем основную часть участников
     main_participants = []
     match_main = re.search(r"Участвуют \(\d+\): ([^\n]+)", caption)
     if match_main:
-        main_participants = [
-            name.strip() for name in match_main.group(1).split(",") if name.strip()
-        ]
+        main_participants = [name.strip() for name in match_main.group(1).split(",") if name.strip()]
 
     logging.debug(f"Основной список участников: {main_participants}")
 
-    # Извлекаем скамейку запасных
     bench_participants = []
     match_bench = re.search(r"Скамейка запасных \(\d+\): ([^\n]+)", caption)
     if match_bench:
-        bench_participants = [
-            name.strip() for name in match_bench.group(1).split(",") if name.strip()
-        ]
+        bench_participants = [name.strip() for name in match_bench.group(1).split(",") if name.strip()]
 
     logging.debug(f"Скамейка запасных: {bench_participants}")
 
-    # Объединяем оба списка
     participants = main_participants + bench_participants
     logging.debug(f"Общий список участников: {participants}")
     return participants
@@ -180,21 +193,16 @@ def extract_time_from_caption(caption: str):
     time_match = re.search(r"\b\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})?\b", caption)
     return time_match.group(0) if time_match else "когда соберемся"
 
-
 async def update_caption(photo_message: types.Message, participants: list, callback: types.CallbackQuery,
                          action_message: str, time: str, keyboard: InlineKeyboardMarkup):
     participants = list(dict.fromkeys(participants))
 
-    # Основной список участников и скамейка запасных
     main_participants = participants[:7]
     bench_participants = participants[7:]
 
-    # --- ВАЖНО ---
-    # Сохраняем оригинальный заголовок, а не подставляем "Идем в инсты"
     header_match = re.search(r"^\s*[*_]?(.+?)\s*[*_]?[\n\r]", photo_message.caption or "")
     header = header_match.group(1) if header_match else f"Идем в {time}"
 
-    # Формируем текст
     main_text = f"Участвуют ({len(main_participants)}): {', '.join(main_participants)}"
     updated_text = (
         f"*{header}*\n\n"
@@ -219,46 +227,38 @@ async def update_caption(photo_message: types.Message, participants: list, callb
         if callback:
             await callback.answer("Не удалось обновить подпись. Попробуйте снова.")
 
-# Обработчик для нажатия на кнопку "➕ Присоединиться"
+# ==========================
+# Обработчики кнопок ➕ и ➖
+# ==========================
 @router.callback_query(lambda callback: callback.data == "join_plus")
 async def handle_plus_reaction(callback: types.CallbackQuery):
     user_id = callback.from_user.id
-    username = callback.from_user.first_name  # По умолчанию, используем first_name
+    username = callback.from_user.first_name
     message = callback.message
 
     participants = parse_participants(message.caption)
-    logging.debug(f"[До добавления] Участники: {participants}")
-
-    # Получаем имя пользователя из Google Sheets
-    display_name = get_user_from_sheet(user_id) or username  # Используем Google Sheets, если не нашли - fallback на first_name
+    display_name = get_user_from_sheet(user_id) or username
 
     if display_name in participants:
         await callback.answer(f"Вы уже участвуете, {display_name}!")
         return
 
     participants.append(display_name)
-    logging.debug(f"[После добавления] Участники: {participants}")
-
     time = extract_time_from_caption(message.caption)
     keyboard = create_keyboard()
     await update_caption(message, participants, callback, f"Вы присоединились, {display_name}!", time, keyboard)
 
-# Обработчик для нажатия на кнопку "➖ Не участвовать"
 @router.callback_query(lambda callback: callback.data == "join_minus")
 async def handle_minus_reaction(callback: types.CallbackQuery):
     user_id = callback.from_user.id
-    username = callback.from_user.first_name  # По умолчанию, используем first_name
+    username = callback.from_user.first_name
     message = callback.message
 
     participants = parse_participants(message.caption)
-    logging.debug(f"[До удаления] Участники: {participants}")
-
-    # Получаем имя пользователя из Google Sheets
-    display_name = get_user_from_sheet(user_id) or username  # Используем Google Sheets, если не нашли - fallback на first_name
+    display_name = get_user_from_sheet(user_id) or username
 
     if display_name in participants:
         participants.remove(display_name)
-        logging.debug(f"[После удаления] Участники: {participants}")
     else:
         await callback.answer("Вы не участвуете.")
         return
@@ -267,32 +267,25 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
     keyboard = create_keyboard()
     await update_caption(message, participants, callback, f"Вы больше не участвуете, {display_name}.", time, keyboard)
 
-# Функция для создания клавиатуры
+# ==========================
+# Создание клавиатуры
+# ==========================
 def create_keyboard():
     plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
     minus_button = InlineKeyboardButton(text="➖ Не участвовать", callback_data="join_minus")
     return InlineKeyboardMarkup(inline_keyboard=[[plus_button, minus_button]])
 
-def get_allowed_user_ids():
-    client = get_gspread_client()
-    if not client:
-        return set()
-    try:
-        sheet = client.open("ourid").worksheet("Добавление")  # лист с ID пользователей
-        data = sheet.get_all_records()
-        return set(int(row["id"]) for row in data if "id" in row and row["id"])
-    except Exception as e:
-        logging.error(f"Ошибка при получении get_allowed_user_ids(): {e}")
-        return set()
-
+# ==========================
+# Обработчики сообщений + и -
+# ==========================
 @router.message(lambda message: message.text and message.text.startswith("+ "))
 async def handle_plus_message(message: types.Message):
     user_id = message.from_user.id
     if user_id not in get_allowed_user_ids():
         return
 
-    username = message.text[2:].strip()  # Получаем имя пользователя, например, "Дима"
-    message_obj = message.reply_to_message  # Ответ на сообщение с фото и участниками
+    username = message.text[2:].strip()
+    message_obj = message.reply_to_message
 
     if not message_obj or not message_obj.caption:
         return
@@ -301,7 +294,7 @@ async def handle_plus_message(message: types.Message):
     if username in participants:
         return
 
-    participants.append(username)  # Добавляем участника
+    participants.append(username)
     time = extract_time_from_caption(message_obj.caption)
     keyboard = create_keyboard()
     await update_caption(message_obj, participants, None, f"{username} присоединился!", time, keyboard)
@@ -312,8 +305,8 @@ async def handle_minus_message(message: types.Message):
     if user_id not in get_allowed_user_ids():
         return
 
-    username = message.text[2:].strip()  # Получаем имя пользователя, например, "Дима"
-    message_obj = message.reply_to_message  # Ответ на сообщение с фото и участниками
+    username = message.text[2:].strip()
+    message_obj = message.reply_to_message
 
     if not message_obj or not message_obj.caption:
         return
@@ -322,7 +315,7 @@ async def handle_minus_message(message: types.Message):
     if username not in participants:
         return
 
-    participants.remove(username)  # Удаляем участника
+    participants.remove(username)
     time = extract_time_from_caption(message_obj.caption)
     keyboard = create_keyboard()
     await update_caption(message_obj, participants, None, f"{username} больше не участвует.", time, keyboard)
