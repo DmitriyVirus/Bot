@@ -2,24 +2,24 @@ import os
 import asyncio
 from config import config  # Используем конфигурацию для токена
 from aiogram import Bot, Dispatcher, Router
-from tgbot.handlers import router as handlers_router # Убедитесь, что импортируете router из handlers
+
+from tgbot.handlers import router as handlers_router
 from tgbot.handler_sbor import router as handler_sbor_router
 from tgbot.handler_getidall import router as handler_getidall_router
-from tgbot.google_sheets import router as google_sheets_router  # Импорт функции добавления пользователя
-from tgbot.google_sheets import add_user_to_sheet, fetch_data_from_sheet  # Импорт функции добавления пользователя
+from tgbot.google_sheets import router as google_sheets_router  # Новый роутер с /backup
+from tgbot.google_sheets import add_user_to_sheet, fetch_data_from_sheet  # Импорт функций работы с Google Sheets
 from tgbot.gspread_client import get_gspread_client
 from tgbot.google_tab import router as google_tab_router
 
-
+# Главный роутер
 router = Router()
 router.include_router(google_tab_router)
-router.include_router(handlers_router)  # Подключаем хендлеры
+router.include_router(handlers_router)  # Подключаем стандартные хендлеры
 router.include_router(handler_sbor_router)
 router.include_router(handler_getidall_router)
-router.include_router(google_sheets_router)
+router.include_router(google_sheets_router)  # Подключаем роутер с /backup
 
-
-
+# Класс бота
 class TGBot:
     def __init__(self, router: Router) -> None:
         token = os.getenv('TOKEN')
@@ -38,6 +38,3 @@ class TGBot:
 
 # Инициализация tgbot с импортированным router
 tgbot = TGBot(router)
-
-
-
