@@ -3,29 +3,32 @@ let currentCol = 0;
 
 async function loadData() {
     const res = await fetch("/api/get_autosbor");
-    data = await res.json(); 
+    data = await res.json();
+
+    if (!Array.isArray(data) || data.length === 0) {
+        document.getElementById("collectorName").innerText = "Нет данных";
+        return;
+    }
+
     render();
 }
 
 function render() {
+    if (!data.length) return;
+
     const col = data[currentCol];
     if (!col) return;
 
-    document.getElementById("collectorName").innerText = col.name;
+    document.getElementById("collectorName").innerText = col.name || "Без имени";
 
     const fields = document.getElementById("fields");
     fields.innerHTML = "";
 
     col.values.forEach((val, i) => {
-        const div = document.createElement("div");
-        div.className = "field";
-
         const input = document.createElement("input");
-        input.value = val;
+        input.value = val || "";
         input.oninput = e => col.values[i] = e.target.value;
-
-        div.appendChild(input);
-        fields.appendChild(div);
+        fields.appendChild(input);
     });
 }
 
