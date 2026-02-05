@@ -117,3 +117,20 @@ def delete_permission(data: dict):
 
     return {"status": "ok"}
 
+@app.post("/api/add_admin")
+def add_admin(data: dict):
+    client = get_gspread_client()
+    sheet = client.open("ourid").worksheet("Админы")
+
+    sheet.append_row([data["id"], data["name"]])
+    return {"status": "ok"}
+
+@app.post("/api/add_permission")
+def add_permission(data: dict):
+    client = get_gspread_client()
+    sheet = client.open("ourid").worksheet("Права добавления")
+
+    sheet.append_row([data["id"], data["name"]])
+    return {"status": "ok"}
+
+
