@@ -19,16 +19,23 @@ function render() {
     const col = data[currentCol];
     if (!col) return;
 
-    document.getElementById("collectorName").innerText = col.name || "Без имени";
+    // Заголовок теперь — номер столбца
+    document.getElementById("collectorName").innerText = `Столбец ${currentCol + 1}`;
 
     const fields = document.getElementById("fields");
     fields.innerHTML = "";
 
+    // Делаем все 7 строк редактируемыми
     col.values.forEach((val, i) => {
+        const div = document.createElement("div");
+        div.className = "field";
+
         const input = document.createElement("input");
         input.value = val || "";
         input.oninput = e => col.values[i] = e.target.value;
-        fields.appendChild(input);
+
+        div.appendChild(input);
+        fields.appendChild(div);
     });
 }
 
