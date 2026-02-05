@@ -19,11 +19,13 @@ function render() {
     const col = data[currentCol];
     if (!col) return;
 
+    // выводим заголовок "Столбец X"
     document.getElementById("collectorName").innerText = col.name || "Без имени";
 
     const fields = document.getElementById("fields");
     fields.innerHTML = "";
 
+    // выводим 7 полей для редактирования
     col.values.forEach((val, i) => {
         const input = document.createElement("input");
         input.value = val || "";
