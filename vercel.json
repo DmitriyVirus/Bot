@@ -10,6 +10,7 @@
 
     { "src": "/google_tab", "dest": "/webapp/google_tab.html" },
     { "src": "/admins", "dest": "/webapp/admins.html" },
+    { "src": "/permissions", "dest": "/webapp/permissions.html" },
 
     { "src": "/webapp/(.*)", "dest": "/webapp/$1" },
     { "src": "/(.*)", "dest": "/api/bot.py" }
