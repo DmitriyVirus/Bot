@@ -128,9 +128,10 @@ def add_admin(data: dict):
 @app.post("/api/add_permission")
 def add_permission(data: dict):
     client = get_gspread_client()
-    sheet = client.open("ourid").worksheet("Права добавления")
+    sheet = client.open("ourid").worksheet("Добавление")
 
     sheet.append_row([data["id"], data["name"]])
     return {"status": "ok"}
+
 
 
