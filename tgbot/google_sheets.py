@@ -19,13 +19,13 @@ router = Router()
 # Использование клиента
 client = get_gspread_client()
 if client:
-    sheet = client.open("ourid").sheet1
-    
+    sheet = client.open("DareDevils").worksheet("ID")  # Явное открытие листа "ID"
+
 # Проверка, существует ли пользователь в таблице
 def is_user_exists(client, user_id: int) -> bool:
     logging.info(f"Checking if user {user_id} exists in the sheet.")
     try:
-        sheet = client.open("ourid").sheet1
+        sheet = client.open("DareDevils").worksheet("ID")
         records = sheet.get_all_records()
         for record in records:
             if record.get('user_id') == user_id:
@@ -45,12 +45,12 @@ def add_user_to_sheet(user_id: int, username: str, first_name: str, last_name: s
         logging.error("Failed to authenticate with Google Sheets.")
         return
     try:
-        sheet = client.open("ourid").sheet1
+        sheet = client.open("DareDevils").worksheet("ID")
         # Проверяем, существует ли пользователь
         if is_user_exists(client, user_id):
             logging.info(f"User {user_id} already exists. No action needed.")
             return  # Никаких действий не требуется
-        
+
         # Если пользователь не существует, добавляем его с дефолтными значениями
         logging.info("User does not exist. Adding to sheet...")
         sheet.append_row([
@@ -73,7 +73,7 @@ def fetch_data_from_sheet(client):
     Загружает данные из Google Sheets и преобразует их в таблицу с алиасами.
     """
     try:
-        sheet = client.open("ourid").sheet1
+        sheet = client.open("DareDevils").worksheet("ID")
         records = sheet.get_all_records()
         expanded_table = {}
 
@@ -81,7 +81,7 @@ def fetch_data_from_sheet(client):
             # Генерируем tgnick: если first_name или last_name unknown, то не выводим их
             first_name = record["first_name"]
             last_name = record["last_name"]
-            
+
             if first_name.lower() == "unknown" and last_name.lower() == "unknown":
                 tgnick = "Unknown"
             elif first_name.lower() == "unknown":
@@ -170,7 +170,7 @@ async def handle_message(message: Message):
     username = message.from_user.username or "Unknown"
     first_name = message.from_user.first_name or "Unknown"
     last_name = message.from_user.last_name or "Unknown"
-    
+
     logging.info(f"Processing message from user {username} ({user_id}).")
     try:
         add_user_to_sheet(user_id, username, first_name, last_name)
