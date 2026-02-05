@@ -84,3 +84,20 @@ async def delete_row(request: Request):
     sheet.delete_rows(row_index)  # используем delete_rows, а не delete_row
 
     return JSONResponse({"message": "Строка удалена"})
+
+@app.get("/api/get_admins")
+def get_admins():
+    client = get_gspread_client()
+    sheet = client.open("ourid").worksheet("Админы")
+    return sheet.get_all_records()
+
+@app.post("/api/delete_admin")
+def delete_admin(data: dict):
+    row_index = data["row_index"]
+
+    client = get_gspread_client()
+    sheet = client.open("ourid").worksheet("Админы")
+    sheet.delete_rows(row_index)
+
+    return {"status": "ok"}
+
