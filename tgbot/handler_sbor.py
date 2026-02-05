@@ -41,6 +41,28 @@ def get_allowed_user_ids():
         return set()
 
 # ==========================
+# Получение данных из колонки листа "Автосбор"
+# ==========================
+def get_column_data_from_autosbor(column_index: int):
+    """
+    Возвращает список значений из колонки column_index листа "Автосбор".
+    column_index: 1 = первый столбец
+    """
+    client = get_gspread_client()
+    if not client:
+        return []
+    try:
+        sheet = client.open("DareDevils").worksheet("Автосбор")
+        all_values = sheet.get_all_values()
+        if not all_values or column_index <= 0 or column_index > len(all_values[0]):
+            return []
+        col_data = [row[column_index - 1].strip() for row in all_values if row[column_index - 1].strip()]
+        return col_data
+    except Exception as e:
+        logging.error(f"Ошибка при get_column_data_from_autosbor(): {e}")
+        return []
+
+# ==========================
 # Создание клавиатуры
 # ==========================
 def create_keyboard():
@@ -102,11 +124,36 @@ async def update_caption(photo_message: types.Message, participants: list, callb
             await callback.answer("Не удалось обновить подпись. Попробуйте снова.")
 
 # ==========================
-# Хендлеры команд /bal, /inn, /ork, /inst
+# Универсальная функция для отправки фото с проверкой колонки
 # ==========================
-async def send_event_photo(message: types.Message, photo_url: str, header_text: str):
+async def send_event_photo(message: types.Message, photo_url: str, header_prefix: str):
+    text = message.text
     keyboard = create_keyboard()
-    caption = f"{header_text}\n\n⚡⚡⚡*Нажмите ➕ в сообщении для участия*⚡⚡⚡\n\nУчаствуют (0): "
+
+    # Извлекаем время
+    time_match = re.search(r"(\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})?)", text)
+    time = time_match.group(1) if time_match else "когда соберемся"
+
+    # Извлекаем номер столбца (число после времени или просто число)
+    col_match = re.search(r"\b\d+\b(?!:)", text)
+    col_index = int(col_match.group(0)) if col_match else None
+
+    # Проверка на разрешенного пользователя
+    user_id = message.from_user.id
+    allowed_ids = get_allowed_user_ids()
+
+    participants = []
+    if col_index and user_id in allowed_ids:
+        participants = get_column_data_from_autosbor(col_index)
+
+    # Формируем подпись
+    header_text = f"{header_prefix} {time}"
+    caption = f"*{header_text}*\n\n⚡⚡⚡*Нажмите ➕ в сообщении для участия*⚡⚡⚡\n\n"
+    if participants:
+        caption += f"Участвуют ({len(participants)}): {', '.join(participants)}"
+    else:
+        caption += "Участвуют (0): "
+
     sent_message = await message.bot.send_photo(
         chat_id=message.chat.id,
         photo=photo_url,
@@ -116,40 +163,47 @@ async def send_event_photo(message: types.Message, photo_url: str, header_text: 
     )
     await message.chat.pin_message(sent_message.message_id)
 
-    # Удаляем команду пользователя после отправки и закрепления сообщения
+    # Удаляем команду пользователя
     try:
         await message.delete()
         logging.info("Команда удалена из чата")
     except Exception as e:
         logging.error(f"Не удалось удалить команду: {e}")
 
+# ==========================
+# Хендлеры команд /bal, /inn, /ork, /inst
+# ==========================
 @router.message(Command("bal"))
 async def bal_handler(message: types.Message):
-    time_match = re.search(r"(\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})?)", message.text)
-    time = time_match.group(1) if time_match else "когда соберемся"
-    await send_event_photo(message, "https://i.pinimg.com/736x/ba/6c/7c/ba6c7c9c1bbde89410e5bcd8736166b2.jpg",
-                           f"🔥 *Идем в гости к Балуану {time}* 🔥")
+    await send_event_photo(
+        message,
+        "https://i.pinimg.com/736x/ba/6c/7c/ba6c7c9c1bbde89410e5bcd8736166b2.jpg",
+        "🔥 Идем в гости к Балуану"
+    )
 
 @router.message(Command("inn"))
 async def inn_handler(message: types.Message):
-    time_match = re.search(r"(\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})?)", message.text)
-    time = time_match.group(1) if time_match else "когда соберемся"
-    await send_event_photo(message, "https://i.pinimg.com/736x/2f/4d/55/2f4d556777763c9018c7b026f281e235.jpg",
-                           f"🌿 *Сбор в Иннадрил {time}* 🌿")
+    await send_event_photo(
+        message,
+        "https://i.pinimg.com/736x/2f/4d/55/2f4d556777763c9018c7b026f281e235.jpg",
+        "🌿 Сбор в Иннадрил"
+    )
 
 @router.message(Command("ork"))
 async def ork_handler(message: types.Message):
-    time_match = re.search(r"(\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})?)", message.text)
-    time = time_match.group(1) if time_match else "когда соберемся"
-    await send_event_photo(message, "https://funny.klev.club/uploads/posts/2024-03/thumbs/funny-klev-club-p-smeshnie-kartinki-orki-7.jpg",
-                           f"⚔️ *Идем на орков в {time}!* ⚔️")
+    await send_event_photo(
+        message,
+        "https://funny.klev.club/uploads/posts/2024-03/thumbs/funny-klev-club-p-smeshnie-kartinki-orki-7.jpg",
+        "⚔️ Идем на орков"
+    )
 
 @router.message(Command("inst"))
 async def inst_handler(message: types.Message):
-    time_match = re.search(r"(\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})?)", message.text)
-    time = time_match.group(1) if time_match else "когда соберемся"
-    await send_event_photo(message, "https://battleclub.space/uploads/monthly_2022_07/baylor.jpg.02e0df864753bf47b1ef76303b993a1d.jpg",
-                           f"\u2620\ufe0f*Идем в инсты {time}*.\u2620\ufe0f")
+    await send_event_photo(
+        message,
+        "https://battleclub.space/uploads/monthly_2022_07/baylor.jpg.02e0df864753bf47b1ef76303b993a1d.jpg",
+        "☠️ Идем в инсты"
+    )
 
 # ==========================
 # Обработчики кнопок ➕ и ➖
@@ -214,7 +268,6 @@ async def handle_plus_message(message: types.Message):
     keyboard = create_keyboard()
     await update_caption(message_obj, participants, None, f"{username} присоединился!", time, keyboard)
 
-    # Удаляем сообщение пользователя после обновления
     try:
         await message.delete()
     except Exception as e:
@@ -242,7 +295,6 @@ async def handle_minus_message(message: types.Message):
     keyboard = create_keyboard()
     await update_caption(message_obj, participants, None, f"{username} больше не участвует.", time, keyboard)
 
-    # Удаляем сообщение пользователя после обновления
     try:
         await message.delete()
     except Exception as e:
