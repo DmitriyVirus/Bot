@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Автосбор</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    padding: 10px;
+}
+
+h2 {
+    margin-bottom: 10px;
+}
+
+.field {
+    margin-bottom: 8px;
+}
+
+input {
+    width: 100%;
+    padding: 6px;
+    font-size: 14px;
+}
+
+.nav {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+}
+
+button {
+    padding: 8px 14px;
+    font-size: 14px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button.primary {
+    background: #4caf50;
+    color: white;
+}
+
+button.secondary {
+    background: #ddd;
+}
+</style>
+</head>
+<body>
+
+<h2 id="collectorName">Загрузка…</h2>
+
+<div id="fields"></div>
+
+<div class="nav">
+    <button class="secondary" onclick="prevColumn()">⬅ Назад</button>
+    <button class="primary" onclick="saveColumn()">💾 Сохранить</button>
+    <button class="secondary" onclick="nextColumn()">➡ Вперёд</button>
+</div>
+
+<script src="/webapp/autosbor.js"></script>
+</body>
+</html>
