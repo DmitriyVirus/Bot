@@ -35,7 +35,7 @@ def get_allowed_user_ids():
     if not client:
         return set()
     try:
-        sheet = client.open("DareDevils").worksheet("Админы")
+        sheet = client.open("DareDevils").worksheet("Добавление")
         data = sheet.get_all_records()
         return set(int(row["id"]) for row in data if "id" in row and row["id"])
     except Exception as e:
