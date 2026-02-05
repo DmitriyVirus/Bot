@@ -14,11 +14,18 @@ from tgbot.google_sheets import fetch_data_from_sheet
 # Использование клиента
 client = get_gspread_client()
 if client:
-    sheet = client.open("ourid").sheet1
-
-# Настройка логирования
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+    try:
+        # Явное открытие таблицы DareDevils и листа ID
+        id_sheet = client.open("DareDevils").worksheet("ID")
+        id_data = id_sheet.get_all_records()
+        ALLOWED_USER_IDS = set(int(row["id"]) for row in id_data if "id" in row and row["id"])
+        logger.info(f"Загружено {len(ALLOWED_USER_IDS)} ID пользователей из DareDevils/ID")
+    except Exception as e:
+        logger.error(f"Ошибка при открытии листа DareDevils/ID: {e}")
+        ALLOWED_USER_IDS = set()
+else:
+    ALLOWED_USER_IDS = set()
+    logger.error("Не удалось получить клиента Google Sheets.")
 
 router = Router()
 
@@ -118,10 +125,15 @@ async def menu_participants_handler(callback: types.CallbackQuery):
         return
 
     # Загружаем данные из Google Sheets
-    expanded_table = fetch_data_from_sheet(client)
-    if not expanded_table:
+    try:
+        id_sheet = client.open("DareDevils").worksheet("ID")
+        id_data = id_sheet.get_all_records()
+    except Exception as e:
+        logger.error(f"Ошибка при чтении листа DareDevils/ID: {e}")
         await callback.message.edit_text("Ошибка загрузки данных из Google Sheets.")
         return
+
+    expanded_table = id_data
 
     response = "Список всех пользователей:\n"
     
@@ -571,4 +583,5 @@ async def good_mornig_every_day_GG(message: types.Message):
     except Exception as e:
         logging.error(f"Ошибка при обработке команды /goodmornigeverydayGG: {e}")
         await message.answer("Произошла ошибка. Попробуйте снова.")
+
 
