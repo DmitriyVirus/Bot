@@ -157,7 +157,7 @@ def get_autosbor():
             values.append(row[col_index] if col_index < len(row) else "")
 
         result.append({
-            "name": f"Столбец {col_index + 1}",  # <<< изменено: динамический заголовок
+            "name": f"Пачка {col_index + 1}",  # <<< изменено: динамический заголовок
             "values": values
         })
 
@@ -181,3 +181,4 @@ async def save_autosbor(request: Request):
         sheet.update_cell(i + 1, column_index + 1, value)  # <<< изменено: включаем первую строку
 
     return JSONResponse({"status": "ok"})
+
