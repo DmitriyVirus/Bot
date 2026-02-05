@@ -116,6 +116,13 @@ async def send_event_photo(message: types.Message, photo_url: str, header_text: 
     )
     await message.chat.pin_message(sent_message.message_id)
 
+    # Удаляем команду пользователя после отправки и закрепления сообщения
+    try:
+        await message.delete()
+        logging.info("Команда удалена из чата")
+    except Exception as e:
+        logging.error(f"Не удалось удалить команду: {e}")
+
 @router.message(Command("bal"))
 async def bal_handler(message: types.Message):
     time_match = re.search(r"(\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})?)", message.text)
@@ -207,6 +214,7 @@ async def handle_plus_message(message: types.Message):
     keyboard = create_keyboard()
     await update_caption(message_obj, participants, None, f"{username} присоединился!", time, keyboard)
 
+    # Удаляем сообщение пользователя после обновления
     try:
         await message.delete()
     except Exception as e:
@@ -234,6 +242,7 @@ async def handle_minus_message(message: types.Message):
     keyboard = create_keyboard()
     await update_caption(message_obj, participants, None, f"{username} больше не участвует.", time, keyboard)
 
+    # Удаляем сообщение пользователя после обновления
     try:
         await message.delete()
     except Exception as e:
