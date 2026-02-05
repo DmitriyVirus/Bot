@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Админы</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    padding: 10px;
+}
+
+.admin-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    background: #f5f5f5;
+    border-radius: 6px;
+    margin-bottom: 8px;
+}
+
+.admin-row span {
+    width: 200px;
+    word-break: break-all;
+}
+
+.admin-row button {
+    padding: 6px 12px;
+    background-color: #ff6666;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.admin-row button:hover {
+    background-color: #ff4c4c;
+}
+</style>
+</head>
+<body>
+
+<h2>Админы</h2>
+<div id="admins"></div>
+
+<script src="/webapp/admins.js"></script>
+</body>
+</html>
