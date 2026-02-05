@@ -19,25 +19,17 @@ function render() {
     const col = data[currentCol];
     if (!col) return;
 
-    // Заголовок — номер столбца
-    document.getElementById("collectorName").innerText = `Пак ${currentCol + 1}`;
+    document.getElementById("collectorName").innerText = col.name || "Без имени";
 
     const fields = document.getElementById("fields");
     fields.innerHTML = "";
 
-    // Выводим все 7 строк (включая первую) и делаем их редактируемыми
-    for (let i = 0; i < 7; i++) {
-        const div = document.createElement("div");
-        div.className = "field";
-
+    col.values.forEach((val, i) => {
         const input = document.createElement("input");
-        // Если данных нет, выводим пустую строку
-        input.value = col.values[i] || "";
+        input.value = val || "";
         input.oninput = e => col.values[i] = e.target.value;
-
-        div.appendChild(input);
-        fields.appendChild(div);
-    }
+        fields.appendChild(input);
+    });
 }
 
 function prevColumn() {
