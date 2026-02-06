@@ -1,0 +1,60 @@
+import os
+import random
+import datetime
+import logging
+from aiogram import Router
+from aiogram.types import Message
+from aiogram.filters import Command
+
+from tgbot.triggers import WELCOME_TEXT
+
+router = Router()
+logger = logging.getLogger(__name__)
+
+
+@router.message(lambda m: m.new_chat_members)
+async def greet(message: Message):
+    for user in message.new_chat_members:
+        if user.is_bot:
+            continue
+        text = (
+            f"⚡⚡⚡Привет, *{user.first_name}*!⚡⚡⚡\n\n"
+            f"{WELCOME_TEXT}\n\nИспользуй /bot"
+        )
+        await message.answer(text, parse_mode="Markdown")
+
+
+@router.message(lambda m: m.left_chat_member)
+async def goodbye(message: Message):
+    user = message.left_chat_member
+    if not user.is_bot:
+        await message.answer(f"Прощай, {user.first_name}! 👋")
+
+
+@router.message(Command("goodmornigeverydayGG"))
+async def good_morning(message: Message):
+    day = datetime.datetime.now().weekday()
+
+    mapping = {
+        0: ("Понедельник… держимся 💀", "mond_url.txt"),
+        4: ("ПЯТНИЦА!!! 🎉", "fri_url.txt"),
+        5: ("Выходныеее 😎", "weekend_url.txt"),
+        6: ("Выходныеее 😎", "weekend_url.txt"),
+    }
+
+    text, file_name = mapping.get(
+        day, ("Доброе утро ☀️", "workdays_url.txt")
+    )
+
+    path = os.path.join(os.getcwd(), "urls", file_name)
+    if not os.path.exists(path):
+        await message.answer("Файл не найден")
+        return
+
+    with open(path) as f:
+        urls = [u.strip() for u in f if u.strip()]
+
+    await message.answer_photo(
+        random.choice(urls),
+        caption=text
+    )
