@@ -8,7 +8,7 @@ from aiogram.types import Message
 import gspread
 from google.auth.transport.requests import Request
 from google.oauth2.service_account import Credentials
-from tgbot.gspread_client import get_gspread_client
+from .gspread_client import get_gspread_client
 
 # Настроим логирование
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(asctime)s - %(message)s')
