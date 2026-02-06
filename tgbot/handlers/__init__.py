@@ -3,7 +3,7 @@ from .menu import router as menu_router
 from .kto import router as kto_router
 from .triggers import router as triggers_router
 from .greetings import router as greetings_router
-from .kto import add_user_to_sheet, fetch_data_from_sheet
+from .kto import fetch_data_from_sheet
 from aiogram import Router
 
 # Создаём единый роутер для всех хэндлеров
