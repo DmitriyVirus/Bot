@@ -1,14 +1,14 @@
-import os
 import json
 import logging
-import gspread
+import os
 from dotenv import load_dotenv
-from aiogram.types import Message
-from aiogram.filters import Command
 from aiogram import Bot, Router, types
+from aiogram.filters import Command
+from aiogram.types import Message
+import gspread
 from google.auth.transport.requests import Request
-from tgbot.gspread_client import get_gspread_client
 from google.oauth2.service_account import Credentials
+from tgbot.gspread_client import get_gspread_client
 
 # Настроим логирование
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(asctime)s - %(message)s')
