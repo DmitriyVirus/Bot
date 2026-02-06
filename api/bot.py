@@ -7,7 +7,7 @@ from decouple import config
 from pydantic import BaseModel
 from aiogram import Bot, Router, types
 from fastapi.staticfiles import StaticFiles
-from tgbot.gspread_client import get_gspread_client
+from tgbot.sheets.gspread_client import get_gspread_client
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, HTMLResponse
 
@@ -181,4 +181,5 @@ async def save_autosbor(request: Request):
         sheet.update_cell(i + 1, column_index + 1, value)  # <<< изменено: включаем первую строку
 
     return JSONResponse({"status": "ok"})
+
 
