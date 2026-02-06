@@ -7,6 +7,7 @@ from tgbot.handlers import router as handlers_router
 from tgbot.sheets import router as sheets_router  # автодобавление
 from tgbot.handler_sbor import router as handler_sbor_router
 from tgbot.handler_getidall import router as handler_getidall_router
+from tgbot.gspread_client import get_gspread_client
 from tgbot.google_tab import router as google_tab_router
 
 # Главный роутер
@@ -39,3 +40,4 @@ class TGBot:
 
 # Инициализация бота
 tgbot = TGBot(router)
+
