@@ -3,7 +3,7 @@ import asyncio
 from config import config
 from aiogram import Bot, Dispatcher, Router
 
-from tgbot.handlers import routers  # <- теперь импортируем список роутеров
+from tgbot.handlers import routers  # Список роутеров: menu_router, greetings_router, triggers_router
 from tgbot.handler_sbor import router as handler_sbor_router
 from tgbot.handler_getidall import router as handler_getidall_router
 from tgbot.google_sheets import router as google_sheets_router
