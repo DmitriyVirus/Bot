@@ -1,7 +1,7 @@
 import logging
 from aiogram import Router, types
 from aiogram.filters import Command, CommandStart
-from tgbot.gspread_client import get_gspread_client
+from .gspread_client import get_gspread_client
 
 router = Router()
 logging.basicConfig(level=logging.INFO)
