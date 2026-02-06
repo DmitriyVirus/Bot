@@ -7,17 +7,11 @@ from tgbot.sheets import router as sheets_router # Убедитесь, что и
 from tgbot.handler_sbor import router as handler_sbor_router
 from tgbot.handler_getidall import router as handler_getidall_router
 
-from tgbot.gspread_client import get_gspread_client
-
-
 router = Router()
 router.include_router(handlers_router)  # Подключаем хендлеры
 router.include_router(handler_sbor_router)
 router.include_router(handler_getidall_router)
 router.include_router(sheets_router)  # Подключаем хендлеры
-
-
-
 
 class TGBot:
     def __init__(self, router: Router) -> None:
@@ -37,6 +31,7 @@ class TGBot:
 
 # Инициализация tgbot с импортированным router
 tgbot = TGBot(router)
+
 
 
 
