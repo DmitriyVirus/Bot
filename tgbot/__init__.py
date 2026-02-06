@@ -4,11 +4,9 @@ from config import config  # Используем конфигурацию дл�
 from aiogram import Bot, Dispatcher, Router
 from tgbot.handlers import router as handlers_router # Убедитесь, что импортируете router из handlers
 from tgbot.sheets import router as sheets_router # Убедитесь, что импортируете router из 
-from tgbot.handler_sbor import router as handler_sbor_router
 
 router = Router()
 router.include_router(handlers_router)  # Подключаем хендлеры
-router.include_router(handler_sbor_router)
 router.include_router(sheets_router)  # Подключаем хендлеры
 
 class TGBot:
@@ -29,6 +27,7 @@ class TGBot:
 
 # Инициализация tgbot с импортированным router
 tgbot = TGBot(router)
+
 
 
 
