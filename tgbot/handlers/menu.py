@@ -8,7 +8,7 @@ from tgbot.triggers import (
     COMMANDS_LIST, DEBUG_BOT, TRIGGERS,
     DETRON, MACROS
 )
-from tgbot.gspread_client import get_gspread_client
+from tgbot.sheets.gspread_client import get_gspread_client
 
 router = Router()
 logger = logging.getLogger(__name__)
