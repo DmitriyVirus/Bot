@@ -5,6 +5,7 @@ from aiogram import Bot, Dispatcher, Router
 
 # Подключаем единый роутер стандартных хэндлеров
 from tgbot.handlers import router as handlers_router
+from tgbot.sheets import router as sheets_router
 from tgbot.handler_sbor import router as handler_sbor_router
 from tgbot.handler_getidall import router as handler_getidall_router
 from tgbot.google_sheets import router as google_sheets_router
@@ -16,6 +17,7 @@ from tgbot.google_tab import router as google_tab_router
 router = Router()
 
 # Подключаем все роутеры
+router.include_router(sheets_router)
 router.include_router(google_tab_router)
 router.include_router(handlers_router)        # Подключаем все стандартные хэндлеры
 router.include_router(handler_sbor_router)
@@ -41,3 +43,4 @@ class TGBot:
 
 # Инициализация бота
 tgbot = TGBot(router)
+
