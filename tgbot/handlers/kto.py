@@ -63,10 +63,10 @@ async def kto_command(message: Message):
         return
 
     text = (
-        f"👤 {person.get('name', 'Unknown')}\n"
-        f"📛 @{person.get('username', '-')}\n"
-        f"🆔 {person.get('user_id')}\n"
-        f"📝 {person.get('about', '-')}"
+        f" {person.get('name', 'Unknown')}\n"
+        f" @{person.get('username', '-')}\n"
+        f" {person.get('user_id')}\n"
+        f" {person.get('about', '-')}"
     )
 
     await message.answer(text)
