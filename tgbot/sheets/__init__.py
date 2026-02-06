@@ -6,6 +6,7 @@ from aiogram import Router
 
 # Создаём единый роутер для всех хэндлеров
 router = Router()
-router.include_router(autoget_router)
 router.include_router(adminka_router)
+router.include_router(autoget_router)
+
 
