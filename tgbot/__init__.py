@@ -9,7 +9,8 @@ from tgbot.gspread_client import get_gspread_client
 from tgbot.google_tab import router as google_tab_router
 from tgbot.sheets import router as sheets_router  # автодобавление
 from tgbot.handler_getidall import router as handler_getidall_router
-
+from tgbot.google_sheets import router as google_sheets_router # Новый роутер с /backup 
+from tgbot.google_sheets import add_user_to_sheet, fetch_data_from_sheet # Импорт функций работы с Google Sheets
 
 # Главный роутер
 router = Router()
@@ -18,6 +19,7 @@ router.include_router(google_tab_router)
 router.include_router(handlers_router)
 router.include_router(handler_sbor_router)
 router.include_router(handler_getidall_router)
+router.include_router(google_sheets_router) r
 
 # Класс бота
 class TGBot:
@@ -41,5 +43,6 @@ class TGBot:
 
 # Инициализация бота
 tgbot = TGBot(router)
+
 
 
