@@ -19,8 +19,6 @@ router.include_router(google_tab_router)
 router.include_router(handlers_router)
 router.include_router(handler_sbor_router)
 router.include_router(handler_getidall_router)
-router.include_router(google_sheets_router)
-
 
 # Класс бота
 class TGBot:
@@ -45,4 +43,5 @@ class TGBot:
 
 # Инициализация бота
 tgbot = TGBot(router)
+
 
