@@ -1,6 +1,5 @@
 # Импортируем все роутеры из отдельных файлов
 from .autoget import router as autoget_router
-from .autoget import add_user_to_sheet, fetch_data_from_sheet
 
 from aiogram import Router
 
