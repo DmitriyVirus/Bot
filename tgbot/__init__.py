@@ -8,11 +8,9 @@ from tgbot.handler_sbor import router as handler_sbor_router
 from tgbot.handler_getidall import router as handler_getidall_router
 
 from tgbot.gspread_client import get_gspread_client
-from tgbot.google_tab import router as google_tab_router
 
 
 router = Router()
-router.include_router(google_tab_router)
 router.include_router(handlers_router)  # Подключаем хендлеры
 router.include_router(handler_sbor_router)
 router.include_router(handler_getidall_router)
@@ -39,6 +37,7 @@ class TGBot:
 
 # Инициализация tgbot с импортированным router
 tgbot = TGBot(router)
+
 
 
 
