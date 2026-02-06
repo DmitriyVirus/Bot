@@ -4,7 +4,7 @@ import logging
 from aiogram import types, Router
 from aiogram.filters import Command
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from tgbot.gspread_client import get_gspread_client
+from tgbot.sheets.gspread_client import get_gspread_client
 
 # Настройка логирования
 logging.basicConfig(level=logging.DEBUG)
