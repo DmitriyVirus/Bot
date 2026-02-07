@@ -1,3 +1,4 @@
+import os
 import re
 import logging
 from aiogram.types import Message
@@ -10,8 +11,8 @@ logging.basicConfig(level=logging.DEBUG)
 
 router = Router()
 
-CHAT_ID = -1001408912941  # Замените на ID вашего чата
-PINNED_MESSAGE_ID = 280567  # Замените на ID закрепленного сообщения
+CHAT_ID = int(os.environ.get("CHAT_ID"))
+PINNED_MESSAGE_ID = int(os.environ.get("PINNED_MESSAGE_ID"))
 
 @router.message(Command(commands=["getidbot"]))
 async def send_message_with_id(message: types.Message):
