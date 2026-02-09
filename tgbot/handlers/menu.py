@@ -16,19 +16,28 @@ logger = logging.getLogger(__name__)
 ADMINS = {1141764502, 559273200}
 EXCLUDED_USER_IDS = {559273200}
 
+
+# ===== Чтение приветствия из Google Sheets =====
 def get_hello_text() -> str:
     """
     Читает переменную Hello с листа 'Инфо'
     """
     client = get_gspread_client()
+    if not client:
+        return "Приветствие недоступно"
+
     sheet = client.open("DareDevils").worksheet("Инфо")
-    
     records = sheet.get_all_records()
     if not records:
         return "Приветствие недоступно"
-    
+
     # Берем первую строку, колонка 'Hello'
     return records[0].get("Hello", "Приветствие недоступно")
+
+
+# Получаем приветствие
+Hello = get_hello_text()
+
 
 # ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
 
