@@ -17,34 +17,35 @@ ADMINS = {1141764502, 559273200}
 EXCLUDED_USER_IDS = {559273200}
 
 
-# ===== Чтение данных из Google Sheets =====
-def get_info_text(column_name: str) -> str:
+# ===== ЧТЕНИЕ ДАННЫХ ИЗ GOOGLE SHEETS =====
+
+def get_info_column(range_name: str) -> str:
     """
-    Читает указанную колонку с листа 'Инфо'.
-    Если данных нет или колонка отсутствует, возвращает сообщение по умолчанию.
+    Читает диапазон с листа 'Инфо' (например A2:A29 или B2:B29)
+    и возвращает текст, склеенный через перенос строки.
     """
     client = get_gspread_client()
     if not client:
-        return f"{column_name} недоступно"
+        return "Данные недоступны"
 
-    sheet = client.open("DareDevils").worksheet("Инфо")
-    
     try:
-        records = sheet.get_all_records()
+        sheet = client.open("DareDevils").worksheet("Инфо")
+        values = sheet.get(range_name)
     except Exception as e:
-        logger.error(f"Ошибка чтения листа 'Инфо': {e}")
-        return f"{column_name} недоступно"
+        logger.error(f"Ошибка чтения диапазона {range_name}: {e}")
+        return "Данные недоступны"
 
-    if not records:
-        return f"{column_name} недоступно"
+    if not values:
+        return "Данные недоступны"
 
-    # Берем первую строку и колонку column_name
-    return records[0].get(column_name, f"{column_name} недоступно")
+    # values = [['text'], ['text'], ...]
+    return "\n".join(row[0] for row in values if row and row[0])
 
 
-# Получаем тексты
-Hello = get_info_text("Hello")
-Welcome = get_info_text("Welcome")
+# ===== ТЕКСТЫ ИЗ ЛИСТА =====
+
+Welcome = get_info_column("A2:A29")
+Hello = get_info_column("B2:B29")
 
 
 # ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
@@ -59,37 +60,37 @@ def format_commands(commands):
     return "\n".join(commands)
 
 def format_triggers(triggers):
-    return "\n".join([f"{i+1}. {t}" for i, t in enumerate(triggers.keys())])
+    return "\n".join([f"{i + 1}. {t}" for i, t in enumerate(triggers.keys())])
 
 
 # ===== КЛАВИАТУРЫ =====
 
 def create_main_menu():
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="😈DareDevils", callback_data="menu_daredevils")],
-        [InlineKeyboardButton(text="👽Участники чата", callback_data="menu_participants")],
-        [InlineKeyboardButton(text="ℹ️Информация об игре", callback_data="menu_about_game")],
-        [InlineKeyboardButton(text="🤖Команды для бота", callback_data="menu_commands")],
-        [InlineKeyboardButton(text="⚙️Информация о боте", callback_data="menu_about_bot")]
+        [InlineKeyboardButton(text="😈 DareDevils", callback_data="menu_daredevils")],
+        [InlineKeyboardButton(text="👽 Участники чата", callback_data="menu_participants")],
+        [InlineKeyboardButton(text="ℹ️ Информация об игре", callback_data="menu_about_game")],
+        [InlineKeyboardButton(text="🤖 Команды для бота", callback_data="menu_commands")],
+        [InlineKeyboardButton(text="⚙️ Информация о боте", callback_data="menu_about_bot")]
     ])
 
 def create_back_menu(back="back_to_main"):
     return InlineKeyboardMarkup(
-        inline_keyboard=[[InlineKeyboardButton(text="🏃Назад", callback_data=back)]]
+        inline_keyboard=[[InlineKeyboardButton(text="🏃 Назад", callback_data=back)]]
     )
 
 def create_game_info_menu():
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="💢Свержение", callback_data="menu_revolution")],
-        [InlineKeyboardButton(text="🔯Макросы", callback_data="menu_macros")],
-        [InlineKeyboardButton(text="🏃Назад", callback_data="back_to_main")]
+        [InlineKeyboardButton(text="💢 Свержение", callback_data="menu_revolution")],
+        [InlineKeyboardButton(text="🔯 Макросы", callback_data="menu_macros")],
+        [InlineKeyboardButton(text="🏃 Назад", callback_data="back_to_main")]
     ])
 
 def create_commands_menu(is_admin_user: bool):
     keyboard = [[InlineKeyboardButton(text="Основные", callback_data="commands_main")]]
     if is_admin_user:
         keyboard.append([InlineKeyboardButton(text="Отладка", callback_data="commands_debug")])
-    keyboard.append([InlineKeyboardButton(text="🏃Назад", callback_data="back_to_main")])
+    keyboard.append([InlineKeyboardButton(text="🏃 Назад", callback_data="back_to_main")])
     return InlineKeyboardMarkup(inline_keyboard=keyboard)
 
 
@@ -97,7 +98,11 @@ def create_commands_menu(is_admin_user: bool):
 
 @router.message(Command("bot"))
 async def bot_menu(message: types.Message):
-    await message.answer(Hello, reply_markup=create_main_menu(), parse_mode="Markdown")
+    await message.answer(
+        Hello,
+        reply_markup=create_main_menu(),
+        parse_mode="Markdown"
+    )
 
 
 @router.callback_query(lambda c: c.data == "menu_daredevils")
@@ -121,6 +126,7 @@ async def about_bot(callback: types.CallbackQuery):
 @router.callback_query(lambda c: c.data == "menu_commands")
 async def commands(callback: types.CallbackQuery):
     user_id = callback.from_user.id
+
     if is_excluded_user(user_id):
         await callback.message.edit_text(
             "Типы команд:",
