@@ -71,11 +71,41 @@ def get_bot_commands() -> list[str]:
     return commands
 
 
+def get_bot_deb_cmd() -> list[str]:
+    """
+    Читает команды отладки бота из колонок E (cmd_bot_deb) и F (cmd_bot_deb_text),
+    склеивает их и возвращает список.
+    """
+    client = get_gspread_client()
+    if not client:
+        return ["Команды недоступны"]
+
+    try:
+        sheet = client.open("DareDevils").worksheet("Инфо")
+        rows = sheet.get("E2:F")  # берём все строки начиная с 2-й
+    except Exception as e:
+        logger.error(f"Ошибка чтения команд отладки бота: {e}")
+        return ["Команды недоступны"]
+
+    commands = []
+    for row in rows:
+        cmd = row[0].strip() if len(row) > 0 else ""
+        text = row[1].strip() if len(row) > 1 else ""
+        if not cmd:
+            continue
+        if text:
+            commands.append(f"{cmd} — {text}")
+        else:
+            commands.append(cmd)
+    return commands
+
 # ===== ТЕКСТЫ ИЗ ЛИСТА =====
 
 Welcome = get_info_column("A2:A29")
 Hello = get_info_column("B2:B29")
 Bot_cmd = get_bot_commands()
+bot_deb_cmd = get_bot_deb_cmd()
+
 
 # ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
 
@@ -177,7 +207,7 @@ async def debug_commands(callback: types.CallbackQuery):
         return
 
     await callback.message.edit_text(
-        format_commands(DEBUG_BOT),
+        format_commands(bot_deb_cmd),
         reply_markup=create_back_menu()
     )
 
