@@ -4,7 +4,7 @@ from aiogram.filters import Command
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from tgbot.triggers import (
-    FIRST, ABOUT, ABOUT_GAME, DAREDEVILS,
+    ABOUT, ABOUT_GAME, DAREDEVILS,
     COMMANDS_LIST, DEBUG_BOT, TRIGGERS,
     DETRON, MACROS
 )
@@ -16,6 +16,19 @@ logger = logging.getLogger(__name__)
 ADMINS = {1141764502, 559273200}
 EXCLUDED_USER_IDS = {559273200}
 
+def get_hello_text() -> str:
+    """
+    Читает переменную Hello с листа 'Инфо'
+    """
+    client = get_gspread_client()
+    sheet = client.open("DareDevils").worksheet("Инфо")
+    
+    records = sheet.get_all_records()
+    if not records:
+        return "Приветствие недоступно"
+    
+    # Берем первую строку, колонка 'Hello'
+    return records[0].get("Hello", "Приветствие недоступно")
 
 # ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
 
@@ -67,7 +80,7 @@ def create_commands_menu(is_admin_user: bool):
 
 @router.message(Command("bot"))
 async def bot_menu(message: types.Message):
-    await message.answer(FIRST, reply_markup=create_main_menu(), parse_mode="Markdown")
+    await message.answer(Hello, reply_markup=create_main_menu(), parse_mode="Markdown")
 
 
 @router.callback_query(lambda c: c.data == "menu_daredevils")
@@ -135,7 +148,7 @@ async def back(callback: types.CallbackQuery):
         )
     else:
         await callback.message.edit_text(
-            FIRST,
+            Hello,
             reply_markup=create_main_menu()
         )
 
