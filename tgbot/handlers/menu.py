@@ -44,8 +44,7 @@ def get_info_column(range_name: str) -> str:
 def get_bot_commands() -> list[str]:
     """
     Читает команды бота из колонок:
-    C — cmd_bot
-    D — cmd_bot_text
+    cmd_bot (C) | cmd_bot_text (D)
     """
     client = get_gspread_client()
     if not client:
@@ -53,22 +52,18 @@ def get_bot_commands() -> list[str]:
 
     try:
         sheet = client.open("DareDevils").worksheet("Инфо")
-        rows = sheet.get("C2:D")
+        records = sheet.get_all_records()
     except Exception as e:
         logger.error(f"Ошибка чтения команд бота: {e}")
         return ["Команды недоступны"]
 
     commands = []
-
-    for row in rows:
-        if len(row) < 2:
-            continue
-
-        cmd, text = row[0].strip(), row[1].strip()
+    for row in records:
+        cmd = str(row.get("cmd_bot", "")).strip()
+        text = str(row.get("cmd_bot_text", "")).strip()
 
         if not cmd:
             continue
-
         if text:
             commands.append(f"{cmd} — {text}")
         else:
