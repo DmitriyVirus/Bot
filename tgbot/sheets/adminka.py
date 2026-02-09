@@ -6,8 +6,8 @@ from .gspread_client import get_gspread_client
 router = Router()
 logging.basicConfig(level=logging.INFO)
 
-WEBAPP_URL = "https://bot-virus-l2.vercel.app"
-BOT_USERNAME = "DDvirus_bot"  # ← ЗАМЕНИ на username бота, без @
+WEBAPP_URL = os.environ.get("WEBAPP_URL")
+BOT_USERNAME = os.environ.get("BOT_USERNAME")
 
 # =========================
 # Проверка доступа по листу "Админы"
