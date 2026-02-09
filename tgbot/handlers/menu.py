@@ -42,11 +42,40 @@ def get_info_column(range_name: str) -> str:
     return "\n".join(row[0] for row in values if row and row[0])
 
 
+def get_bot_commands() -> list[str]:
+    """
+    Читает команды бота из колонок C (cmd_bot) и D (cmd_bot_text),
+    склеивает их и возвращает список.
+    """
+    client = get_gspread_client()
+    if not client:
+        return ["Команды недоступны"]
+
+    try:
+        sheet = client.open("DareDevils").worksheet("Инфо")
+        rows = sheet.get("C2:D")  # берём все строки начиная с 2-й
+    except Exception as e:
+        logger.error(f"Ошибка чтения команд бота: {e}")
+        return ["Команды недоступны"]
+
+    commands = []
+    for row in rows:
+        cmd = row[0].strip() if len(row) > 0 else ""
+        text = row[1].strip() if len(row) > 1 else ""
+        if not cmd:
+            continue
+        if text:
+            commands.append(f"{cmd} — {text}")
+        else:
+            commands.append(cmd)
+    return commands
+
+
 # ===== ТЕКСТЫ ИЗ ЛИСТА =====
 
 Welcome = get_info_column("A2:A29")
 Hello = get_info_column("B2:B29")
-
+Bot_cmd = get_bot_commands()
 
 # ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
 
@@ -135,7 +164,7 @@ async def commands(callback: types.CallbackQuery):
         return
 
     await callback.message.edit_text(
-        f"Команды:\n{format_commands(COMMANDS_LIST)}\n\n"
+        f"Команды:\n{format_commands(Bot_cmd)}\n\n"
         f"Триггеры:\n{format_triggers(TRIGGERS)}",
         reply_markup=create_back_menu()
     )
@@ -156,7 +185,7 @@ async def debug_commands(callback: types.CallbackQuery):
 @router.callback_query(lambda c: c.data == "commands_main")
 async def main_commands(callback: types.CallbackQuery):
     await callback.message.edit_text(
-        f"{format_commands(COMMANDS_LIST)}\n\n{format_triggers(TRIGGERS)}",
+        f"{format_commands(Bot_cmd)}\n\n{format_triggers(TRIGGERS)}",
         reply_markup=create_back_menu()
     )
 
