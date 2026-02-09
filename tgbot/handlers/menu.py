@@ -17,26 +17,34 @@ ADMINS = {1141764502, 559273200}
 EXCLUDED_USER_IDS = {559273200}
 
 
-# ===== Чтение приветствия из Google Sheets =====
-def get_hello_text() -> str:
+# ===== Чтение данных из Google Sheets =====
+def get_info_text(column_name: str) -> str:
     """
-    Читает переменную Hello с листа 'Инфо'
+    Читает указанную колонку с листа 'Инфо'.
+    Если данных нет или колонка отсутствует, возвращает сообщение по умолчанию.
     """
     client = get_gspread_client()
     if not client:
-        return "Приветствие недоступно"
+        return f"{column_name} недоступно"
 
     sheet = client.open("DareDevils").worksheet("Инфо")
-    records = sheet.get_all_records()
+    
+    try:
+        records = sheet.get_all_records()
+    except Exception as e:
+        logger.error(f"Ошибка чтения листа 'Инфо': {e}")
+        return f"{column_name} недоступно"
+
     if not records:
-        return "Приветствие недоступно"
+        return f"{column_name} недоступно"
 
-    # Берем первую строку, колонка 'Hello'
-    return records[0].get("Hello", "Приветствие недоступно")
+    # Берем первую строку и колонку column_name
+    return records[0].get(column_name, f"{column_name} недоступно")
 
 
-# Получаем приветствие
-Hello = get_hello_text()
+# Получаем тексты
+Hello = get_info_text("Hello")
+Welcome = get_info_text("Welcome")
 
 
 # ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
