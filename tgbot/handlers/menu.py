@@ -84,6 +84,12 @@ def create_settings_keyboard():
                     text="Админы",
                     web_app=types.WebAppInfo(url=f"{WEBAPP_URL}/admins")
                 )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="🛠 Сервис",
+                    callback_data="menu_service"
+                )
             ]
         ]
     )
@@ -159,6 +165,24 @@ async def settings(callback: types.CallbackQuery):
     )
 
     await callback.answer()
+
+
+# 🛠 Хендлер для кнопки "Сервис"
+@router.callback_query(lambda c: c.data == "menu_service")
+async def service_menu(callback: types.CallbackQuery):
+    user_id = callback.from_user.id
+
+    if not is_user_allowed(user_id):
+        await callback.answer("⛔ Нет доступа", show_alert=True)
+        return
+
+    commands = get_bot_deb_cmd()
+    text = "\n".join(commands)
+
+    await callback.message.edit_text(
+        f"🛠 Сервисные команды:\n\n{text}",
+        reply_markup=create_back_menu("menu_settings")
+    )
 
 
 @router.callback_query(lambda c: c.data == "back_to_main")
