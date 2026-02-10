@@ -8,10 +8,10 @@ INFO_WORKSHEET = "Инфо"
 ID_WORKSHEET = "ID"
 
 
-
+# ===== ПРИВЕТСТВИЕ =====
 def get_welcome_text() -> str:
     """
-    Возвращает текст приветствия из диапазона A2:A19 колонки 'Welcome'.
+    Возвращает текст приветствия из диапазона A2:A19.
     """
     client = get_gspread_client()
     if not client:
@@ -19,9 +19,7 @@ def get_welcome_text() -> str:
 
     try:
         sheet = client.open(SHEET_NAME).worksheet(INFO_WORKSHEET)
-        # Диапазон A2:A19
         values = sheet.get("A2:A19")
-        # get() возвращает список списков, превращаем в список строк
         values = [row[0] for row in values if row and row[0].strip()]
         return "\n".join(values)
     except Exception as e:
@@ -29,28 +27,61 @@ def get_welcome_text() -> str:
         return "Данные недоступны"
 
 
-
-# ===== ЧТЕНИЕ КОЛОНОК =====
-
-def get_info_column_by_header(header_name: str) -> str:
+def get_hello_text() -> str:
+    """
+    Возвращает текст из диапазона Hello B2:B19.
+    """
     client = get_gspread_client()
     if not client:
         return "Данные недоступны"
 
     try:
         sheet = client.open(SHEET_NAME).worksheet(INFO_WORKSHEET)
-        headers = sheet.row_values(1)
-        if header_name not in headers:
-            return f"Колонка '{header_name}' не найдена"
-        col_index = headers.index(header_name) + 1
-        values = sheet.col_values(col_index)[1:]
+        values = sheet.get("B2:B19")
+        values = [row[0] for row in values if row and row[0].strip()]
+        return "\n".join(values)
     except Exception as e:
-        logger.error(f"Ошибка чтения колонки '{header_name}': {e}")
+        logger.error(f"Ошибка чтения Hello B2:B19: {e}")
         return "Данные недоступны"
 
-    return "\n".join(row for row in values if row)
+
+def get_about_bot_text() -> str:
+    """
+    Возвращает текст из диапазона about_bot C2:C19.
+    """
+    client = get_gspread_client()
+    if not client:
+        return "Данные недоступны"
+
+    try:
+        sheet = client.open(SHEET_NAME).worksheet(INFO_WORKSHEET)
+        values = sheet.get("C2:C19")
+        values = [row[0] for row in values if row and row[0].strip()]
+        return "\n".join(values)
+    except Exception as e:
+        logger.error(f"Ошибка чтения about_bot C2:C19: {e}")
+        return "Данные недоступны"
 
 
+# ===== ССЫЛКА НА КАРТИНКУ =====
+def get_image_from_cell(cell="B20") -> str | None:
+    """
+    Возвращает ссылку на изображение из конкретной ячейки (по умолчанию B20).
+    """
+    client = get_gspread_client()
+    if not client:
+        return None
+
+    try:
+        sheet = client.open(SHEET_NAME).worksheet(INFO_WORKSHEET)
+        value = sheet.acell(cell).value
+        return value if value else None
+    except Exception as e:
+        logger.error(f"Ошибка чтения ячейки '{cell}': {e}")
+        return None
+
+
+# ===== ЧТЕНИЕ КОМАНД =====
 def get_bot_commands() -> list[str]:
     client = get_gspread_client()
     if not client:
@@ -104,12 +135,7 @@ def get_bot_deb_cmd() -> list[str]:
 
 
 # ===== УЧАСТНИКИ ЧАТА =====
-
 def fetch_participants() -> dict:
-    """
-    Загружает участников из листа ID и возвращает словарь вида:
-    {alias_lower: {name, tgnick, nick, about}}
-    """
     client = get_gspread_client()
     if not client:
         return {}
@@ -151,38 +177,17 @@ def fetch_participants() -> dict:
         logger.error(f"Ошибка загрузки участников из Google Sheets: {e}")
         return {}
 
-def get_image_from_cell(cell="B20") -> str | None:
-    """
-    Возвращает ссылку на изображение из конкретной ячейки (по умолчанию B30).
-    """
-    client = get_gspread_client()
-    if not client:
-        return None
 
-    try:
-        sheet = client.open(SHEET_NAME).worksheet(ID_WORKSHEET)
-        value = sheet.acell(cell).value
-        return value if value else None
-    except Exception as e:
-        logger.error(f"Ошибка чтения ячейки '{cell}': {e}")
-        return None
-
-
+# ===== АДМИНЫ =====
 def get_admins_records() -> list[dict]:
-    """
-    Загружает всех админов из листа 'Админы' Google Sheets.
-    Возвращает список словарей с ключами 'id' и 'name'.
-    """
     client = get_gspread_client()
     if not client:
         return []
 
     try:
-        sheet = client.open("DareDevils").worksheet("Админы")
+        sheet = client.open(SHEET_NAME).worksheet("Админы")
         records = sheet.get_all_records()
         return records
     except Exception as e:
         logging.error(f"Ошибка загрузки админов: {e}")
         return []
-
-
