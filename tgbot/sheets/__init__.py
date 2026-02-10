@@ -9,7 +9,8 @@ from aiogram import Router
 from .take_from_sheet import (
     get_info_column_by_header,
     get_bot_commands,
-    get_bot_deb_cmd
+    get_bot_deb_cmd,
+    fetch_participants
 )
 
 # Создаём единый роутер для всех хэндлеров
