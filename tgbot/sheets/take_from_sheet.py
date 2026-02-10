@@ -146,4 +146,43 @@ def get_admins_records() -> list[dict]:
         logging.error(f"Ошибка загрузки админов: {e}")
         return []
 
+def get_welcome() -> str:
+    client = get_gspread_client()
+    if not client:
+        return "Данные недоступны"
+    try:
+        sheet = client.open(SHEET_NAME).worksheet(INFO_WORKSHEET)
+        values = sheet.get("A2:A19")  # Диапазон A2:A19
+        flat_values = [row[0] for row in values if row]
+    except Exception as e:
+        logger.error(f"Ошибка чтения ячеек A2:A19: {e}")
+        return "Данные недоступны"
+    return "".join(flat_values)  # Склеиваем в одну строку
+
+def get_hello() -> str:
+    client = get_gspread_client()
+    if not client:
+        return "Данные недоступны"
+    try:
+        sheet = client.open(SHEET_NAME).worksheet(INFO_WORKSHEET)
+        values = sheet.get("B2:B19")  # Диапазон B2:B19
+        flat_values = [row[0] for row in values if row]
+    except Exception as e:
+        logger.error(f"Ошибка чтения ячеек B2:B19: {e}")
+        return "Данные недоступны"
+    return "".join(flat_values)
+
+def get_about_bot() -> str:
+    client = get_gspread_client()
+    if not client:
+        return "Данные недоступны"
+    try:
+        sheet = client.open(SHEET_NAME).worksheet(INFO_WORKSHEET)
+        values = sheet.get("C2:C19")  # Диапазон C2:C19
+        flat_values = [row[0] for row in values if row]
+    except Exception as e:
+        logger.error(f"Ошибка чтения ячеек C2:C19: {e}")
+        return "Данные недоступны"
+    return "".join(flat_values)
+
 
