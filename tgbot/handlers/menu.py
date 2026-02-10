@@ -3,9 +3,9 @@ from aiogram import Router, types
 from aiogram.filters import Command
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from tgbot.triggers import COMMANDS_LIST, DEBUG_BOT
+from tgbot.triggers import ABOUT
 from tgbot.sheets.gspread_client import get_gspread_client
-from tgbot.handlers.kto import fetch_data_from_sheet  # импорт для участников чата
+from tgbot.handlers.kto import fetch_data_from_sheet  # для участников чата
 
 router = Router()
 logger = logging.getLogger(__name__)
@@ -34,6 +34,10 @@ def get_info_column(range_name: str) -> str:
     return "\n".join(row[0] for row in values if row and row[0])
 
 
+def get_hello_text() -> str:
+    return get_info_column("B2:B29")
+
+
 def get_bot_commands() -> list[str]:
     client = get_gspread_client()
     if not client:
@@ -57,8 +61,6 @@ def get_bot_commands() -> list[str]:
     return commands
 
 
-# ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
-
 def format_commands(commands):
     return "\n".join(commands)
 
@@ -68,8 +70,10 @@ def format_commands(commands):
 def create_main_menu():
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="👽 Участники чата", callback_data="menu_participants")],
-        [InlineKeyboardButton(text="🤖 Команды для бота", callback_data="menu_commands")]
+        [InlineKeyboardButton(text="🤖 Команды для бота", callback_data="menu_commands")],
+        [InlineKeyboardButton(text="⚙️ Информация о боте", callback_data="menu_about_bot")]
     ])
+
 
 def create_back_menu(back="back_to_main"):
     return InlineKeyboardMarkup(
@@ -81,8 +85,9 @@ def create_back_menu(back="back_to_main"):
 
 @router.message(Command("bot"))
 async def bot_menu(message: types.Message):
+    hello_text = get_hello_text()
     await message.answer(
-        "Привет! Выберите действие:",
+        hello_text,
         reply_markup=create_main_menu(),
         parse_mode="Markdown"
     )
@@ -90,9 +95,6 @@ async def bot_menu(message: types.Message):
 
 @router.callback_query(lambda c: c.data == "menu_participants")
 async def participants(callback: types.CallbackQuery):
-    """
-    Выводит всех участников из Google Sheets через fetch_data_from_sheet
-    """
     client = get_gspread_client()
     if not client:
         await callback.message.edit_text("Ошибка подключения к Google Sheets.")
@@ -118,16 +120,19 @@ async def participants(callback: types.CallbackQuery):
 
 @router.callback_query(lambda c: c.data == "menu_commands")
 async def commands(callback: types.CallbackQuery):
-    """
-    Выводит Основные команды бота сразу
-    """
     bot_cmds = format_commands(get_bot_commands())
     await callback.message.edit_text(bot_cmds, reply_markup=create_back_menu())
 
 
+@router.callback_query(lambda c: c.data == "menu_about_bot")
+async def about_bot(callback: types.CallbackQuery):
+    await callback.message.edit_text(ABOUT, reply_markup=create_back_menu())
+
+
 @router.callback_query(lambda c: c.data == "back_to_main")
 async def back(callback: types.CallbackQuery):
+    hello_text = get_hello_text()
     await callback.message.edit_text(
-        "Привет! Выберите действие:",
+        hello_text,
         reply_markup=create_main_menu()
     )
