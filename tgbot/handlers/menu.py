@@ -3,11 +3,11 @@ from aiogram import Router, types
 from aiogram.filters import Command
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from tgbot.handlers.kto import fetch_data_from_sheet  # Импорт для участников чата
 from tgbot.sheets.take_from_sheet import (
     get_info_column_by_header,
     get_bot_commands,
-    get_bot_deb_cmd
+    get_bot_deb_cmd,
+    fetch_participants  # <-- новая функция для участников чата
 )
 
 router = Router()
@@ -48,7 +48,7 @@ async def bot_menu(message: types.Message):
 
 @router.callback_query(lambda c: c.data == "menu_participants")
 async def participants(callback: types.CallbackQuery):
-    expanded_table = fetch_data_from_sheet()  # Получаем данные напрямую из take_from_sheet.py
+    expanded_table = fetch_participants()  # Используем новую функцию из take_from_sheet.py
 
     if not expanded_table:
         await callback.message.edit_text(
@@ -59,7 +59,7 @@ async def participants(callback: types.CallbackQuery):
 
     response = "Список всех участников:\n"
     for user_name, user_info in expanded_table.items():
-        if user_name == user_info["name"].lower():
+        if user_name == user_info["name"].lower():  # уникальные записи
             response += (
                 f"\nИмя: {user_info['name']}\n"
                 f"{f'Имя в телеграмм: {user_info['tgnick']}\n' if user_info['tgnick'] != 'Unknown' else ''}"
