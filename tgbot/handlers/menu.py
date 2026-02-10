@@ -24,9 +24,6 @@ def format_commands(commands):
 
 
 def is_user_allowed(user_id: int) -> bool:
-    """
-    Проверяет, есть ли пользователь в листе 'Админы'
-    """
     records = get_admins_records()
     if not records:
         return False
@@ -44,8 +41,14 @@ def create_main_menu():
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="👽 Участники чата", callback_data="menu_participants")],
         [InlineKeyboardButton(text="🤖 Команды для бота", callback_data="menu_commands")],
-        [InlineKeyboardButton(text="ℹ️ Информация о боте", callback_data="menu_about_bot")],
-        [InlineKeyboardButton(text="⚙️ Настройки", callback_data="menu_settings")]
+        [InlineKeyboardButton(text="ℹ️ Информация о боте", callback_data="menu_about_bot")]
+    ])
+
+
+def create_about_menu():
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="⚙️ Настройки", callback_data="menu_settings")],
+        [InlineKeyboardButton(text="🏃 Назад", callback_data="back_to_main")]
     ])
 
 
@@ -133,22 +136,22 @@ async def commands(callback: types.CallbackQuery):
 async def about_bot(callback: types.CallbackQuery):
     await callback.message.edit_text(
         get_info_column_by_header("about_bot"),
-        reply_markup=create_back_menu(),
+        reply_markup=create_about_menu(),
         disable_web_page_preview=True
     )
 
 
-# ⚙️ Настройки — проверка админа и отправка WebApp в личку
+# ⚙️ Настройки (внутри "Информация о боте")
 @router.callback_query(lambda c: c.data == "menu_settings")
 async def settings(callback: types.CallbackQuery):
     user_id = callback.from_user.id
 
-    # ❌ не админ — ничего не делаем
+    # ❌ не админ — показываем сообщение
     if not is_user_allowed(user_id):
-        await callback.answer()
+        await callback.answer("⛔ Нет доступа", show_alert=True)
         return
 
-    # ✅ админ — отправляем меню в личку
+    # ✅ админ — отправляем WebApp в личку
     await callback.bot.send_message(
         chat_id=user_id,
         text="Открывай таблицу:",
