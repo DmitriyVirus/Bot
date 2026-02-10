@@ -2,7 +2,7 @@ import os
 import logging
 from aiogram import Router, types
 from aiogram.filters import Command, CommandStart
-from .gspread_client import get_gspread_client
+from tgbot.sheets.take_from_sheet import get_admins_records  # Импорт функции
 
 router = Router()
 logging.basicConfig(level=logging.INFO)
@@ -18,23 +18,18 @@ def is_user_allowed(user_id: int) -> bool:
     Проверяет, есть ли user_id во втором листе "Админы" Google Sheets.
     Лист должен содержать два столбца: 'id' и 'name'.
     """
-    client = get_gspread_client()
-    if not client:
-        logging.warning("Google Sheets client not available")
+    records = get_admins_records()  # Используем функцию из take_from_sheet
+    if not records:
+        logging.warning("Нет данных админов или client недоступен")
         return False
-    try:
-        # Явное открытие листа "Админы" в файле "DareDevils"
-        sheet = client.open("DareDevils").worksheet("Админы")
-        records = sheet.get_all_records()
-        for record in records:
-            if str(record.get("id")) == str(user_id):
-                logging.info(f"User {user_id} is allowed ({record.get('name')})")
-                return True
-        logging.info(f"User {user_id} is NOT allowed")
-        return False
-    except Exception as e:
-        logging.error(f"Error checking allowed user: {e}")
-        return False
+
+    for record in records:
+        if str(record.get("id")) == str(user_id):
+            logging.info(f"User {user_id} is allowed ({record.get('name')})")
+            return True
+
+    logging.info(f"User {user_id} is NOT allowed")
+    return False
 
 # =========================
 # Команда /google_tab
