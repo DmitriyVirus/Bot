@@ -6,11 +6,12 @@ from aiogram import Router
 
 # Импортируем функции для работы с Google Sheets
 from .take_from_sheet import (
-    get_info_column_by_header,
     get_bot_commands,
     get_bot_deb_cmd,
     fetch_participants,
     get_welcome_text,
+    get_hello_text,
+    get_about_bot_text,
     get_image_from_cell,
     get_admins_records
 )
@@ -18,4 +19,3 @@ from .take_from_sheet import (
 # Создаём единый роутер для всех хэндлеров
 router = Router()
 router.include_router(autoget_router)
-
