@@ -194,7 +194,7 @@ async def commands(callback: types.CallbackQuery):
         return
 
     await callback.message.edit_text(
-        f"Команды:\n{format_commands(Bot_cmd)},
+        f"Команды:\n{format_commands(Bot_cmd)}",
         reply_markup=create_back_menu()
     )
 
