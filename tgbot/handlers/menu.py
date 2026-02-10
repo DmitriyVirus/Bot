@@ -9,7 +9,9 @@ from tgbot.sheets.take_from_sheet import (
     get_bot_commands,
     get_bot_deb_cmd,
     fetch_participants,
-    get_admins_records
+    get_admins_records,
+    get_welcome_text,
+    get_image_from_cell
 )
 
 router = Router()
@@ -99,11 +101,22 @@ def create_settings_keyboard():
 
 @router.message(Command("bot"))
 async def bot_menu(message: types.Message):
-    await message.answer(
-        get_info_column_by_header("Hello"),
-        reply_markup=create_main_menu(),
-        parse_mode="Markdown"
-    )
+    welcome_text = get_welcome_text()
+    image_url = get_hello_image("B20")  # ссылка на картинку из B30
+
+    if image_url:
+        await message.answer_photo(
+            photo=image_url,
+            caption=welcome_text,
+            reply_markup=create_main_menu(),
+            parse_mode="Markdown"
+        )
+    else:
+        await message.answer(
+            welcome_text,
+            reply_markup=create_main_menu(),
+            parse_mode="Markdown"
+        )
 
 
 @router.callback_query(lambda c: c.data == "menu_participants")
