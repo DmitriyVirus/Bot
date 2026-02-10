@@ -4,7 +4,7 @@ from aiogram.filters import Command
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from tgbot.sheets.gspread_client import get_gspread_client
-from tgbot.handlers.kto import fetch_data_from_sheet  # для участников чата
+from tgbot.handlers.kto import fetch_data_from_sheet  # Импорт для участников чата
 
 router = Router()
 logger = logging.getLogger(__name__)
@@ -15,57 +15,115 @@ EXCLUDED_USER_IDS = {559273200}
 
 # ===== ЧТЕНИЕ ДАННЫХ ИЗ GOOGLE SHEETS =====
 
-def get_info_column(range_name: str) -> str:
+def get_info_column_by_header(header_name: str) -> str:
+    """
+    Читает колонку по имени заголовка (header_name) в листе 'Инфо'
+    и возвращает текст, склеенный через перенос строки.
+    """
     client = get_gspread_client()
     if not client:
         return "Данные недоступны"
 
     try:
         sheet = client.open("DareDevils").worksheet("Инфо")
-        values = sheet.get(range_name)
+        headers = sheet.row_values(1)
+        if header_name not in headers:
+            return f"Колонка '{header_name}' не найдена"
+        col_index = headers.index(header_name) + 1  # gspread использует 1-based индексы
+        values = sheet.col_values(col_index)[1:]  # пропускаем заголовок
     except Exception as e:
-        logger.error(f"Ошибка чтения диапазона {range_name}: {e}")
+        logger.error(f"Ошибка чтения колонки '{header_name}': {e}")
         return "Данные недоступны"
 
     if not values:
         return "Данные недоступны"
 
-    return "\n".join(row[0] for row in values if row and row[0])
-
-
-def get_hello_text() -> str:
-    return get_info_column("B2:B29")
-
-
-def get_about_bot_text() -> str:
-    return get_info_column("about_bot")  # новая колонка для информации о боте
+    return "\n".join(row for row in values if row)
 
 
 def get_bot_commands() -> list[str]:
+    """
+    Читает основные команды бота (cmd_bot + cmd_bot_text)
+    """
     client = get_gspread_client()
     if not client:
         return ["Команды недоступны"]
 
     try:
         sheet = client.open("DareDevils").worksheet("Инфо")
-        rows = sheet.get("C2:D")
+        headers = sheet.row_values(1)
+        c_index = headers.index("cmd_bot") + 1
+        d_index = headers.index("cmd_bot_text") + 1
+        cmd_values = sheet.col_values(c_index)[1:]
+        text_values = sheet.col_values(d_index)[1:]
     except Exception as e:
         logger.error(f"Ошибка чтения команд бота: {e}")
         return ["Команды недоступны"]
 
     commands = []
-    for row in rows:
-        cmd = row[0].strip() if len(row) > 0 else ""
-        text = row[1].strip() if len(row) > 1 else ""
+    for cmd, text in zip(cmd_values, text_values):
+        cmd = cmd.strip() if cmd else ""
+        text = text.strip() if text else ""
         if not cmd:
             continue
         commands.append(f"{cmd} — {text}" if text else cmd)
-
     return commands
 
 
-def format_commands(commands):
-    return "\n".join(commands)
+def get_bot_deb_cmd() -> list[str]:
+    """
+    Читает команды отладки бота (cmd_bot_deb + cmd_bot_deb_text)
+    """
+    client = get_gspread_client()
+    if not client:
+        return ["Команды недоступны"]
+
+    try:
+        sheet = client.open("DareDevils").worksheet("Инфо")
+        headers = sheet.row_values(1)
+        c_index = headers.index("cmd_bot_deb") + 1
+        d_index = headers.index("cmd_bot_deb_text") + 1
+        cmd_values = sheet.col_values(c_index)[1:]
+        text_values = sheet.col_values(d_index)[1:]
+    except Exception as e:
+        logger.error(f"Ошибка чтения debug-команд: {e}")
+        return ["Команды недоступны"]
+
+    commands = []
+    for cmd, text in zip(cmd_values, text_values):
+        cmd = cmd.strip() if cmd else ""
+        text = text.strip() if text else ""
+        if not cmd:
+            continue
+        commands.append(f"{cmd} — {text}" if text else cmd)
+    return commands
+
+
+# ===== ЛЕНИВЫЕ ДОСТУПЫ К ДАННЫМ =====
+
+def get_welcome_text() -> str:
+    return get_info_column_by_header("Welcome")
+
+def get_hello_text() -> str:
+    return get_info_column_by_header("Hello")
+
+def get_about_bot_text() -> str:
+    return get_info_column_by_header("about_bot")
+
+def get_bot_cmd_text() -> str:
+    return "\n".join(get_bot_commands())
+
+def get_bot_deb_cmd_text() -> str:
+    return "\n".join(get_bot_deb_cmd())
+
+
+# ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
+
+def is_admin(user_id: int) -> bool:
+    return user_id in ADMINS
+
+def is_excluded_user(user_id: int) -> bool:
+    return user_id in EXCLUDED_USER_IDS
 
 
 # ===== КЛАВИАТУРЫ =====
@@ -77,7 +135,6 @@ def create_main_menu():
         [InlineKeyboardButton(text="⚙️ Информация о боте", callback_data="menu_about_bot")]
     ])
 
-
 def create_back_menu(back="back_to_main"):
     return InlineKeyboardMarkup(
         inline_keyboard=[[InlineKeyboardButton(text="🏃 Назад", callback_data=back)]]
@@ -88,9 +145,9 @@ def create_back_menu(back="back_to_main"):
 
 @router.message(Command("bot"))
 async def bot_menu(message: types.Message):
-    hello_text = get_hello_text()
+    text = f"{get_hello_text()}\n\n{get_about_bot_text()}"
     await message.answer(
-        hello_text,
+        text,
         reply_markup=create_main_menu(),
         parse_mode="Markdown"
     )
@@ -105,10 +162,10 @@ async def participants(callback: types.CallbackQuery):
 
     expanded_table = fetch_data_from_sheet(client)
     if not expanded_table:
-        await callback.message.edit_text("Данные недоступны.")
+        await callback.message.edit_text("Ошибка загрузки данных из Google Sheets.")
         return
 
-    response = "Список всех пользователей:\n"
+    response = "Список всех участников:\n"
     for user_name, user_info in expanded_table.items():
         if user_name == user_info["name"].lower():  # уникальные записи
             response += (
@@ -118,25 +175,32 @@ async def participants(callback: types.CallbackQuery):
                 f"Инфо: {user_info['about']}\n"
             )
 
-    await callback.message.edit_text(response, reply_markup=create_back_menu())
+    await callback.message.edit_text(
+        response,
+        reply_markup=create_back_menu()
+    )
 
 
 @router.callback_query(lambda c: c.data == "menu_commands")
 async def commands(callback: types.CallbackQuery):
-    bot_cmds = format_commands(get_bot_commands())
-    await callback.message.edit_text(bot_cmds, reply_markup=create_back_menu())
+    await callback.message.edit_text(
+        get_bot_cmd_text(),
+        reply_markup=create_back_menu()
+    )
 
 
 @router.callback_query(lambda c: c.data == "menu_about_bot")
 async def about_bot(callback: types.CallbackQuery):
-    about_text = get_about_bot_text()
-    await callback.message.edit_text(about_text, reply_markup=create_back_menu())
+    await callback.message.edit_text(
+        get_about_bot_text(),
+        reply_markup=create_back_menu()
+    )
 
 
 @router.callback_query(lambda c: c.data == "back_to_main")
 async def back(callback: types.CallbackQuery):
-    hello_text = get_hello_text()
+    text = f"{get_hello_text()}\n\n{get_about_bot_text()}"
     await callback.message.edit_text(
-        hello_text,
+        text,
         reply_markup=create_main_menu()
     )
