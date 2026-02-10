@@ -8,6 +8,28 @@ INFO_WORKSHEET = "Инфо"
 ID_WORKSHEET = "ID"
 
 
+
+def get_welcome_text() -> str:
+    """
+    Возвращает текст приветствия из диапазона A2:A19 колонки 'Welcome'.
+    """
+    client = get_gspread_client()
+    if not client:
+        return "Данные недоступны"
+
+    try:
+        sheet = client.open(SHEET_NAME).worksheet(INFO_WORKSHEET)
+        # Диапазон A2:A19
+        values = sheet.get("A2:A19")
+        # get() возвращает список списков, превращаем в список строк
+        values = [row[0] for row in values if row and row[0].strip()]
+        return "\n".join(values)
+    except Exception as e:
+        logger.error(f"Ошибка чтения Welcome A2:A19: {e}")
+        return "Данные недоступны"
+
+
+
 # ===== ЧТЕНИЕ КОЛОНОК =====
 
 def get_info_column_by_header(header_name: str) -> str:
