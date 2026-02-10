@@ -172,7 +172,8 @@ async def commands(callback: types.CallbackQuery):
 async def about_bot(callback: types.CallbackQuery):
     await callback.message.edit_text(
         get_info_column_by_header("about_bot"),
-        reply_markup=create_back_menu()
+        reply_markup=create_back_menu(),
+        disable_web_page_preview=True
     )
 
 
