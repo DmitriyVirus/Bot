@@ -151,6 +151,23 @@ def fetch_participants() -> dict:
         logger.error(f"Ошибка загрузки участников из Google Sheets: {e}")
         return {}
 
+def get_image_from_cell(cell="B20") -> str | None:
+    """
+    Возвращает ссылку на изображение из конкретной ячейки (по умолчанию B30).
+    """
+    client = get_gspread_client()
+    if not client:
+        return None
+
+    try:
+        sheet = client.open(SHEET_NAME).worksheet(ID_WORKSHEET)
+        value = sheet.acell(cell).value
+        return value if value else None
+    except Exception as e:
+        logger.error(f"Ошибка чтения ячейки '{cell}': {e}")
+        return None
+
+
 def get_admins_records() -> list[dict]:
     """
     Загружает всех админов из листа 'Админы' Google Sheets.
