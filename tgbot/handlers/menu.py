@@ -20,10 +20,6 @@ EXCLUDED_USER_IDS = {559273200}
 # ===== ЧТЕНИЕ ДАННЫХ ИЗ GOOGLE SHEETS =====
 
 def get_info_column(range_name: str) -> str:
-    """
-    Читает диапазон с листа 'Инфо' (например A2:A29 или B2:B29)
-    и возвращает текст, склеенный через перенос строки.
-    """
     client = get_gspread_client()
     if not client:
         return "Данные недоступны"
@@ -38,22 +34,17 @@ def get_info_column(range_name: str) -> str:
     if not values:
         return "Данные недоступны"
 
-    # values = [['text'], ['text'], ...]
     return "\n".join(row[0] for row in values if row and row[0])
 
 
 def get_bot_commands() -> list[str]:
-    """
-    Читает команды бота из колонок C (cmd_bot) и D (cmd_bot_text),
-    склеивает их и возвращает список.
-    """
     client = get_gspread_client()
     if not client:
         return ["Команды недоступны"]
 
     try:
         sheet = client.open("DareDevils").worksheet("Инфо")
-        rows = sheet.get("C2:D")  # берём все строки начиная с 2-й
+        rows = sheet.get("C2:D")
     except Exception as e:
         logger.error(f"Ошибка чтения команд бота: {e}")
         return ["Команды недоступны"]
@@ -64,27 +55,21 @@ def get_bot_commands() -> list[str]:
         text = row[1].strip() if len(row) > 1 else ""
         if not cmd:
             continue
-        if text:
-            commands.append(f"{cmd} — {text}")
-        else:
-            commands.append(cmd)
+        commands.append(f"{cmd} — {text}" if text else cmd)
+
     return commands
 
 
 def get_bot_deb_cmd() -> list[str]:
-    """
-    Читает команды отладки бота из колонок E (cmd_bot_deb) и F (cmd_bot_deb_text),
-    склеивает их и возвращает список.
-    """
     client = get_gspread_client()
     if not client:
         return ["Команды недоступны"]
 
     try:
         sheet = client.open("DareDevils").worksheet("Инфо")
-        rows = sheet.get("E2:F")  # берём все строки начиная с 2-й
+        rows = sheet.get("E2:F")
     except Exception as e:
-        logger.error(f"Ошибка чтения команд отладки бота: {e}")
+        logger.error(f"Ошибка чтения debug-команд: {e}")
         return ["Команды недоступны"]
 
     commands = []
@@ -93,18 +78,24 @@ def get_bot_deb_cmd() -> list[str]:
         text = row[1].strip() if len(row) > 1 else ""
         if not cmd:
             continue
-        if text:
-            commands.append(f"{cmd} — {text}")
-        else:
-            commands.append(cmd)
+        commands.append(f"{cmd} — {text}" if text else cmd)
+
     return commands
 
-# ===== ТЕКСТЫ ИЗ ЛИСТА =====
 
-Welcome = get_info_column("A2:A29")
-Hello = get_info_column("B2:B29")
-Bot_cmd = get_bot_commands()
-Bot_deb_cmd = get_bot_deb_cmd()
+# ===== ЛЕНИВЫЕ ДОСТУПЫ К ДАННЫМ =====
+
+def get_welcome_text() -> str:
+    return get_info_column("A2:A29")
+
+def get_hello_text() -> str:
+    return get_info_column("B2:B29")
+
+def get_bot_cmd_text() -> str:
+    return format_commands(get_bot_commands())
+
+def get_bot_deb_cmd_text() -> str:
+    return format_commands(get_bot_deb_cmd())
 
 
 # ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
@@ -158,7 +149,7 @@ def create_commands_menu(is_admin_user: bool):
 @router.message(Command("bot"))
 async def bot_menu(message: types.Message):
     await message.answer(
-        Hello,
+        get_hello_text(),
         reply_markup=create_main_menu(),
         parse_mode="Markdown"
     )
@@ -194,7 +185,15 @@ async def commands(callback: types.CallbackQuery):
         return
 
     await callback.message.edit_text(
-        f"Команды:\n{format_commands(Bot_cmd)}",
+        f"Команды:\n{get_bot_cmd_text()}",
+        reply_markup=create_back_menu()
+    )
+
+
+@router.callback_query(lambda c: c.data == "commands_main")
+async def main_commands(callback: types.CallbackQuery):
+    await callback.message.edit_text(
+        get_bot_cmd_text(),
         reply_markup=create_back_menu()
     )
 
@@ -206,18 +205,9 @@ async def debug_commands(callback: types.CallbackQuery):
         return
 
     await callback.message.edit_text(
-        format_commands(Bot_deb_cmd),
+        get_bot_deb_cmd_text(),
         reply_markup=create_back_menu()
     )
-
-
-@router.callback_query(lambda c: c.data == "commands_main")
-async def main_commands(callback: types.CallbackQuery):
-    await callback.message.edit_text(
-        format_commands(Bot_cmd),
-        reply_markup=create_back_menu()
-    )
-
 
 
 @router.callback_query(lambda c: c.data in {"back_to_main", "menu_about_game"})
@@ -230,7 +220,7 @@ async def back(callback: types.CallbackQuery):
         )
     else:
         await callback.message.edit_text(
-            Hello,
+            get_hello_text(),
             reply_markup=create_main_menu()
         )
 
