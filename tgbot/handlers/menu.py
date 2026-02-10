@@ -5,12 +5,13 @@ from aiogram.filters import Command
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from tgbot.sheets.take_from_sheet import (
-    get_info_column_by_header,
+    get_welcome_text,
+    get_hello_text,
+    get_about_bot_text,
     get_bot_commands,
     get_bot_deb_cmd,
     fetch_participants,
     get_admins_records,
-    get_welcome_text,
     get_image_from_cell
 )
 
@@ -18,6 +19,7 @@ router = Router()
 logger = logging.getLogger(__name__)
 
 WEBAPP_URL = os.environ.get("WEBAPP_URL")
+
 
 # ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
 
@@ -33,7 +35,6 @@ def is_user_allowed(user_id: int) -> bool:
     for record in records:
         if str(record.get("id")) == str(user_id):
             return True
-
     return False
 
 
@@ -102,7 +103,7 @@ def create_settings_keyboard():
 @router.message(Command("bot"))
 async def bot_menu(message: types.Message):
     welcome_text = get_welcome_text()
-    image_url = get_hello_image("B20")  # ссылка на картинку из B30
+    image_url = get_image_from_cell("B20")  # теперь берём из B20
 
     if image_url:
         await message.answer_photo(
@@ -153,8 +154,9 @@ async def commands(callback: types.CallbackQuery):
 
 @router.callback_query(lambda c: c.data == "menu_about_bot")
 async def about_bot(callback: types.CallbackQuery):
+    about_text = get_about_bot_text()
     await callback.message.edit_text(
-        get_info_column_by_header("about_bot"),
+        about_text,
         reply_markup=create_about_menu(),
         disable_web_page_preview=True
     )
@@ -165,12 +167,10 @@ async def about_bot(callback: types.CallbackQuery):
 async def settings(callback: types.CallbackQuery):
     user_id = callback.from_user.id
 
-    # ❌ не админ — показываем сообщение
     if not is_user_allowed(user_id):
         await callback.answer("⛔ Нет доступа", show_alert=True)
         return
 
-    # ✅ админ — отправляем WebApp в личку
     await callback.bot.send_message(
         chat_id=user_id,
         text="Открывай таблицу:",
@@ -200,7 +200,8 @@ async def service_menu(callback: types.CallbackQuery):
 
 @router.callback_query(lambda c: c.data == "back_to_main")
 async def back(callback: types.CallbackQuery):
+    hello_text = get_hello_text()
     await callback.message.edit_text(
-        get_info_column_by_header("Hello"),
+        hello_text,
         reply_markup=create_main_menu()
     )
