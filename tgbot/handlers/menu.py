@@ -104,7 +104,7 @@ def get_bot_deb_cmd() -> list[str]:
 Welcome = get_info_column("A2:A29")
 Hello = get_info_column("B2:B29")
 Bot_cmd = get_bot_commands()
-bot_deb_cmd = get_bot_deb_cmd()
+Bot_deb_cmd = get_bot_deb_cmd()
 
 
 # ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
@@ -194,8 +194,7 @@ async def commands(callback: types.CallbackQuery):
         return
 
     await callback.message.edit_text(
-        f"Команды:\n{format_commands(Bot_cmd)}\n\n"
-        f"Триггеры:\n{format_triggers(TRIGGERS)}",
+        f"Команды:\n{format_commands(Bot_cmd)},
         reply_markup=create_back_menu()
     )
 
@@ -207,7 +206,7 @@ async def debug_commands(callback: types.CallbackQuery):
         return
 
     await callback.message.edit_text(
-        format_commands(bot_deb_cmd),
+        format_commands(Bot_deb_cmd),
         reply_markup=create_back_menu()
     )
 
