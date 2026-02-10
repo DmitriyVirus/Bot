@@ -1,5 +1,5 @@
 import logging
-from tgbot.sheets.gspread_client import get_gspread_client
+from .gspread_client import get_gspread_client
 
 logger = logging.getLogger(__name__)
 
