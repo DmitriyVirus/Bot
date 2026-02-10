@@ -9,6 +9,7 @@ from tgbot.triggers import (
     DETRON, MACROS
 )
 from tgbot.sheets.gspread_client import get_gspread_client
+from tgbot.handlers.kto import fetch_data_from_sheet  # импорт вынесен сюда
 
 router = Router()
 logger = logging.getLogger(__name__)
@@ -208,6 +209,34 @@ async def debug_commands(callback: types.CallbackQuery):
         get_bot_deb_cmd_text(),
         reply_markup=create_back_menu()
     )
+
+
+@router.callback_query(lambda c: c.data == "menu_participants")
+async def participants(callback: types.CallbackQuery):
+    """
+    Выводит всех участников из Google Sheets через fetch_data_from_sheet
+    """
+    client = get_gspread_client()
+    if not client:
+        await callback.message.edit_text("Ошибка подключения к Google Sheets.")
+        return
+
+    expanded_table = fetch_data_from_sheet(client)
+    if not expanded_table:
+        await callback.message.edit_text("Данные недоступны.")
+        return
+
+    response = "Список всех пользователей:\n"
+    for user_name, user_info in expanded_table.items():
+        if user_name == user_info["name"].lower():  # уникальные записи
+            response += (
+                f"\nИмя: {user_info['name']}\n"
+                f"{f'Имя в телеграмм: {user_info['tgnick']}\n' if user_info['tgnick'] != 'Unknown' else ''}"
+                f"{f'Ник: @{user_info['nick']}\n' if user_info['nick'] != 'Unknown' else ''}"
+                f"Инфо: {user_info['about']}\n"
+            )
+
+    await callback.message.edit_text(response, reply_markup=create_back_menu())
 
 
 @router.callback_query(lambda c: c.data in {"back_to_main", "menu_about_game"})
