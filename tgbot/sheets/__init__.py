@@ -11,6 +11,7 @@ from .take_from_sheet import (
     get_bot_deb_cmd,
     fetch_participants,
     get_welcome_text,
+    get_image_from_cell,
     get_admins_records
 )
 
