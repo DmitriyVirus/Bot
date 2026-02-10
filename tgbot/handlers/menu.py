@@ -3,108 +3,14 @@ from aiogram import Router, types
 from aiogram.filters import Command
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from tgbot.sheets.gspread_client import get_gspread_client
+from tgbot.sheets.take_from_sheet import (
+    get_info_column_by_header,
+    get_bot_commands
+)
 from tgbot.handlers.kto import fetch_data_from_sheet  # Импорт для участников чата
 
 router = Router()
 logger = logging.getLogger(__name__)
-
-# ===== ЧТЕНИЕ ДАННЫХ ИЗ GOOGLE SHEETS =====
-
-def get_info_column_by_header(header_name: str) -> str:
-    """
-    Читает колонку по имени заголовка (header_name) в листе 'Инфо'
-    и возвращает текст, склеенный через перенос строки.
-    """
-    client = get_gspread_client()
-    if not client:
-        return "Данные недоступны"
-
-    try:
-        sheet = client.open("DareDevils").worksheet("Инфо")
-        headers = sheet.row_values(1)
-        if header_name not in headers:
-            return f"Колонка '{header_name}' не найдена"
-        col_index = headers.index(header_name) + 1  # gspread использует 1-based индексы
-        values = sheet.col_values(col_index)[1:]  # пропускаем заголовок
-    except Exception as e:
-        logger.error(f"Ошибка чтения колонки '{header_name}': {e}")
-        return "Данные недоступны"
-
-    if not values:
-        return "Данные недоступны"
-
-    return "\n".join(row for row in values if row)
-
-
-def get_bot_commands() -> list[str]:
-    """
-    Читает основные команды бота (cmd_bot + cmd_bot_text)
-    """
-    client = get_gspread_client()
-    if not client:
-        return ["Команды недоступны"]
-
-    try:
-        sheet = client.open("DareDevils").worksheet("Инфо")
-        headers = sheet.row_values(1)
-        c_index = headers.index("cmd_bot") + 1
-        d_index = headers.index("cmd_bot_text") + 1
-        cmd_values = sheet.col_values(c_index)[1:]
-        text_values = sheet.col_values(d_index)[1:]
-    except Exception as e:
-        logger.error(f"Ошибка чтения команд бота: {e}")
-        return ["Команды недоступны"]
-
-    commands = []
-    for cmd, text in zip(cmd_values, text_values):
-        cmd = cmd.strip() if cmd else ""
-        text = text.strip() if text else ""
-        if not cmd:
-            continue
-        commands.append(f"{cmd} — {text}" if text else cmd)
-    return commands
-
-
-def get_bot_deb_cmd() -> list[str]:
-    """
-    Читает команды отладки бота (cmd_bot_deb + cmd_bot_deb_text)
-    """
-    client = get_gspread_client()
-    if not client:
-        return ["Команды недоступны"]
-
-    try:
-        sheet = client.open("DareDevils").worksheet("Инфо")
-        headers = sheet.row_values(1)
-        c_index = headers.index("cmd_bot_deb") + 1
-        d_index = headers.index("cmd_bot_deb_text") + 1
-        cmd_values = sheet.col_values(c_index)[1:]
-        text_values = sheet.col_values(d_index)[1:]
-    except Exception as e:
-        logger.error(f"Ошибка чтения debug-команд: {e}")
-        return ["Команды недоступны"]
-
-    commands = []
-    for cmd, text in zip(cmd_values, text_values):
-        cmd = cmd.strip() if cmd else ""
-        text = text.strip() if text else ""
-        if not cmd:
-            continue
-        commands.append(f"{cmd} — {text}" if text else cmd)
-    return commands
-
-
-# ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
-
-def is_admin(user_id: int) -> bool:
-    return user_id in ADMINS
-
-def is_excluded_user(user_id: int) -> bool:
-    return user_id in EXCLUDED_USER_IDS
-
-def format_commands(commands):
-    return "\n".join(commands)
 
 
 # ===== КЛАВИАТУРЫ =====
@@ -163,7 +69,7 @@ async def participants(callback: types.CallbackQuery):
 async def commands(callback: types.CallbackQuery):
     # Показываем сразу основные команды
     await callback.message.edit_text(
-        format_commands(get_bot_commands()),
+        "\n".join(get_bot_commands()),
         reply_markup=create_back_menu()
     )
 
