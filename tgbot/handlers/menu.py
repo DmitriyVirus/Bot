@@ -214,9 +214,10 @@ async def debug_commands(callback: types.CallbackQuery):
 @router.callback_query(lambda c: c.data == "commands_main")
 async def main_commands(callback: types.CallbackQuery):
     await callback.message.edit_text(
-        f"{format_commands(Bot_cmd)}\n\n{format_triggers(TRIGGERS)}",
+        format_commands(Bot_cmd),
         reply_markup=create_back_menu()
     )
+
 
 
 @router.callback_query(lambda c: c.data in {"back_to_main", "menu_about_game"})
