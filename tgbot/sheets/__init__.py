@@ -10,7 +10,10 @@ from .take_from_sheet import (
     get_bot_commands,
     get_bot_deb_cmd,
     fetch_participants,
-    get_admins_records
+    get_admins_records,
+    get_welcome,
+    get_hello,
+    get_about_bot
 )
 
 # Создаём единый роутер для всех хэндлеров
