@@ -172,6 +172,19 @@ def get_hello() -> str:
         return "Данные недоступны"
     return "".join(flat_values)
 
+def get_hello_image() -> str | None:
+    client = get_gspread_client()
+    if not client:
+        return None
+
+    try:
+        sheet = client.open(SHEET_NAME).worksheet(INFO_WORKSHEET)
+        value = sheet.acell("B20").value
+        return value.strip() if value else None
+    except Exception as e:
+        logger.error(f"Ошибка чтения ячейки B20: {e}")
+        return None
+
 def get_about_bot() -> str:
     client = get_gspread_client()
     if not client:
