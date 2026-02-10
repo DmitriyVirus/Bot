@@ -10,6 +10,9 @@ from tgbot.sheets.take_from_sheet import (
     get_bot_deb_cmd,
     fetch_participants,
     get_admins_records
+    get_welcome,
+    get_hello,
+    get_about_bot
 )
 
 router = Router()
@@ -100,7 +103,7 @@ def create_settings_keyboard():
 @router.message(Command("bot"))
 async def bot_menu(message: types.Message):
     await message.answer(
-        get_info_column_by_header("Hello"),
+        get_hello(),  # теперь берём текст из B2:B19
         reply_markup=create_main_menu(),
         parse_mode="Markdown"
     )
