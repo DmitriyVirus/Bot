@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 WEBAPP_URL = os.environ.get("WEBAPP_URL")
 
+
 # ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
 
 def format_commands(commands):
@@ -99,7 +100,7 @@ def create_settings_keyboard():
     )
 
 
-# ===== ХЕНДЛЕРЫ =====
+# ===== ХЕНДЛЕР /bot =====
 
 @router.message(Command("bot"))
 async def bot_menu(message: types.Message):
@@ -121,13 +122,17 @@ async def bot_menu(message: types.Message):
         )
 
 
+# ===== CALLBACK ХЕНДЛЕРЫ =====
 
 @router.callback_query(lambda c: c.data == "menu_participants")
 async def participants(callback: types.CallbackQuery):
     expanded_table = fetch_participants()
 
+    # удаляем старое сообщение
+    await callback.message.delete()
+
     if not expanded_table:
-        await callback.message.edit_text(
+        await callback.message.answer(
             "Ошибка загрузки данных из Google Sheets.",
             reply_markup=create_back_menu()
         )
@@ -143,12 +148,18 @@ async def participants(callback: types.CallbackQuery):
                 f"Инфо: {user_info['about']}\n"
             )
 
-    await callback.message.edit_text(response, reply_markup=create_back_menu())
+    await callback.message.answer(
+        response,
+        reply_markup=create_back_menu()
+    )
 
 
 @router.callback_query(lambda c: c.data == "menu_commands")
 async def commands(callback: types.CallbackQuery):
-    await callback.message.edit_text(
+    # удаляем старое сообщение
+    await callback.message.delete()
+
+    await callback.message.answer(
         format_commands(get_bot_commands()),
         reply_markup=create_back_menu()
     )
@@ -156,24 +167,28 @@ async def commands(callback: types.CallbackQuery):
 
 @router.callback_query(lambda c: c.data == "menu_about_bot")
 async def about_bot(callback: types.CallbackQuery):
-    await callback.message.edit_text(
+    # удаляем старое сообщение
+    await callback.message.delete()
+
+    await callback.message.answer(
         get_info_column_by_header("about_bot"),
         reply_markup=create_about_menu(),
         disable_web_page_preview=True
     )
 
 
-# ⚙️ Настройки (внутри "Информация о боте")
 @router.callback_query(lambda c: c.data == "menu_settings")
 async def settings(callback: types.CallbackQuery):
     user_id = callback.from_user.id
 
-    # ❌ не админ — показываем сообщение
     if not is_user_allowed(user_id):
         await callback.answer("⛔ Нет доступа", show_alert=True)
         return
 
-    # ✅ админ — отправляем WebApp в личку
+    # удаляем старое сообщение
+    await callback.message.delete()
+
+    # отправляем WebApp в личку
     await callback.bot.send_message(
         chat_id=user_id,
         text="Открывай таблицу:",
@@ -183,7 +198,6 @@ async def settings(callback: types.CallbackQuery):
     await callback.answer()
 
 
-# 🛠 Хендлер для кнопки "Сервис"
 @router.callback_query(lambda c: c.data == "menu_service")
 async def service_menu(callback: types.CallbackQuery):
     user_id = callback.from_user.id
@@ -195,7 +209,10 @@ async def service_menu(callback: types.CallbackQuery):
     commands = get_bot_deb_cmd()
     text = "\n".join(commands)
 
-    await callback.message.edit_text(
+    # удаляем старое сообщение
+    await callback.message.delete()
+
+    await callback.message.answer(
         f"🛠 Сервисные команды:\n\n{text}",
         reply_markup=create_back_menu("menu_settings")
     )
@@ -203,7 +220,23 @@ async def service_menu(callback: types.CallbackQuery):
 
 @router.callback_query(lambda c: c.data == "back_to_main")
 async def back(callback: types.CallbackQuery):
-    await callback.message.edit_text(
-        get_info_column_by_header("Hello"),
-        reply_markup=create_main_menu()
-    )
+    # удаляем старое сообщение
+    await callback.message.delete()
+
+    # снова отправляем фото + текст / меню
+    image_url = get_hello_image()
+    text = get_hello()
+
+    if image_url:
+        await callback.message.answer_photo(
+            photo=image_url,
+            caption=text,
+            reply_markup=create_main_menu(),
+            parse_mode="Markdown"
+        )
+    else:
+        await callback.message.answer(
+            text,
+            reply_markup=create_main_menu(),
+            parse_mode="Markdown"
+        )
