@@ -3,7 +3,6 @@ from aiogram import Router, types
 from aiogram.filters import Command
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from tgbot.triggers import ABOUT
 from tgbot.sheets.gspread_client import get_gspread_client
 from tgbot.handlers.kto import fetch_data_from_sheet  # для участников чата
 
@@ -36,6 +35,10 @@ def get_info_column(range_name: str) -> str:
 
 def get_hello_text() -> str:
     return get_info_column("B2:B29")
+
+
+def get_about_bot_text() -> str:
+    return get_info_column("about_bot")  # новая колонка для информации о боте
 
 
 def get_bot_commands() -> list[str]:
@@ -126,7 +129,8 @@ async def commands(callback: types.CallbackQuery):
 
 @router.callback_query(lambda c: c.data == "menu_about_bot")
 async def about_bot(callback: types.CallbackQuery):
-    await callback.message.edit_text(ABOUT, reply_markup=create_back_menu())
+    about_text = get_about_bot_text()
+    await callback.message.edit_text(about_text, reply_markup=create_back_menu())
 
 
 @router.callback_query(lambda c: c.data == "back_to_main")
