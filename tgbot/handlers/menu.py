@@ -3,14 +3,20 @@ from aiogram import Router, types
 from aiogram.filters import Command
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
+from tgbot.handlers.kto import fetch_data_from_sheet  # Импорт для участников чата
 from tgbot.sheets.take_from_sheet import (
     get_info_column_by_header,
-    get_bot_commands
+    get_bot_commands,
+    get_bot_deb_cmd
 )
-from tgbot.handlers.kto import fetch_data_from_sheet  # Импорт для участников чата
 
 router = Router()
 logger = logging.getLogger(__name__)
+
+# ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
+
+def format_commands(commands):
+    return "\n".join(commands)
 
 
 # ===== КЛАВИАТУРЫ =====
@@ -42,14 +48,13 @@ async def bot_menu(message: types.Message):
 
 @router.callback_query(lambda c: c.data == "menu_participants")
 async def participants(callback: types.CallbackQuery):
-    client = get_gspread_client()
-    if not client:
-        await callback.message.edit_text("Ошибка подключения к Google Sheets.", reply_markup=create_back_menu())
-        return
+    expanded_table = fetch_data_from_sheet()  # Получаем данные напрямую из take_from_sheet.py
 
-    expanded_table = fetch_data_from_sheet(client)
     if not expanded_table:
-        await callback.message.edit_text("Ошибка загрузки данных из Google Sheets.", reply_markup=create_back_menu())
+        await callback.message.edit_text(
+            "Ошибка загрузки данных из Google Sheets.",
+            reply_markup=create_back_menu()
+        )
         return
 
     response = "Список всех участников:\n"
@@ -69,7 +74,7 @@ async def participants(callback: types.CallbackQuery):
 async def commands(callback: types.CallbackQuery):
     # Показываем сразу основные команды
     await callback.message.edit_text(
-        "\n".join(get_bot_commands()),
+        format_commands(get_bot_commands()),
         reply_markup=create_back_menu()
     )
 
