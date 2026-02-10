@@ -3,23 +3,25 @@ from .gspread_client import get_gspread_client
 
 logger = logging.getLogger(__name__)
 
+SHEET_NAME = "DareDevils"
+INFO_WORKSHEET = "Инфо"
+ID_WORKSHEET = "ID"
+
+
+# ===== ЧТЕНИЕ КОЛОНОК =====
 
 def get_info_column_by_header(header_name: str) -> str:
-    """
-    Читает колонку по имени заголовка (header_name) в листе 'Инфо'
-    и возвращает текст, склеенный через перенос строки.
-    """
     client = get_gspread_client()
     if not client:
         return "Данные недоступны"
 
     try:
-        sheet = client.open("DareDevils").worksheet("Инфо")
+        sheet = client.open(SHEET_NAME).worksheet(INFO_WORKSHEET)
         headers = sheet.row_values(1)
         if header_name not in headers:
             return f"Колонка '{header_name}' не найдена"
         col_index = headers.index(header_name) + 1
-        values = sheet.col_values(col_index)[1:]  # пропускаем заголовок
+        values = sheet.col_values(col_index)[1:]
     except Exception as e:
         logger.error(f"Ошибка чтения колонки '{header_name}': {e}")
         return "Данные недоступны"
@@ -28,15 +30,12 @@ def get_info_column_by_header(header_name: str) -> str:
 
 
 def get_bot_commands() -> list[str]:
-    """
-    Читает основные команды бота (cmd_bot + cmd_bot_text)
-    """
     client = get_gspread_client()
     if not client:
         return ["Команды недоступны"]
 
     try:
-        sheet = client.open("DareDevils").worksheet("Инфо")
+        sheet = client.open(SHEET_NAME).worksheet(INFO_WORKSHEET)
         headers = sheet.row_values(1)
         c_index = headers.index("cmd_bot") + 1
         d_index = headers.index("cmd_bot_text") + 1
@@ -57,15 +56,12 @@ def get_bot_commands() -> list[str]:
 
 
 def get_bot_deb_cmd() -> list[str]:
-    """
-    Читает команды отладки бота (cmd_bot_deb + cmd_bot_deb_text)
-    """
     client = get_gspread_client()
     if not client:
         return ["Команды недоступны"]
 
     try:
-        sheet = client.open("DareDevils").worksheet("Инфо")
+        sheet = client.open(SHEET_NAME).worksheet(INFO_WORKSHEET)
         headers = sheet.row_values(1)
         c_index = headers.index("cmd_bot_deb") + 1
         d_index = headers.index("cmd_bot_deb_text") + 1
@@ -83,3 +79,52 @@ def get_bot_deb_cmd() -> list[str]:
             continue
         commands.append(f"{cmd} — {text}" if text else cmd)
     return commands
+
+
+# ===== УЧАСТНИКИ ЧАТА =====
+
+def fetch_participants() -> dict:
+    """
+    Загружает участников из листа ID и возвращает словарь вида:
+    {alias_lower: {name, tgnick, nick, about}}
+    """
+    client = get_gspread_client()
+    if not client:
+        return {}
+
+    try:
+        sheet = client.open(SHEET_NAME).worksheet(ID_WORKSHEET)
+        records = sheet.get_all_records()
+        expanded_table = {}
+
+        for record in records:
+            first_name = record["first_name"]
+            last_name = record["last_name"]
+
+            if first_name.lower() == "unknown" and last_name.lower() == "unknown":
+                tgnick = "Unknown"
+            elif first_name.lower() == "unknown":
+                tgnick = last_name.strip()
+            elif last_name.lower() == "unknown":
+                tgnick = first_name.strip()
+            else:
+                tgnick = f"{first_name} {last_name}".strip()
+
+            user_data = {
+                "name": record["name"],
+                "tgnick": tgnick,
+                "nick": record["username"],
+                "about": record["about"]
+            }
+
+            expanded_table[record["name"].lower()] = user_data
+
+            if record["aliases"]:
+                aliases = [alias.strip().lower() for alias in record["aliases"].split(",")]
+                for alias in aliases:
+                    expanded_table[alias] = user_data
+
+        return expanded_table
+    except Exception as e:
+        logger.error(f"Ошибка загрузки участников из Google Sheets: {e}")
+        return {}
