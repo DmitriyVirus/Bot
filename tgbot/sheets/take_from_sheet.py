@@ -128,3 +128,22 @@ def fetch_participants() -> dict:
     except Exception as e:
         logger.error(f"Ошибка загрузки участников из Google Sheets: {e}")
         return {}
+
+def get_admins_records() -> list[dict]:
+    """
+    Загружает всех админов из листа 'Админы' Google Sheets.
+    Возвращает список словарей с ключами 'id' и 'name'.
+    """
+    client = get_gspread_client()
+    if not client:
+        return []
+
+    try:
+        sheet = client.open("DareDevils").worksheet("Админы")
+        records = sheet.get_all_records()
+        return records
+    except Exception as e:
+        logging.error(f"Ошибка загрузки админов: {e}")
+        return []
+
+
