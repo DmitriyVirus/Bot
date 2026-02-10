@@ -7,16 +7,12 @@ SHEET_NAME = "DareDevils"
 INFO_WORKSHEET = "Инфо"
 ID_WORKSHEET = "ID"
 
-
 # ===== ПРИВЕТСТВИЕ =====
 def get_welcome_text() -> str:
-    """
-    Возвращает текст приветствия из диапазона A2:A19.
-    """
+    """Возвращает текст приветствия из диапазона A2:A19."""
     client = get_gspread_client()
     if not client:
         return "Данные недоступны"
-
     try:
         sheet = client.open(SHEET_NAME).worksheet(INFO_WORKSHEET)
         values = sheet.get("A2:A19")
@@ -26,15 +22,11 @@ def get_welcome_text() -> str:
         logger.error(f"Ошибка чтения Welcome A2:A19: {e}")
         return "Данные недоступны"
 
-
 def get_hello_text() -> str:
-    """
-    Возвращает текст из диапазона Hello B2:B19.
-    """
+    """Возвращает текст из диапазона B2:B19."""
     client = get_gspread_client()
     if not client:
         return "Данные недоступны"
-
     try:
         sheet = client.open(SHEET_NAME).worksheet(INFO_WORKSHEET)
         values = sheet.get("B2:B19")
@@ -44,15 +36,11 @@ def get_hello_text() -> str:
         logger.error(f"Ошибка чтения Hello B2:B19: {e}")
         return "Данные недоступны"
 
-
 def get_about_bot_text() -> str:
-    """
-    Возвращает текст из диапазона about_bot C2:C19.
-    """
+    """Возвращает текст из диапазона C2:C19."""
     client = get_gspread_client()
     if not client:
         return "Данные недоступны"
-
     try:
         sheet = client.open(SHEET_NAME).worksheet(INFO_WORKSHEET)
         values = sheet.get("C2:C19")
@@ -62,16 +50,12 @@ def get_about_bot_text() -> str:
         logger.error(f"Ошибка чтения about_bot C2:C19: {e}")
         return "Данные недоступны"
 
-
 # ===== ССЫЛКА НА КАРТИНКУ =====
 def get_image_from_cell(cell="B20") -> str | None:
-    """
-    Возвращает ссылку на изображение из конкретной ячейки (по умолчанию B20).
-    """
+    """Возвращает ссылку на изображение из конкретной ячейки (по умолчанию B20)."""
     client = get_gspread_client()
     if not client:
         return None
-
     try:
         sheet = client.open(SHEET_NAME).worksheet(INFO_WORKSHEET)
         value = sheet.acell(cell).value
@@ -80,13 +64,11 @@ def get_image_from_cell(cell="B20") -> str | None:
         logger.error(f"Ошибка чтения ячейки '{cell}': {e}")
         return None
 
-
 # ===== ЧТЕНИЕ КОМАНД =====
 def get_bot_commands() -> list[str]:
     client = get_gspread_client()
     if not client:
         return ["Команды недоступны"]
-
     try:
         sheet = client.open(SHEET_NAME).worksheet(INFO_WORKSHEET)
         headers = sheet.row_values(1)
@@ -102,17 +84,14 @@ def get_bot_commands() -> list[str]:
     for cmd, text in zip(cmd_values, text_values):
         cmd = cmd.strip() if cmd else ""
         text = text.strip() if text else ""
-        if not cmd:
-            continue
-        commands.append(f"{cmd} — {text}" if text else cmd)
+        if cmd:
+            commands.append(f"{cmd} — {text}" if text else cmd)
     return commands
-
 
 def get_bot_deb_cmd() -> list[str]:
     client = get_gspread_client()
     if not client:
         return ["Команды недоступны"]
-
     try:
         sheet = client.open(SHEET_NAME).worksheet(INFO_WORKSHEET)
         headers = sheet.row_values(1)
@@ -128,23 +107,19 @@ def get_bot_deb_cmd() -> list[str]:
     for cmd, text in zip(cmd_values, text_values):
         cmd = cmd.strip() if cmd else ""
         text = text.strip() if text else ""
-        if not cmd:
-            continue
-        commands.append(f"{cmd} — {text}" if text else cmd)
+        if cmd:
+            commands.append(f"{cmd} — {text}" if text else cmd)
     return commands
-
 
 # ===== УЧАСТНИКИ ЧАТА =====
 def fetch_participants() -> dict:
     client = get_gspread_client()
     if not client:
         return {}
-
     try:
         sheet = client.open(SHEET_NAME).worksheet(ID_WORKSHEET)
         records = sheet.get_all_records()
         expanded_table = {}
-
         for record in records:
             first_name = record["first_name"]
             last_name = record["last_name"]
@@ -177,13 +152,11 @@ def fetch_participants() -> dict:
         logger.error(f"Ошибка загрузки участников из Google Sheets: {e}")
         return {}
 
-
 # ===== АДМИНЫ =====
 def get_admins_records() -> list[dict]:
     client = get_gspread_client()
     if not client:
         return []
-
     try:
         sheet = client.open(SHEET_NAME).worksheet("Админы")
         records = sheet.get_all_records()
