@@ -106,17 +106,17 @@ async def bot_menu(message: types.Message):
     image_url = get_image_from_cell("B20")  # теперь берём из B20
 
     if image_url:
+        # Без parse_mode для фото
         await message.answer_photo(
             photo=image_url,
             caption=welcome_text,
-            reply_markup=create_main_menu(),
-            parse_mode="Markdown"
+            reply_markup=create_main_menu()
         )
     else:
         await message.answer(
             welcome_text,
             reply_markup=create_main_menu(),
-            parse_mode="Markdown"
+            parse_mode="Markdown"  # только для обычного текста
         )
 
 
