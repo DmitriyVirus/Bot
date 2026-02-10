@@ -10,6 +10,7 @@ from .take_from_sheet import (
     get_bot_commands,
     get_bot_deb_cmd,
     fetch_participants,
+    get_welcome_text,
     get_admins_records
 )
 
