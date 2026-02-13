@@ -5,7 +5,7 @@ from aiogram.types import Message
 from aiogram.filters import Command
 
 from tgbot.triggers import TRIGGERS, COMMANDS_LIST, WELCOME_TEXT
-from tgbot.sheets.take_from_sheet import get_fu_data
+from tgbot.sheets.take_from_sheet import get_fu_data, get_nakol_data
 
 
 router = Router()
@@ -25,24 +25,24 @@ async def fu_handler(message: Message):
         parse_mode="Markdown"
     )
 
-# ===== КОМАНДА /nakol =====
-@router.message(Command(commands=["nakol"]))
+@router.message(Command("nakol"))
 async def nakol_handler(message: Message):
-    trigger = "на кол посадить"
-    if trigger in TRIGGERS:
-        response = TRIGGERS[trigger]
-        if isinstance(response, str):
-            await message.answer(response, parse_mode="Markdown")
-        elif isinstance(response, dict):
-            if "text" in response:
-                await message.answer(response["text"], parse_mode="Markdown")
-            if "image" in response:
-                await message.answer_photo(response["image"])
-            if "gif" in response:
-                await message.answer_animation(response["gif"])
-    else:
-        await message.answer("Нет ответа для этой команды.", parse_mode="Markdown")
+    # получаем подпись и ссылку на видео
+    caption, video_url = await asyncio.to_thread(get_nakol_data)
 
+    if not video_url:
+        await message.answer("Видео не найдено")
+        return
+
+    # конвертируем Google Drive ссылку в прямую, если нужно
+    video_url = convert_drive_url(video_url)
+
+    # отправляем видео с подписью
+    await message.answer_video(
+        video_url,
+        caption=caption,
+        parse_mode="Markdown"
+    )
 
 # ===== КОМАНДА /klaar =====
 @router.message(Command(commands=["klaar"]))
