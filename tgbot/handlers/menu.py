@@ -14,7 +14,9 @@ from tgbot.sheets.take_from_sheet import (
     get_hello,
     get_about_bot,
     get_hello_image,
-    get_about_bot_image
+    get_about_bot_image,
+    get_cmd_info
+
 
 )
 
@@ -161,10 +163,17 @@ async def commands(callback: types.CallbackQuery):
     # удаляем старое сообщение
     await callback.message.delete()
 
+    commands_text = format_commands(get_bot_commands())
+    extra_text = get_cmd_info()
+
+    full_text = f"{commands_text}\n\n{extra_text}"
+
     await callback.message.answer(
-        format_commands(get_bot_commands()),
-        reply_markup=create_back_menu()
+        full_text,
+        reply_markup=create_back_menu(),
+        disable_web_page_preview=True
     )
+
 
 
 @router.callback_query(lambda c: c.data == "menu_about_bot")
