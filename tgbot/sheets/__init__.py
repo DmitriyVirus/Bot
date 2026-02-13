@@ -17,7 +17,9 @@ from .take_from_sheet import (
     get_hello_image,
     get_about_bot_image,
     get_cmd_info,
-    get_fu_data
+    get_fu_data,
+    get_nakol_data
+
 
 )
 
