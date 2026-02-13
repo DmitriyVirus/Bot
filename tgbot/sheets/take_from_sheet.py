@@ -1,3 +1,4 @@
+import re
 import logging
 from .gspread_client import get_gspread_client
 
@@ -234,6 +235,39 @@ def get_fu_data() -> tuple[str, str]:
 
         caption = sheet.acell("I2").value or ""
         media_url = sheet.acell("I3").value or ""
+
+        return caption, media_url
+
+    except Exception as e:
+        logger.error(f"Ошибка чтения I2/I3: {e}")
+        return "Данные недоступны", ""
+
+def convert_drive_url(url: str) -> str:
+    """
+    Преобразует Google Drive ссылку вида:
+    https://drive.google.com/file/d/FILE_ID/view?usp=sharing
+    в прямую ссылку для скачивания:
+    https://drive.google.com/uc?export=download&id=FILE_ID
+    """
+    match = re.search(r'/d/([a-zA-Z0-9_-]+)', url)
+    if match:
+        file_id = match.group(1)
+        return f"https://drive.google.com/uc?export=download&id={file_id}"
+    return url  # если не Google Drive, возвращаем как есть
+
+
+def get_nakol_data() -> tuple[str, str]:
+    client = get_gspread_client()
+    if not client:
+        return "Данные недоступны", ""
+
+    try:
+        sheet = client.open(SHEET_NAME).worksheet("Инфо")
+        caption = sheet.acell("I2").value or ""
+        media_url = sheet.acell("I3").value or ""
+
+        # Преобразуем Drive-ссылку, если нужно
+        media_url = convert_drive_url(media_url)
 
         return caption, media_url
 
