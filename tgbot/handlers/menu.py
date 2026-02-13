@@ -16,15 +16,12 @@ from tgbot.sheets.take_from_sheet import (
     get_hello_image,
     get_about_bot_image,
     get_cmd_info
-
-
 )
 
 router = Router()
 logger = logging.getLogger(__name__)
 
 WEBAPP_URL = os.environ.get("WEBAPP_URL")
-
 
 # ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
 
