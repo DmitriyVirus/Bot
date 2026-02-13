@@ -1,39 +1,29 @@
 import logging
+import asyncio
 from aiogram import Router
 from aiogram.types import Message
 from aiogram.filters import Command
 
 from tgbot.triggers import TRIGGERS, COMMANDS_LIST, WELCOME_TEXT
+from tgbot.sheets.take_from_sheet import get_fu_data
+
 
 router = Router()
 logger = logging.getLogger(__name__)
 
+@router.message(Command("fu"))
+async def fu_handler(message: Message):
+    caption, image_url = await asyncio.to_thread(get_fu_data)
 
-@router.message(Command("help"))
-async def help_cmd(message: Message):
-    await message.answer(
-        "\n".join(COMMANDS_LIST),
+    if not image_url:
+        await message.answer("Картинка не найдена")
+        return
+
+    await message.answer_photo(
+        image_url,
+        caption=caption,
         parse_mode="Markdown"
     )
-
-# ===== КОМАНДА /fu =====
-@router.message(Command(commands=["fu"]))
-async def fu_handler(message: Message):
-    trigger = "код красный тут матюки"
-    if trigger in TRIGGERS:
-        response = TRIGGERS[trigger]
-        if isinstance(response, str):
-            await message.answer(response, parse_mode="Markdown")
-        elif isinstance(response, dict):
-            if "text" in response:
-                await message.answer(response["text"], parse_mode="Markdown")
-            if "image" in response:
-                await message.answer_photo(response["image"])
-            if "gif" in response:
-                await message.answer_animation(response["gif"])
-    else:
-        await message.answer("Нет ответа для этой команды.", parse_mode="Markdown")
-
 
 # ===== КОМАНДА /nakol =====
 @router.message(Command(commands=["nakol"]))
