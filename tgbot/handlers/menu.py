@@ -172,11 +172,24 @@ async def about_bot(callback: types.CallbackQuery):
     # удаляем старое сообщение
     await callback.message.delete()
 
-    await callback.message.answer(
-        get_info_column_by_header("about_bot"),
-        reply_markup=create_about_menu(),
-        disable_web_page_preview=True
-    )
+    image_url = get_about_bot_image()
+    text = get_about_bot()
+
+    if image_url:
+        await callback.message.answer_photo(
+            photo=image_url,
+            caption=text,
+            reply_markup=create_about_menu(),
+            parse_mode="Markdown"
+        )
+    else:
+        await callback.message.answer(
+            text,
+            reply_markup=create_about_menu(),
+            parse_mode="Markdown",
+            disable_web_page_preview=True
+        )
+
 
 
 @router.callback_query(lambda c: c.data == "menu_settings")
