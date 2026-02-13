@@ -211,3 +211,15 @@ def get_about_bot_image() -> str | None:
         logger.error(f"Ошибка чтения ячейки B20: {e}")
         return None
 
+def get_cmd_info() -> str:
+    client = get_gspread_client()
+    if not client:
+        return "Данные недоступны"
+    try:
+        sheet = client.open(SHEET_NAME).worksheet(INFO_WORKSHEET)
+        values = sheet.get("D2:D19")  # Диапазон A2:A19
+        flat_values = [row[0] for row in values if row]
+    except Exception as e:
+        logger.error(f"Ошибка чтения ячеек D2:D19: {e}")
+        return "Данные недоступны"
+    return "".join(flat_values)  # Склеиваем в одну строку
