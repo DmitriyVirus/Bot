@@ -16,7 +16,9 @@ from .take_from_sheet import (
     get_about_bot,
     get_hello_image,
     get_about_bot_image,
-    get_cmd_info
+    get_cmd_info,
+    get_fu_data
+
 )
 
 # Создаём единый роутер для всех хэндлеров
