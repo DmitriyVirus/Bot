@@ -263,8 +263,8 @@ def get_nakol_data() -> tuple[str, str]:
 
     try:
         sheet = client.open(SHEET_NAME).worksheet("Инфо")
-        caption = sheet.acell("I2").value or ""
-        media_url = sheet.acell("I3").value or ""
+        caption = sheet.acell("I5").value or ""
+        media_url = sheet.acell("I6").value or ""
 
         # Преобразуем Drive-ссылку, если нужно
         media_url = convert_drive_url(media_url)
