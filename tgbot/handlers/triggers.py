@@ -5,7 +5,7 @@ from aiogram.types import Message
 from aiogram.filters import Command
 
 from tgbot.triggers import TRIGGERS, COMMANDS_LIST, WELCOME_TEXT
-from tgbot.sheets.take_from_sheet import get_fu_data, get_nakol_data
+from tgbot.sheets.take_from_sheet import get_fu_data, get_nakol_data, convert_drive_url
 
 
 router = Router()
