@@ -223,3 +223,20 @@ def get_cmd_info() -> str:
         logger.error(f"Ошибка чтения ячеек D2:D19: {e}")
         return "Данные недоступны"
     return "".join(flat_values)  # Склеиваем в одну строку
+
+def get_fu_data() -> tuple[str, str]:
+    client = get_gspread_client()
+    if not client:
+        return "Данные недоступны", ""
+
+    try:
+        sheet = client.open(SHEET_NAME).worksheet("Инфо")
+
+        caption = sheet.acell("I2").value or ""
+        media_url = sheet.acell("I3").value or ""
+
+        return caption, media_url
+
+    except Exception as e:
+        logger.error(f"Ошибка чтения I2/I3: {e}")
+        return "Данные недоступны", ""
