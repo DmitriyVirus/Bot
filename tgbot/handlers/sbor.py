@@ -17,6 +17,7 @@ from tgbot.sheets.take_from_sheet import (
 logging.basicConfig(level=logging.DEBUG)
 router = Router()
 
+
 # ==========================
 # Markdown escape (aiogram v3 safe)
 # ==========================
@@ -199,11 +200,11 @@ async def event_handler(message: types.Message):
 @router.callback_query(lambda c: c.data == "join_plus")
 async def handle_plus_reaction(callback: types.CallbackQuery):
     user_id = callback.from_user.id
-    username = escape_md(callback.from_user.first_name)
+    username = callback.from_user.first_name  # не эскейпим имя
     message = callback.message
     participants = parse_participants(message.caption)
 
-    display_name = escape_md(get_user_from_sheet(user_id) or username)
+    display_name = get_user_from_sheet(user_id) or username  # без escape_md
 
     if display_name in participants:
         await callback.answer("Вы уже участвуете!")
@@ -223,11 +224,11 @@ async def handle_plus_reaction(callback: types.CallbackQuery):
 @router.callback_query(lambda c: c.data == "join_minus")
 async def handle_minus_reaction(callback: types.CallbackQuery):
     user_id = callback.from_user.id
-    username = escape_md(callback.from_user.first_name)
+    username = callback.from_user.first_name  # не эскейпим имя
     message = callback.message
     participants = parse_participants(message.caption)
 
-    display_name = escape_md(get_user_from_sheet(user_id) or username)
+    display_name = get_user_from_sheet(user_id) or username  # без escape_md
 
     if display_name not in participants:
         await callback.answer("Вы не участвуете.")
@@ -240,81 +241,65 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
     await update_caption(message, participants, callback,
                          f"Вы больше не участвуете, {display_name}.", time, keyboard)
 
+
+# ==========================
+# Ручное добавление / удаление участников
+# ==========================
 @router.message(lambda message: message.text and message.text.startswith("+ "))
 async def handle_plus_message(message: types.Message):
     user_id = message.from_user.id
-
     if user_id not in get_allowed_user_ids():
         return
 
-    username = escape_md(message.text[2:].strip())
-
+    username = message.text[2:].strip()  # без escape_md
     message_obj = message.reply_to_message
     if not message_obj or not (message_obj.caption or message_obj.text):
         return
 
     caption = message_obj.caption or message_obj.text
     participants = parse_participants(caption)
-
     if username in participants:
         await message.answer(f"{username} уже участвует!")
         return
 
     participants.append(username)
-
     time = extract_time_from_caption(caption)
     keyboard = create_keyboard()
 
-    await update_caption(
-        message_obj,
-        participants,
-        None,
-        f"{username} добавлен!",
-        time,
-        keyboard
-    )
+    await update_caption(message_obj, participants, None,
+                         f"{username} добавлен!", time, keyboard)
 
     try:
         await message.delete()
     except Exception:
         pass
 
+
 @router.message(lambda message: message.text and message.text.startswith("- "))
 async def handle_minus_message(message: types.Message):
     user_id = message.from_user.id
-
     if user_id not in get_allowed_user_ids():
         return
 
-    username = escape_md(message.text[2:].strip())
-
+    username = message.text[2:].strip()  # без escape_md
     message_obj = message.reply_to_message
     if not message_obj or not (message_obj.caption or message_obj.text):
         return
 
     caption = message_obj.caption or message_obj.text
     participants = parse_participants(caption)
-
     if username not in participants:
         await message.answer(f"{username} не участвует.")
         return
 
     participants.remove(username)
-
     time = extract_time_from_caption(caption)
     keyboard = create_keyboard()
 
-    await update_caption(
-        message_obj,
-        participants,
-        None,
-        f"{username} удален!",
-        time,
-        keyboard
-    )
+    await update_caption(message_obj, participants, None,
+                         f"{username} удален!", time, keyboard)
 
     try:
         await message.delete()
     except Exception:
         pass
-
