@@ -11,7 +11,8 @@ from tgbot.sheets.take_from_sheet import (
     get_bal_data,
     get_inn_data,
     get_ork_data,
-    get_inst_data
+    get_inst_data, 
+    get_name_username_dict
 )
 
 logging.basicConfig(level=logging.DEBUG)
@@ -303,3 +304,48 @@ async def handle_minus_message(message: types.Message):
         await message.delete()
     except Exception:
         pass
+
+
+
+
+
+@router.message(lambda message: message.text and message.text.lower() == "го" and message.reply_to_message)
+async def handle_go_message(message: types.Message):
+    reply_msg = message.reply_to_message
+    caption = reply_msg.caption or reply_msg.text or ""
+    if not caption:
+        return
+
+    # 1) Парсим участников из сообщения
+    participants = parse_participants(caption)
+    if not participants:
+        await message.answer("Не удалось найти участников в сообщении.")
+        return
+
+    # 2) Получаем словарь name -> username
+    name_username = get_name_username_dict()
+    if not name_username:
+        await message.answer("Не удалось получить данные из Google Sheets.")
+        return
+
+    # 3) Составляем список Telegram-ников
+    tg_usernames = []
+    for name in participants:
+        username = name_username.get(name)
+        if username:
+            tg_usernames.append(f"@{username}")
+
+    if not tg_usernames:
+        await message.answer("Не удалось сопоставить участников с их Telegram-никами.")
+        return
+
+    # 4) Отправляем сообщение
+    time = extract_time_from_caption(caption)
+    await message.answer(f"Собираемся ({time}): {', '.join(tg_usernames)}")
+
+    try:
+        await message.delete()
+    except Exception:
+        pass
+
+
