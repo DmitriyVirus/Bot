@@ -17,13 +17,28 @@ from tgbot.sheets.take_from_sheet import (
 router = Router()
 
 
+async def safe_fetch(func, *args):
+    """Обёртка для безопасного вызова блокирующих функций в отдельном потоке"""
+    try:
+        return await asyncio.to_thread(func, *args)
+    except Exception as e:
+        logging.exception(f"Ошибка при вызове {func.__name__}: {e}")
+        return None
+
+
 @router.message(Command("fu"))
 async def fu_handler(message: Message):
-    caption, image_url = await asyncio.to_thread(get_fu_data)
+    result = await safe_fetch(get_fu_data)
+    if not result:
+        await message.answer("Произошла ошибка при получении данных.")
+        return
 
+    caption, image_url = result
     if not image_url:
         await message.answer("Картинка не найдена")
         return
+
+    image_url = convert_drive_url(image_url)
 
     await message.answer_photo(
         image_url,
@@ -34,8 +49,12 @@ async def fu_handler(message: Message):
 
 @router.message(Command("nakol"))
 async def nakol_handler(message: Message):
-    caption, video_url = await asyncio.to_thread(get_nakol_data)
+    result = await safe_fetch(get_nakol_data)
+    if not result:
+        await message.answer("Произошла ошибка при получении данных.")
+        return
 
+    caption, video_url = result
     if not video_url:
         await message.answer("Видео не найдено")
         return
@@ -51,8 +70,12 @@ async def nakol_handler(message: Message):
 
 @router.message(Command("klaar"))
 async def klaar_handler(message: Message):
-    caption, video_url = await asyncio.to_thread(get_klaar_data)
+    result = await safe_fetch(get_klaar_data)
+    if not result:
+        await message.answer("Произошла ошибка при получении данных.")
+        return
 
+    caption, video_url = result
     if not video_url:
         await message.answer("Видео не найдено")
         return
@@ -68,8 +91,12 @@ async def klaar_handler(message: Message):
 
 @router.message(Command("kris"))
 async def kris_handler(message: Message):
-    caption, image_url = await asyncio.to_thread(get_kris_data)
+    result = await safe_fetch(get_kris_data)
+    if not result:
+        await message.answer("Произошла ошибка при получении данных.")
+        return
 
+    caption, image_url = result
     if not image_url:
         await message.answer("Картинка не найдена")
         return
@@ -85,7 +112,10 @@ async def kris_handler(message: Message):
 
 @router.message(Command("hi"))
 async def hi_handler(message: Message):
-    welcome_text = await asyncio.to_thread(get_welcome)
+    welcome_text = await safe_fetch(get_welcome)
+    if not welcome_text:
+        await message.answer("Произошла ошибка при получении приветственного текста.")
+        return
 
     await message.answer(
         welcome_text,
@@ -99,15 +129,15 @@ async def send_chat_id(message: Message):
     await message.answer(f"Ваш Chat ID: `{chat_id}`", parse_mode="Markdown")
     logging.info(f"Chat ID ({chat_id}) отправлен пользователю {message.from_user.id}")
 
+
 @router.message(Command(commands=["kto"]))
 async def who_is_this(message: Message):
-    participants = fetch_participants()
+    participants = await safe_fetch(fetch_participants)
     if not participants:
         await message.answer("Ошибка загрузки данных из Google Sheets.")
         return
 
     args = message.text.split(' ', 1)
-
     if len(args) < 2:
         await message.answer("Пожалуйста, укажите имя после команды или 'all' для всех.")
         return
@@ -119,23 +149,16 @@ async def who_is_this(message: Message):
         for user_name, user_info in participants.items():
             # Показываем только уникальные записи по основному имени
             if user_name == user_info["name"].lower():
-                response += (
-                    f"\nИмя: {user_info['name']}\n"
-                    f"{f'Имя в телеграмм: {user_info['tgnick']}\n' if user_info['tgnick'] != 'Unknown' else ''}"
-                    f"{f'Ник: @{user_info['nick']}\n' if user_info['nick'] != 'Unknown' else ''}"
-                    f"Инфо: {user_info['about']}\n"
-                )
+                tgnick_line = f"Имя в телеграмм: {user_info['tgnick']}\n" if user_info['tgnick'] != 'Unknown' else ''
+                nick_line = f"Ник: @{user_info['nick']}\n" if user_info['nick'] != 'Unknown' else ''
+                response += f"\nИмя: {user_info['name']}\n{tgnick_line}{nick_line}Инфо: {user_info['about']}\n"
         await message.answer(response)
     else:
         user_info = participants.get(name)
         if user_info:
-            response = (
-                f"Имя: {user_info['name']}\n"
-                f"{f'Имя в телеграмм: {user_info['tgnick']}\n' if user_info['tgnick'] != 'Unknown' else ''}"
-                f"{f'Ник: @{user_info['nick']}\n' if user_info['nick'] != 'Unknown' else ''}"
-                f"Инфо: {user_info['about']}"
-            )
+            tgnick_line = f"Имя в телеграмм: {user_info['tgnick']}\n" if user_info['tgnick'] != 'Unknown' else ''
+            nick_line = f"Ник: @{user_info['nick']}\n" if user_info['nick'] != 'Unknown' else ''
+            response = f"Имя: {user_info['name']}\n{tgnick_line}{nick_line}Инфо: {user_info['about']}"
             await message.answer(response)
         else:
             await message.answer(f"Информация о пользователе '{args[1]}' не найдена.")
-
