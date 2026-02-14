@@ -307,8 +307,6 @@ async def handle_minus_message(message: types.Message):
 
 
 
-
-
 @router.message(lambda message: message.text and message.text.lower().startswith("го") and message.reply_to_message)
 async def handle_go_numbered(message: types.Message):
     user_id = message.from_user.id
@@ -334,24 +332,22 @@ async def handle_go_numbered(message: types.Message):
         return
 
     # 3) Определяем номера участников, которые нужно тегнуть
-    # Пример: "го 1 2 7" → numbers = [1,2,7]
     numbers = re.findall(r"\d+", message.text)
     if numbers:
-        # Преобразуем в индексы (отнимаем 1, т.к. пользователь вводит с 1)
         indexes = [int(n)-1 for n in numbers if 0 < int(n) <= len(participants)]
         selected = [participants[i] for i in indexes]
     else:
-        # Если номера не указаны, тегаем всех
         selected = participants
 
     # 4) Формируем список упоминаний
     tg_usernames = []
     for name in selected:
-        username = name_username.get(name)
+        username = name_username.get(name)  # возвращает None, если имени нет в таблице
         if username and username.lower() != "unknown":
             tg_usernames.append(f"@{username}")
         else:
-            tg_usernames.append(name)  # если ник не найден или Unknown, оставляем исходное имя
+            # Если пользователя нет в таблице или username = Unknown → оставляем имя из сообщения
+            tg_usernames.append(name)
 
     if not tg_usernames:
         await message.answer("Не удалось сопоставить участников с их Telegram-никами.")
@@ -364,5 +360,3 @@ async def handle_go_numbered(message: types.Message):
         await message.delete()
     except Exception:
         pass
-
-
