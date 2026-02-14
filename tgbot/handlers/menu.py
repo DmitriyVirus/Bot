@@ -1,16 +1,13 @@
 import os
-import logging
 from aiogram import Router, types
 from aiogram.filters import Command
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from tgbot.sheets.take_from_sheet import (
-    get_info_column_by_header,
     get_bot_commands,
     get_bot_deb_cmd,
     fetch_participants,
     get_admins_records,
-    get_welcome,
     get_hello,
     get_about_bot,
     get_hello_image,
@@ -19,9 +16,9 @@ from tgbot.sheets.take_from_sheet import (
 )
 
 router = Router()
-logger = logging.getLogger(__name__)
 
 WEBAPP_URL = os.environ.get("WEBAPP_URL")
+
 
 # ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
 
@@ -128,8 +125,6 @@ async def bot_menu(message: types.Message):
 @router.callback_query(lambda c: c.data == "menu_participants")
 async def participants(callback: types.CallbackQuery):
     expanded_table = fetch_participants()
-
-    # удаляем старое сообщение
     await callback.message.delete()
 
     if not expanded_table:
@@ -157,12 +152,10 @@ async def participants(callback: types.CallbackQuery):
 
 @router.callback_query(lambda c: c.data == "menu_commands")
 async def commands(callback: types.CallbackQuery):
-    # удаляем старое сообщение
     await callback.message.delete()
 
     commands_text = format_commands(get_bot_commands())
     extra_text = get_cmd_info()
-
     full_text = f"{commands_text}\n\n{extra_text}"
 
     await callback.message.answer(
@@ -172,10 +165,8 @@ async def commands(callback: types.CallbackQuery):
     )
 
 
-
 @router.callback_query(lambda c: c.data == "menu_about_bot")
 async def about_bot(callback: types.CallbackQuery):
-    # удаляем старое сообщение
     await callback.message.delete()
 
     image_url = get_about_bot_image()
@@ -197,7 +188,6 @@ async def about_bot(callback: types.CallbackQuery):
         )
 
 
-
 @router.callback_query(lambda c: c.data == "menu_settings")
 async def settings(callback: types.CallbackQuery):
     user_id = callback.from_user.id
@@ -206,10 +196,8 @@ async def settings(callback: types.CallbackQuery):
         await callback.answer("⛔ Нет доступа", show_alert=True)
         return
 
-    # удаляем старое сообщение
     await callback.message.delete()
 
-    # отправляем WebApp в личку
     await callback.bot.send_message(
         chat_id=user_id,
         text="Открывай таблицу:",
@@ -230,7 +218,6 @@ async def service_menu(callback: types.CallbackQuery):
     commands = get_bot_deb_cmd()
     text = "\n".join(commands)
 
-    # удаляем старое сообщение
     await callback.message.delete()
 
     await callback.message.answer(
@@ -241,10 +228,8 @@ async def service_menu(callback: types.CallbackQuery):
 
 @router.callback_query(lambda c: c.data == "back_to_main")
 async def back(callback: types.CallbackQuery):
-    # удаляем старое сообщение
     await callback.message.delete()
 
-    # снова отправляем фото + текст / меню
     image_url = get_hello_image()
     text = get_hello()
 
