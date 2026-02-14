@@ -89,3 +89,10 @@ async def hi(message: Message):
         welcome_text,
         parse_mode="Markdown"
     )
+
+@router.message(Command(commands=["getid"]))
+async def send_chat_id(message: types.Message):
+    chat_id = message.chat.id
+    await message.answer(f"Ваш Chat ID: `{chat_id}`", parse_mode="Markdown")
+    logging.info(f"Chat ID ({chat_id}) отправлен пользователю {message.from_user.id}")
+
