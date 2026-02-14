@@ -156,7 +156,7 @@ async def send_event_photo(message: types.Message, photo_url: str, header_prefix
 # ==========================
 # Универсальный хендлер команд
 # ==========================
-@router.message(Command(list(EVENT_MAP.keys())))
+@router.message(Command(*EVENT_MAP.keys()))
 async def event_handler(message: types.Message):
     command = message.text.split()[0].replace("/", "")
     handler_func = EVENT_MAP.get(command)
