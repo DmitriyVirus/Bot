@@ -309,8 +309,13 @@ async def handle_minus_message(message: types.Message):
 
 
 
-@router.message(lambda message: message.text and message.text.lower() == "го" and message.reply_to_message)
-async def handle_go_message(message: types.Message):
+@router.message(lambda message: message.text and message.text.lower().startswith("го") and message.reply_to_message)
+async def handle_go_numbered(message: types.Message):
+    user_id = message.from_user.id
+    allowed_ids = get_allowed_user_ids()
+    if user_id not in allowed_ids:
+        return  # если пользователь не разрешён, ничего не делаем
+
     reply_msg = message.reply_to_message
     caption = reply_msg.caption or reply_msg.text or ""
     if not caption:
@@ -328,20 +333,32 @@ async def handle_go_message(message: types.Message):
         await message.answer("Не удалось получить данные из Google Sheets.")
         return
 
-    # 3) Составляем список Telegram-ников
+    # 3) Определяем номера участников, которые нужно тегнуть
+    # Пример: "го 1 2 7" → numbers = [1,2,7]
+    numbers = re.findall(r"\d+", message.text)
+    if numbers:
+        # Преобразуем в индексы (отнимаем 1, т.к. пользователь вводит с 1)
+        indexes = [int(n)-1 for n in numbers if 0 < int(n) <= len(participants)]
+        selected = [participants[i] for i in indexes]
+    else:
+        # Если номера не указаны, тегаем всех
+        selected = participants
+
+    # 4) Формируем список упоминаний
     tg_usernames = []
-    for name in participants:
+    for name in selected:
         username = name_username.get(name)
         if username:
             tg_usernames.append(f"@{username}")
+        else:
+            tg_usernames.append(name)  # если ник не найден, оставляем исходное имя
 
     if not tg_usernames:
         await message.answer("Не удалось сопоставить участников с их Telegram-никами.")
         return
 
-    # 4) Отправляем сообщение
-    time = extract_time_from_caption(caption)
-    await message.answer(f"Собираемся ({time}): {', '.join(tg_usernames)}")
+    # 5) Отправляем сообщение
+    await message.answer(f"Собираемся: {', '.join(tg_usernames)}")
 
     try:
         await message.delete()
