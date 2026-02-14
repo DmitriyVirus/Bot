@@ -4,8 +4,6 @@ import logging
 from aiogram import types, Router
 from aiogram.filters import Command
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from aiogram.utils.markdown import escape_md
-
 from tgbot.sheets.take_from_sheet import (
     get_user_from_sheet,
     get_allowed_user_ids,
@@ -17,12 +15,17 @@ from tgbot.sheets.take_from_sheet import (
 )
 
 logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
-
 router = Router()
 
 # ==========================
-# Маппинг событий
+# Markdown escape (aiogram v3 safe)
+# ==========================
+def escape_md(text: str) -> str:
+    return re.sub(r'([_*\[\]()~`>#+\-=|{}.!])', r'\\\1', text)
+
+
+# ==========================
+# EVENT MAP (универсальный хендлер)
 # ==========================
 EVENT_MAP = {
     "bal": get_bal_data,
@@ -31,15 +34,15 @@ EVENT_MAP = {
     "inst": get_inst_data,
 }
 
-TIME_PATTERN = r"\b\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})?\b"
 
 # ==========================
-# Создание клавиатуры
+# Клавиатура
 # ==========================
 def create_keyboard():
     plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
     minus_button = InlineKeyboardButton(text="➖ Не участвовать", callback_data="join_minus")
     return InlineKeyboardMarkup(inline_keyboard=[[plus_button, minus_button]])
+
 
 # ==========================
 # Парсинг участников
@@ -59,8 +62,9 @@ def parse_participants(caption: str):
 
 
 def extract_time_from_caption(caption: str):
-    time_match = re.search(TIME_PATTERN, caption)
+    time_match = re.search(r"\b\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})?\b", caption)
     return time_match.group(0) if time_match else "когда соберемся"
+
 
 # ==========================
 # Обновление подписи
@@ -98,74 +102,56 @@ async def update_caption(photo_message: types.Message, participants: list,
         if callback:
             await callback.answer(action_message)
     except Exception as e:
-        logger.error(f"Ошибка при обновлении подписи: {e}")
+        logging.error(f"Ошибка при обновлении подписи: {e}")
         if callback:
-            await callback.answer("Не удалось обновить подпись. Попробуйте снова.")
+            await callback.answer("Не удалось обновить подпись.")
+
 
 # ==========================
 # Отправка события
 # ==========================
 async def send_event_photo(message: types.Message, photo_url: str, header_prefix: str):
-    text = message.text
-    keyboard = create_keyboard()
 
-    time_match = re.search(TIME_PATTERN, text)
+    keyboard = create_keyboard()
+    time_match = re.search(r"\b\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})?\b", message.text or "")
     time = time_match.group(0) if time_match else "когда соберемся"
 
-    col_index = None
-    if time_match:
-        after_time = text[time_match.end():]
-        col_match = re.search(r"\b\d+\b", after_time)
-        if col_match:
-            col_index = int(col_match.group(0))
-    else:
-        col_match = re.search(r"\b\d+\b", text)
-        if col_match:
-            col_index = int(col_match.group(0))
+    header_text = escape_md(f"{header_prefix} {time}")
+    caption = (
+        f"*{header_text}*\n\n"
+        f"⚡⚡⚡*Нажмите ➕ в сообщении для участия*⚡⚡⚡\n\n"
+        f"Участвуют (0): "
+    )
 
-    user_id = message.from_user.id
-    allowed_ids = get_allowed_user_ids()
-
-    participants = []
-    if col_index and user_id in allowed_ids:
-        participants = get_column_data_from_autosbor(col_index)
-
-    header_text = f"{escape_md(header_prefix)} {time}"
-    caption = f"*{header_text}*\n\n⚡⚡⚡*Нажмите ➕ в сообщении для участия*⚡⚡⚡\n\n"
-
-    if participants:
-        participants = [escape_md(p) for p in participants]
-        caption += f"Участвуют ({len(participants)}): {', '.join(participants)}"
-    else:
-        caption += "Участвуют (0): "
-
-    # ✅ Защита от пустого фото
-    if not photo_url:
-        sent_message = await message.answer(
-            caption,
-            parse_mode="Markdown",
-            reply_markup=keyboard
-        )
-    else:
-        sent_message = await message.bot.send_photo(
-            chat_id=message.chat.id,
-            photo=photo_url,
-            caption=caption,
-            parse_mode="Markdown",
-            reply_markup=keyboard
-        )
-
-    # ✅ Безопасный pin
     try:
-        await message.chat.pin_message(sent_message.message_id)
+        if photo_url:
+            sent_message = await message.bot.send_photo(
+                chat_id=message.chat.id,
+                photo=photo_url,
+                caption=caption,
+                parse_mode="Markdown",
+                reply_markup=keyboard
+            )
+        else:
+            sent_message = await message.answer(
+                caption,
+                parse_mode="Markdown",
+                reply_markup=keyboard
+            )
+
+        try:
+            await message.chat.pin_message(sent_message.message_id)
+        except Exception as e:
+            logging.warning(f"Не удалось закрепить сообщение: {e}")
+
     except Exception as e:
-        logger.warning(f"Не удалось закрепить сообщение: {e}")
+        logging.error(f"Ошибка отправки события: {e}")
 
     try:
         await message.delete()
-        logger.info("Команда удалена из чата")
-    except Exception as e:
-        logger.error(f"Не удалось удалить команду: {e}")
+    except Exception:
+        pass
+
 
 # ==========================
 # Универсальный хендлер команд
@@ -174,26 +160,28 @@ async def send_event_photo(message: types.Message, photo_url: str, header_prefix
 async def event_handler(message: types.Message):
     command = message.text.split()[0].replace("/", "")
     handler_func = EVENT_MAP.get(command)
+
     if not handler_func:
         return
 
     text, media_url = handler_func()
     await send_event_photo(message, media_url, text)
 
+
 # ==========================
-# Обработчики кнопок
+# Callback ➕
 # ==========================
 @router.callback_query(lambda c: c.data == "join_plus")
 async def handle_plus_reaction(callback: types.CallbackQuery):
     user_id = callback.from_user.id
     username = escape_md(callback.from_user.first_name)
     message = callback.message
-
     participants = parse_participants(message.caption)
+
     display_name = escape_md(get_user_from_sheet(user_id) or username)
 
     if display_name in participants:
-        await callback.answer(f"Вы уже участвуете, {display_name}!")
+        await callback.answer("Вы уже участвуете!")
         return
 
     participants.append(display_name)
@@ -201,17 +189,19 @@ async def handle_plus_reaction(callback: types.CallbackQuery):
     keyboard = create_keyboard()
 
     await update_caption(message, participants, callback,
-                         f"Вы присоединились, {display_name}!",
-                         time, keyboard)
+                         f"Вы присоединились, {display_name}!", time, keyboard)
 
 
+# ==========================
+# Callback ➖
+# ==========================
 @router.callback_query(lambda c: c.data == "join_minus")
 async def handle_minus_reaction(callback: types.CallbackQuery):
     user_id = callback.from_user.id
     username = escape_md(callback.from_user.first_name)
     message = callback.message
-
     participants = parse_participants(message.caption)
+
     display_name = escape_md(get_user_from_sheet(user_id) or username)
 
     if display_name not in participants:
@@ -223,71 +213,4 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
     keyboard = create_keyboard()
 
     await update_caption(message, participants, callback,
-                         f"Вы больше не участвуете, {display_name}.",
-                         time, keyboard)
-
-# ==========================
-# +Имя / -Имя
-# ==========================
-@router.message(lambda message: message.text and message.text.startswith("+ "))
-async def handle_plus_message(message: types.Message):
-    if message.from_user.id not in get_allowed_user_ids():
-        return
-
-    username = escape_md(message.text[2:].strip())
-    message_obj = message.reply_to_message
-
-    if not message_obj or not (message_obj.caption or message_obj.text):
-        return
-
-    caption = message_obj.caption or message_obj.text
-    participants = parse_participants(caption)
-
-    if username in participants:
-        await message.answer(f"{username} уже участвует!")
-        return
-
-    participants.append(username)
-    time = extract_time_from_caption(caption)
-    keyboard = create_keyboard()
-
-    await update_caption(message_obj, participants, None,
-                         f"{username} присоединился!",
-                         time, keyboard)
-
-    try:
-        await message.delete()
-    except Exception as e:
-        logger.error(f"Не удалось удалить сообщение пользователя: {e}")
-
-
-@router.message(lambda message: message.text and message.text.startswith("- "))
-async def handle_minus_message(message: types.Message):
-    if message.from_user.id not in get_allowed_user_ids():
-        return
-
-    username = escape_md(message.text[2:].strip())
-    message_obj = message.reply_to_message
-
-    if not message_obj or not (message_obj.caption or message_obj.text):
-        return
-
-    caption = message_obj.caption or message_obj.text
-    participants = parse_participants(caption)
-
-    if username not in participants:
-        await message.answer(f"{username} не участвует.")
-        return
-
-    participants.remove(username)
-    time = extract_time_from_caption(caption)
-    keyboard = create_keyboard()
-
-    await update_caption(message_obj, participants, None,
-                         f"{username} больше не участвует.",
-                         time, keyboard)
-
-    try:
-        await message.delete()
-    except Exception as e:
-        logger.error(f"Не удалось удалить сообщение пользователя: {e}")
+                         f"Вы больше не участвуете, {display_name}.", time, keyboard)
