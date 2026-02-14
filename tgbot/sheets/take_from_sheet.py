@@ -192,6 +192,57 @@ def get_admins_records() -> list[dict]:
         return []
 
 
+def get_user_from_sheet(user_id: int):
+    sheet = get_sheet(ID_WORKSHEET)  # Раньше client.open("DareDevils").worksheet("ID")
+    if not sheet:
+        return None
+    try:
+        data = sheet.get_all_records()
+        for row in data:
+            if row.get('user_id') == user_id:
+                return row.get('name')
+    except Exception as e:
+        logger.error(f"Ошибка при get_user_from_sheet(): {e}")
+    return None
+
+
+# ==========================
+# Получение списка разрешенных ID пользователей
+# ==========================
+def get_allowed_user_ids():
+    sheet = get_sheet("Добавление")  # Раньше client.open("DareDevils").worksheet("Добавление")
+    if not sheet:
+        return set()
+    try:
+        data = sheet.get_all_records()
+        return set(int(row["id"]) for row in data if "id" in row and row["id"])
+    except Exception as e:
+        logger.error(f"Ошибка при get_allowed_user_ids(): {e}")
+        return set()
+
+
+# ==========================
+# Получение данных из колонки листа "Автосбор"
+# ==========================
+def get_column_data_from_autosbor(column_index: int):
+    """
+    Возвращает список значений из колонки column_index листа "Автосбор".
+    column_index: 1 = первый столбец
+    """
+    sheet = get_sheet("Автосбор")  # Раньше client.open("DareDevils").worksheet("Автосбор")
+    if not sheet:
+        return []
+    try:
+        all_values = sheet.get_all_values()
+        if not all_values or column_index <= 0 or column_index > len(all_values[0]):
+            return []
+        col_data = [row[column_index - 1].strip() for row in all_values if row[column_index - 1].strip()]
+        return col_data
+    except Exception as e:
+        logger.error(f"Ошибка при get_column_data_from_autosbor(): {e}")
+        return []
+
+
 # ===== ТЕКСТЫ =====
 
 def get_welcome() -> str:
