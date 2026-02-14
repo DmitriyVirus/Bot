@@ -308,7 +308,7 @@ def get_inn_data() -> tuple[str, str]:
     if not sheet:
         return "Данные недоступны", ""
     try:
-        text = sheet.acell("IJ5").value or ""
+        text = sheet.acell("J5").value or ""
         media_url = sheet.acell("J6").value or ""
         media_url = convert_drive_url(media_url)
         return text, media_url
