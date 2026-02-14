@@ -343,3 +343,32 @@ def get_inst_data() -> tuple[str, str]:
     except Exception as e:
         logger.error(f"Ошибка при get_inst_data(): {e}")
         return "Данные недоступны", ""
+
+
+# ==========================
+# Получение словаря name -> username (без алиасов)
+# ==========================
+def get_name_username_dict() -> dict[str, str]:
+    """
+    Возвращает словарь для листа ID:
+    ключ = name (например 'Дмитрий(маКароноВирус)')
+    значение = username Telegram (например 'DDestopia')
+    Алиасы игнорируются.
+    """
+    client = get_gspread_client()
+    if not client:
+        return {}
+
+    try:
+        sheet = client.open(SHEET_NAME).worksheet(ID_WORKSHEET)
+        records = sheet.get_all_records()
+        name_username = {}
+        for row in records:
+            name_field = row.get("name")
+            username_field = row.get("username")
+            if name_field and username_field:
+                name_username[name_field.strip()] = username_field.strip()
+        return name_username
+    except Exception as e:
+        logger.error(f"Ошибка при получении данных из листа ID: {e}")
+        return {}
