@@ -84,11 +84,10 @@ async def update_caption(photo_message: types.Message, participants: list,
     main_text = f"Участвуют ({len(main_participants)}): {', '.join(main_participants)}"
 
     updated_text = (
-        f"*{header}*\n\n"
+        f"*{escape_md(header)}*\n\n"  # эскейп только заголовок
         f"⚡⚡⚡*Нажмите ➕ в сообщении для участия*⚡⚡⚡\n\n"
-        f"{main_text}"
+        f"{main_text}"  # имена без эскейпа
     )
-
     if bench_participants:
         bench_text = f"Скамейка запасных ({len(bench_participants)}): {', '.join(bench_participants)}"
         updated_text += f"\n\n{bench_text}"
