@@ -19,7 +19,9 @@ from .take_from_sheet import (
     get_cmd_info,
     get_fu_data,
     get_nakol_data,
-    convert_drive_url
+    convert_drive_url,
+    get_klaar_data
+
 )
 
 # Создаём единый роутер для всех хэндлеров
