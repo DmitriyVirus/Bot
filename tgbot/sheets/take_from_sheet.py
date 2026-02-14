@@ -372,3 +372,56 @@ def get_name_username_dict() -> dict[str, str]:
     except Exception as e:
         logger.error(f"Ошибка при получении данных из листа ID: {e}")
         return {}
+
+
+# ==========================
+# Работа с пользователями
+# ==========================
+
+def is_user_exists(user_id: int) -> bool:
+    """
+    Проверяет, есть ли пользователь в листе ID.
+    """
+    sheet = get_sheet(ID_WORKSHEET)
+    if not sheet:
+        return False
+    try:
+        records = sheet.get_all_records()
+        for record in records:
+            if record.get("user_id") == user_id:
+                return True
+        return False
+    except Exception as e:
+        logger.error(f"Ошибка при проверке существования пользователя {user_id}: {e}")
+        return False
+
+
+def add_user_to_sheet_safe(user_id: int, username: str, first_name: str, last_name: str):
+    """
+    Добавляет пользователя в лист ID, если его нет.
+    Используется для блокирующего вызова в отдельном потоке.
+    """
+    sheet = get_sheet(ID_WORKSHEET)
+    if not sheet:
+        logger.error("Не удалось получить лист ID для добавления пользователя")
+        return
+    try:
+        if is_user_exists(user_id):
+            logger.info(f"Пользователь {user_id} уже существует в листе ID")
+            return
+
+        # Добавляем нового пользователя с дефолтными значениями
+        sheet.append_row([
+            user_id,
+            username,
+            first_name,
+            last_name,
+            "выясняем",  # name
+            "выясняем",  # aliases
+            "выясняем"   # about
+        ])
+        logger.info(f"Пользователь {username} ({user_id}) успешно добавлен в лист ID")
+    except Exception as e:
+        logger.error(f"Ошибка при добавлении пользователя {user_id}: {e}")
+
+
