@@ -29,8 +29,9 @@ from .take_from_sheet import (
     get_inn_data,
     get_ork_data,
     get_inst_data,
-    get_name_username_dict
-
+    get_name_username_dict,
+    is_user_exists,
+    add_user_to_sheet_safe
 )
 
 # Создаём единый роутер для всех хэндлеров
