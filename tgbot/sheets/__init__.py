@@ -24,7 +24,11 @@ from .take_from_sheet import (
     get_kris_data,
     get_user_from_sheet,
     get_allowed_user_ids,
-    get_column_data_from_autosbor
+    get_column_data_from_autosbor,
+    get_bal_data,
+    get_inn_data,
+    get_ork_data,
+    get_inst_data
 )
 
 # Создаём единый роутер для всех хэндлеров
