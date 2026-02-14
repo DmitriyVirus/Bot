@@ -5,7 +5,7 @@ from aiogram.types import Message
 from aiogram.filters import Command
 
 from tgbot.triggers import TRIGGERS, COMMANDS_LIST, WELCOME_TEXT
-from tgbot.sheets.take_from_sheet import get_fu_data, get_nakol_data, convert_drive_url, get_klaar_data, get_kris_data
+from tgbot.sheets.take_from_sheet import get_fu_data, get_nakol_data, convert_drive_url, get_klaar_data, get_kris_data, get_welcome
 
 
 router = Router()
@@ -82,10 +82,14 @@ async def kris_handler(message: Message):
         parse_mode="Markdown"
     )
 
-
 @router.message(Command("hi"))
 async def hi(message: Message):
-    await message.answer(WELCOME_TEXT, parse_mode="Markdown")
+    welcome_text = await asyncio.to_thread(get_welcome)
+
+    await message.answer(
+        welcome_text,
+        parse_mode="Markdown"
+    )
 
 
 @router.message(lambda m: m.text and any(t in m.text.lower() for t in TRIGGERS))
