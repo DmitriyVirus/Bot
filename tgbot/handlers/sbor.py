@@ -348,10 +348,10 @@ async def handle_go_numbered(message: types.Message):
     tg_usernames = []
     for name in selected:
         username = name_username.get(name)
-        if username:
+        if username and username.lower() != "unknown":
             tg_usernames.append(f"@{username}")
         else:
-            tg_usernames.append(name)  # если ник не найден, оставляем исходное имя
+            tg_usernames.append(name)  # если ник не найден или Unknown, оставляем исходное имя
 
     if not tg_usernames:
         await message.answer("Не удалось сопоставить участников с их Telegram-никами.")
