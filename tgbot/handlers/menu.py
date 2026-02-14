@@ -1,7 +1,9 @@
 import os
+import asyncio
+import logging
 from aiogram import Router, types
 from aiogram.filters import Command
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 
 from tgbot.sheets.take_from_sheet import (
     get_bot_commands,
@@ -16,26 +18,29 @@ from tgbot.sheets.take_from_sheet import (
 )
 
 router = Router()
-
 WEBAPP_URL = os.environ.get("WEBAPP_URL")
 
 
 # ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
 
+async def safe_fetch(func, *args):
+    """Асинхронный вызов блокирующих функций"""
+    try:
+        return await asyncio.to_thread(func, *args)
+    except Exception as e:
+        logging.exception(f"Ошибка при вызове {func.__name__}: {e}")
+        return None
+
+
 def format_commands(commands):
     return "\n".join(commands)
 
 
-def is_user_allowed(user_id: int) -> bool:
-    records = get_admins_records()
+async def is_user_allowed(user_id: int) -> bool:
+    records = await safe_fetch(get_admins_records)
     if not records:
         return False
-
-    for record in records:
-        if str(record.get("id")) == str(user_id):
-            return True
-
-    return False
+    return any(str(record.get("id")) == str(user_id) for record in records)
 
 
 # ===== КЛАВИАТУРЫ =====
@@ -62,49 +67,26 @@ def create_back_menu(back="back_to_main"):
 
 
 def create_settings_keyboard():
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text="Редактировать таблицу участников",
-                    web_app=types.WebAppInfo(url=f"{WEBAPP_URL}/google_tab")
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    text="Права добавления",
-                    web_app=types.WebAppInfo(url=f"{WEBAPP_URL}/permissions")
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    text="Автосбор",
-                    web_app=types.WebAppInfo(url=f"{WEBAPP_URL}/autosbor")
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    text="Админы",
-                    web_app=types.WebAppInfo(url=f"{WEBAPP_URL}/admins")
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    text="🛠 Сервис",
-                    callback_data="menu_service"
-                )
-            ]
-        ]
-    )
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Редактировать таблицу участников",
+                              web_app=WebAppInfo(url=f"{WEBAPP_URL}/google_tab"))],
+        [InlineKeyboardButton(text="Права добавления",
+                              web_app=WebAppInfo(url=f"{WEBAPP_URL}/permissions"))],
+        [InlineKeyboardButton(text="Автосбор",
+                              web_app=WebAppInfo(url=f"{WEBAPP_URL}/autosbor"))],
+        [InlineKeyboardButton(text="Админы",
+                              web_app=WebAppInfo(url=f"{WEBAPP_URL}/admins"))],
+        [InlineKeyboardButton(text="🛠 Сервис", callback_data="menu_service")]
+    ])
 
 
 # ===== ХЕНДЛЕР /bot =====
 
 @router.message(Command("bot"))
 async def bot_menu(message: types.Message):
-    image_url = get_hello_image()
-    text = get_hello()
-
+    image_url = await safe_fetch(get_hello_image)
+    text = await safe_fetch(get_hello) or "Привет!"
+    
     if image_url:
         await message.answer_photo(
             photo=image_url,
@@ -124,7 +106,7 @@ async def bot_menu(message: types.Message):
 
 @router.callback_query(lambda c: c.data == "menu_participants")
 async def participants(callback: types.CallbackQuery):
-    expanded_table = fetch_participants()
+    expanded_table = await safe_fetch(fetch_participants)
     await callback.message.delete()
 
     if not expanded_table:
@@ -137,12 +119,9 @@ async def participants(callback: types.CallbackQuery):
     response = "Список всех участников:\n"
     for user_name, user_info in expanded_table.items():
         if user_name == user_info["name"].lower():
-            response += (
-                f"\nИмя: {user_info['name']}\n"
-                f"{f'Имя в телеграмм: {user_info['tgnick']}\n' if user_info['tgnick'] != 'Unknown' else ''}"
-                f"{f'Ник: @{user_info['nick']}\n' if user_info['nick'] != 'Unknown' else ''}"
-                f"Инфо: {user_info['about']}\n"
-            )
+            tgnick_line = f"Имя в телеграмм: {user_info['tgnick']}\n" if user_info['tgnick'] != 'Unknown' else ''
+            nick_line = f"Ник: @{user_info['nick']}\n" if user_info['nick'] != 'Unknown' else ''
+            response += f"\nИмя: {user_info['name']}\n{tgnick_line}{nick_line}Инфо: {user_info['about']}\n"
 
     await callback.message.answer(
         response,
@@ -153,10 +132,9 @@ async def participants(callback: types.CallbackQuery):
 @router.callback_query(lambda c: c.data == "menu_commands")
 async def commands(callback: types.CallbackQuery):
     await callback.message.delete()
-
-    commands_text = format_commands(get_bot_commands())
-    extra_text = get_cmd_info()
-    full_text = f"{commands_text}\n\n{extra_text}"
+    commands_list = await safe_fetch(get_bot_commands) or []
+    extra_text = await safe_fetch(get_cmd_info) or ""
+    full_text = f"{format_commands(commands_list)}\n\n{extra_text}"
 
     await callback.message.answer(
         full_text,
@@ -168,9 +146,8 @@ async def commands(callback: types.CallbackQuery):
 @router.callback_query(lambda c: c.data == "menu_about_bot")
 async def about_bot(callback: types.CallbackQuery):
     await callback.message.delete()
-
-    image_url = get_about_bot_image()
-    text = get_about_bot()
+    image_url = await safe_fetch(get_about_bot_image)
+    text = await safe_fetch(get_about_bot) or "Информация о боте отсутствует."
 
     if image_url:
         await callback.message.answer_photo(
@@ -191,35 +168,30 @@ async def about_bot(callback: types.CallbackQuery):
 @router.callback_query(lambda c: c.data == "menu_settings")
 async def settings(callback: types.CallbackQuery):
     user_id = callback.from_user.id
-
-    if not is_user_allowed(user_id):
+    if not await is_user_allowed(user_id):
         await callback.answer("⛔ Нет доступа", show_alert=True)
         return
 
     await callback.message.delete()
-
     await callback.bot.send_message(
         chat_id=user_id,
         text="Открывай таблицу:",
         reply_markup=create_settings_keyboard()
     )
-
     await callback.answer()
 
 
 @router.callback_query(lambda c: c.data == "menu_service")
 async def service_menu(callback: types.CallbackQuery):
     user_id = callback.from_user.id
-
-    if not is_user_allowed(user_id):
+    if not await is_user_allowed(user_id):
         await callback.answer("⛔ Нет доступа", show_alert=True)
         return
 
-    commands = get_bot_deb_cmd()
-    text = "\n".join(commands)
+    commands_list = await safe_fetch(get_bot_deb_cmd) or []
+    text = "\n".join(commands_list)
 
     await callback.message.delete()
-
     await callback.message.answer(
         f"🛠 Сервисные команды:\n\n{text}",
         reply_markup=create_back_menu("menu_settings")
@@ -229,9 +201,8 @@ async def service_menu(callback: types.CallbackQuery):
 @router.callback_query(lambda c: c.data == "back_to_main")
 async def back(callback: types.CallbackQuery):
     await callback.message.delete()
-
-    image_url = get_hello_image()
-    text = get_hello()
+    image_url = await safe_fetch(get_hello_image)
+    text = await safe_fetch(get_hello) or "Привет!"
 
     if image_url:
         await callback.message.answer_photo(
