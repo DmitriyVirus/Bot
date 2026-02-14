@@ -5,7 +5,7 @@ from aiogram.types import Message
 from aiogram.filters import Command
 
 from tgbot.triggers import TRIGGERS, COMMANDS_LIST, WELCOME_TEXT
-from tgbot.sheets.take_from_sheet import get_fu_data, get_nakol_data, convert_drive_url, get_klaar_data
+from tgbot.sheets.take_from_sheet import get_fu_data, get_nakol_data, convert_drive_url, get_klaar_data, get_kris_data
 
 
 router = Router()
@@ -45,7 +45,7 @@ async def nakol_handler(message: Message):
     )
 
 @router.message(Command("klaar"))
-async def nakol_handler(message: Message):
+async def klaar_handler(message: Message):
     # получаем подпись и ссылку на видео
     caption, video_url = await asyncio.to_thread(get_klaar_data)
 
@@ -63,17 +63,24 @@ async def nakol_handler(message: Message):
         parse_mode="Markdown"
     )
 
-# ===== КОМАНДА /kris =====
-@router.message(Command(commands=["kris"]))
+@router.message(Command("kris"))
 async def kris_handler(message: Message):
-    photo_url = "https://i.redd.it/xces20zltm3b1.jpg"
-    caption = "Спасайтесь, это Крис!"
-    try:
-        await message.answer_photo(photo_url, caption=caption)
-        print(f"Изображение отправлено пользователю {message.from_user.id}")
-    except Exception as e:
-        await message.answer(f"Ошибка при отправке изображения: {e}")
-        print(f"Ошибка при отправке изображения: {e}")
+    # получаем подпись и ссылку на видео
+    caption, video_url = await asyncio.to_thread(get_kris_data)
+
+    if not video_url:
+        await message.answer("Видео не найдено")
+        return
+
+    # конвертируем Google Drive ссылку в прямую, если нужно
+    video_url = convert_drive_url(video_url)
+
+    # отправляем видео с подписью
+    await message.answer_video(
+        video_url,
+        caption=caption,
+        parse_mode="Markdown"
+    )
 
 
 @router.message(Command("hi"))
