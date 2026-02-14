@@ -285,3 +285,61 @@ def get_klaar_data() -> tuple[str, str]:
 
 def get_kris_data() -> tuple[str, str]:
     return get_media_block("I11", "I12")
+
+# ===== ТЕКСТ И КАРТИНКА ДЛЯ СОБЫТИЙ =====
+
+def get_bal_data() -> tuple[str, str]:
+    """Текст и картинка для /bal"""
+    sheet = get_sheet(INFO_WORKSHEET)
+    if not sheet:
+        return "Данные недоступны", ""
+    try:
+        text = sheet.acell("A2").value or ""
+        media_url = sheet.acell("B2").value or ""
+        media_url = convert_drive_url(media_url)
+        return text, media_url
+    except Exception as e:
+        logger.error(f"Ошибка при get_bal_data(): {e}")
+        return "Данные недоступны", ""
+
+def get_inn_data() -> tuple[str, str]:
+    """Текст и картинка для /inn"""
+    sheet = get_sheet(INFO_WORKSHEET)
+    if not sheet:
+        return "Данные недоступны", ""
+    try:
+        text = sheet.acell("A3").value or ""
+        media_url = sheet.acell("B3").value or ""
+        media_url = convert_drive_url(media_url)
+        return text, media_url
+    except Exception as e:
+        logger.error(f"Ошибка при get_inn_data(): {e}")
+        return "Данные недоступны", ""
+
+def get_ork_data() -> tuple[str, str]:
+    """Текст и картинка для /ork"""
+    sheet = get_sheet(INFO_WORKSHEET)
+    if not sheet:
+        return "Данные недоступны", ""
+    try:
+        text = sheet.acell("A4").value or ""
+        media_url = sheet.acell("B4").value or ""
+        media_url = convert_drive_url(media_url)
+        return text, media_url
+    except Exception as e:
+        logger.error(f"Ошибка при get_ork_data(): {e}")
+        return "Данные недоступны", ""
+
+def get_inst_data() -> tuple[str, str]:
+    """Текст и картинка для /inst"""
+    sheet = get_sheet(INFO_WORKSHEET)
+    if not sheet:
+        return "Данные недоступны", ""
+    try:
+        text = sheet.acell("A5").value or ""
+        media_url = sheet.acell("B5").value or ""
+        media_url = convert_drive_url(media_url)
+        return text, media_url
+    except Exception as e:
+        logger.error(f"Ошибка при get_inst_data(): {e}")
+        return "Данные недоступны", ""
