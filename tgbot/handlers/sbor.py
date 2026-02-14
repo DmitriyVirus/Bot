@@ -8,7 +8,11 @@ from tgbot.sheets.gspread_client import get_gspread_client
 from tgbot.sheets.take_from_sheet import (
     get_user_from_sheet,
     get_allowed_user_ids,
-    get_column_data_from_autosbor
+    get_column_data_from_autosbor,
+    get_bal_data,
+    get_inn_data,
+    get_ork_data,
+    get_inst_data
 )
 
 
@@ -141,35 +145,24 @@ async def send_event_photo(message: types.Message, photo_url: str, header_prefix
 # ==========================
 @router.message(Command("bal"))
 async def bal_handler(message: types.Message):
-    await send_event_photo(
-        message,
-        "https://i.pinimg.com/736x/ba/6c/7c/ba6c7c9c1bbde89410e5bcd8736166b2.jpg",
-        "🔥 Идем в гости к Балуану"
-    )
+    text, media_url = get_bal_data()
+    await send_event_photo(message, media_url, text)
 
 @router.message(Command("inn"))
 async def inn_handler(message: types.Message):
-    await send_event_photo(
-        message,
-        "https://i.pinimg.com/736x/2f/4d/55/2f4d556777763c9018c7b026f281e235.jpg",
-        "🌿 Сбор в Иннадрил"
-    )
+    text, media_url = get_inn_data()
+    await send_event_photo(message, media_url, text)
 
 @router.message(Command("ork"))
 async def ork_handler(message: types.Message):
-    await send_event_photo(
-        message,
-        "https://funny.klev.club/uploads/posts/2024-03/thumbs/funny-klev-club-p-smeshnie-kartinki-orki-7.jpg",
-        "⚔️ Идем на орков"
-    )
+    text, media_url = get_ork_data()
+    await send_event_photo(message, media_url, text)
 
 @router.message(Command("inst"))
 async def inst_handler(message: types.Message):
-    await send_event_photo(
-        message,
-        "https://battleclub.space/uploads/monthly_2022_07/baylor.jpg.02e0df864753bf47b1ef76303b993a1d.jpg",
-        "☠️ Идем в инсты"
-    )
+    text, media_url = get_inst_data()
+    await send_event_photo(message, media_url, text)
+
 
 # ==========================
 # Обработчики кнопок ➕ и ➖
