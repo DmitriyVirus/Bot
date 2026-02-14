@@ -1,6 +1,7 @@
 import os
 import re
 import logging
+import asyncio
 from aiogram import types, Router
 from aiogram.filters import Command
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
@@ -18,16 +19,24 @@ from tgbot.sheets.take_from_sheet import (
 logging.basicConfig(level=logging.DEBUG)
 router = Router()
 
-
 # ==========================
 # Markdown escape (aiogram v3 safe)
 # ==========================
 def escape_md(text: str) -> str:
     return re.sub(r'([_*\[\]()~`>#+\-=|{}.!])', r'\\\1', text)
 
+# ==========================
+# Асинхронный вызов блокирующих функций
+# ==========================
+async def safe_fetch(func, *args):
+    try:
+        return await asyncio.to_thread(func, *args)
+    except Exception as e:
+        logging.exception(f"Ошибка при вызове {func.__name__}: {e}")
+        return None
 
 # ==========================
-# EVENT MAP (универсальный хендлер)
+# EVENT MAP
 # ==========================
 EVENT_MAP = {
     "bal": get_bal_data,
@@ -36,7 +45,6 @@ EVENT_MAP = {
     "inst": get_inst_data,
 }
 
-
 # ==========================
 # Клавиатура
 # ==========================
@@ -44,7 +52,6 @@ def create_keyboard():
     plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
     minus_button = InlineKeyboardButton(text="➖ Не участвовать", callback_data="join_minus")
     return InlineKeyboardMarkup(inline_keyboard=[[plus_button, minus_button]])
-
 
 # ==========================
 # Парсинг участников
@@ -62,11 +69,34 @@ def parse_participants(caption: str):
 
     return main_participants + bench_participants
 
-
 def extract_time_from_caption(caption: str):
     time_match = re.search(r"\b\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})?\b", caption)
     return time_match.group(0) if time_match else "когда соберемся"
 
+# ==========================
+# Универсальная функция для добавления/удаления участников
+# ==========================
+async def modify_participants(message_obj: types.Message, username: str, action: str, callback: types.CallbackQuery = None):
+    participants = parse_participants(message_obj.caption or message_obj.text)
+    if action == "add":
+        if username in participants:
+            if callback:
+                await callback.answer("Вы уже участвуете!")
+            return
+        participants.append(username)
+        msg_text = f"{username} добавлен!" if not callback else f"Вы присоединились, {username}!"
+    elif action == "remove":
+        if username not in participants:
+            if callback:
+                await callback.answer("Вы не участвуете.")
+            return
+        participants.remove(username)
+        msg_text = f"{username} удален!" if not callback else f"Вы больше не участвуете, {username}."
+    else:
+        return
+    time = extract_time_from_caption(message_obj.caption or message_obj.text)
+    keyboard = create_keyboard()
+    await update_caption(message_obj, participants, callback, msg_text, time, keyboard)
 
 # ==========================
 # Обновление подписи
@@ -86,9 +116,9 @@ async def update_caption(photo_message: types.Message, participants: list,
     main_text = f"Участвуют ({len(main_participants)}): {', '.join(main_participants)}"
 
     updated_text = (
-        f"*{escape_md(header)}*\n\n"  # эскейп только заголовок
+        f"*{escape_md(header)}*\n\n"
         f"⚡⚡⚡*Нажмите ➕ в сообщении для участия*⚡⚡⚡\n\n"
-        f"{main_text}"  # имена без эскейпа
+        f"{main_text}"
     )
     if bench_participants:
         bench_text = f"Скамейка запасных ({len(bench_participants)}): {', '.join(bench_participants)}"
@@ -103,41 +133,32 @@ async def update_caption(photo_message: types.Message, participants: list,
         if callback:
             await callback.answer(action_message)
     except Exception as e:
-        logging.error(f"Ошибка при обновлении подписи: {e}")
+        logging.error(f"Ошибка при обновлении подписи для сообщения {photo_message.message_id}: {e}")
         if callback:
             await callback.answer("Не удалось обновить подпись.")
-
 
 # ==========================
 # Отправка события
 # ==========================
 async def send_event_photo(message: types.Message, photo_url: str, header_prefix: str):
-
     keyboard = create_keyboard()
     text = message.text or ""
-
-    # Извлекаем время
     time_match = re.search(r"\b\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})?\b", text)
     time = time_match.group(0) if time_match else "когда соберемся"
-
-    # Ищем все числа в команде (номера колонок)
     numbers = re.findall(r"\b\d+\b", text)
     col_indexes = [int(n) for n in numbers]
 
     user_id = message.from_user.id
-    allowed_ids = get_allowed_user_ids()
+    allowed_ids = await safe_fetch(get_allowed_user_ids)
 
     participants = []
-
-    # Если пользователь разрешен и переданы номера колонок
     if user_id in allowed_ids and col_indexes:
         for col in col_indexes:
-            column_data = get_column_data_from_autosbor(col)
+            column_data = await safe_fetch(get_column_data_from_autosbor, col)
             if column_data:
                 participants.extend(column_data)
 
     participants = list(dict.fromkeys(participants))
-
     header_text = escape_md(f"{header_prefix} {time}")
 
     caption = (
@@ -169,7 +190,7 @@ async def send_event_photo(message: types.Message, photo_url: str, header_prefix
         try:
             await message.chat.pin_message(sent_message.message_id)
         except Exception as e:
-            logging.warning(f"Не удалось закрепить сообщение: {e}")
+            logging.warning(f"Не удалось закрепить сообщение {sent_message.message_id}: {e}")
 
     except Exception as e:
         logging.error(f"Ошибка отправки события: {e}")
@@ -179,7 +200,6 @@ async def send_event_photo(message: types.Message, photo_url: str, header_prefix
     except Exception:
         pass
 
-
 # ==========================
 # Универсальный хендлер команд
 # ==========================
@@ -187,175 +207,82 @@ async def send_event_photo(message: types.Message, photo_url: str, header_prefix
 async def event_handler(message: types.Message):
     command = message.text.split()[0].replace("/", "")
     handler_func = EVENT_MAP.get(command)
-
     if not handler_func:
         return
 
-    text, media_url = handler_func()
+    text, media_url = await safe_fetch(handler_func)
     await send_event_photo(message, media_url, text)
 
-
 # ==========================
-# Callback ➕
+# Callback ➕ / ➖
 # ==========================
-@router.callback_query(lambda c: c.data == "join_plus")
-async def handle_plus_reaction(callback: types.CallbackQuery):
+@router.callback_query(lambda c: c.data in ["join_plus", "join_minus"])
+async def handle_reaction(callback: types.CallbackQuery):
     user_id = callback.from_user.id
-    username = callback.from_user.first_name  # не эскейпим имя
+    username = callback.from_user.first_name
     message = callback.message
-    participants = parse_participants(message.caption)
-
-    display_name = get_user_from_sheet(user_id) or username  # без escape_md
-
-    if display_name in participants:
-        await callback.answer("Вы уже участвуете!")
-        return
-
-    participants.append(display_name)
-    time = extract_time_from_caption(message.caption)
-    keyboard = create_keyboard()
-
-    await update_caption(message, participants, callback,
-                         f"Вы присоединились, {display_name}!", time, keyboard)
-
+    display_name = await safe_fetch(get_user_from_sheet, user_id) or username
+    action = "add" if callback.data == "join_plus" else "remove"
+    await modify_participants(message, display_name, action, callback)
 
 # ==========================
-# Callback ➖
+# Ручное добавление / удаление участников через сообщение
 # ==========================
-@router.callback_query(lambda c: c.data == "join_minus")
-async def handle_minus_reaction(callback: types.CallbackQuery):
-    user_id = callback.from_user.id
-    username = callback.from_user.first_name  # не эскейпим имя
-    message = callback.message
-    participants = parse_participants(message.caption)
-
-    display_name = get_user_from_sheet(user_id) or username  # без escape_md
-
-    if display_name not in participants:
-        await callback.answer("Вы не участвуете.")
-        return
-
-    participants.remove(display_name)
-    time = extract_time_from_caption(message.caption)
-    keyboard = create_keyboard()
-
-    await update_caption(message, participants, callback,
-                         f"Вы больше не участвуете, {display_name}.", time, keyboard)
-
-
-# ==========================
-# Ручное добавление / удаление участников
-# ==========================
-@router.message(lambda message: message.text and message.text.startswith("+ "))
-async def handle_plus_message(message: types.Message):
+@router.message(lambda message: message.text and message.text.startswith(("+ ", "- ")))
+async def handle_manual_message(message: types.Message):
     user_id = message.from_user.id
-    if user_id not in get_allowed_user_ids():
+    allowed_ids = await safe_fetch(get_allowed_user_ids)
+    if user_id not in allowed_ids:
         return
 
-    username = message.text[2:].strip()  # без escape_md
+    username = message.text[2:].strip()
     message_obj = message.reply_to_message
     if not message_obj or not (message_obj.caption or message_obj.text):
         return
 
-    caption = message_obj.caption or message_obj.text
-    participants = parse_participants(caption)
-    if username in participants:
-        await message.answer(f"{username} уже участвует!")
-        return
-
-    participants.append(username)
-    time = extract_time_from_caption(caption)
-    keyboard = create_keyboard()
-
-    await update_caption(message_obj, participants, None,
-                         f"{username} добавлен!", time, keyboard)
-
+    action = "add" if message.text.startswith("+ ") else "remove"
+    await modify_participants(message_obj, username, action)
     try:
         await message.delete()
     except Exception:
         pass
 
-
-@router.message(lambda message: message.text and message.text.startswith("- "))
-async def handle_minus_message(message: types.Message):
-    user_id = message.from_user.id
-    if user_id not in get_allowed_user_ids():
-        return
-
-    username = message.text[2:].strip()  # без escape_md
-    message_obj = message.reply_to_message
-    if not message_obj or not (message_obj.caption or message_obj.text):
-        return
-
-    caption = message_obj.caption or message_obj.text
-    participants = parse_participants(caption)
-    if username not in participants:
-        await message.answer(f"{username} не участвует.")
-        return
-
-    participants.remove(username)
-    time = extract_time_from_caption(caption)
-    keyboard = create_keyboard()
-
-    await update_caption(message_obj, participants, None,
-                         f"{username} удален!", time, keyboard)
-
-    try:
-        await message.delete()
-    except Exception:
-        pass
-
-
-
+# ==========================
+# Callback "го" с тегами участников
+# ==========================
 @router.message(lambda message: message.text and message.text.lower().startswith("го") and message.reply_to_message)
 async def handle_go_numbered(message: types.Message):
     user_id = message.from_user.id
-    allowed_ids = get_allowed_user_ids()
+    allowed_ids = await safe_fetch(get_allowed_user_ids)
     if user_id not in allowed_ids:
-        return  # если пользователь не разрешён, ничего не делаем
+        return
 
     reply_msg = message.reply_to_message
     caption = reply_msg.caption or reply_msg.text or ""
     if not caption:
         return
 
-    # 1) Парсим участников из сообщения
     participants = parse_participants(caption)
     if not participants:
         await message.answer("Не удалось найти участников в сообщении.")
         return
 
-    # 2) Получаем словарь name -> username
-    name_username = get_name_username_dict()
+    name_username = await safe_fetch(get_name_username_dict)
     if not name_username:
         await message.answer("Не удалось получить данные из Google Sheets.")
         return
 
-    # 3) Определяем номера участников, которые нужно тегнуть
     numbers = re.findall(r"\d+", message.text)
-    if numbers:
-        indexes = [int(n)-1 for n in numbers if 0 < int(n) <= len(participants)]
-        selected = [participants[i] for i in indexes]
-    else:
-        selected = participants
+    indexes = sorted(set([int(n)-1 for n in numbers if 0 < int(n) <= len(participants)])) if numbers else range(len(participants))
+    selected = [participants[i] for i in indexes]
 
-    # 4) Формируем список упоминаний
-    tg_usernames = []
-    for name in selected:
-        username = name_username.get(name)  # возвращает None, если имени нет в таблице
-        if username and username.lower() != "unknown":
-            tg_usernames.append(f"@{username}")
-        else:
-            # Если пользователя нет в таблице или username = Unknown → оставляем имя из сообщения
-            tg_usernames.append(name)
+    tg_usernames = [f"@{name_username.get(name)}" if name_username.get(name) and name_username.get(name).lower() != "unknown" else name for name in selected]
 
     if not tg_usernames:
         await message.answer("Не удалось сопоставить участников с их Telegram-никами.")
         return
 
-    # 5) Отправляем сообщение
     await message.answer(f"Собираемся: {', '.join(tg_usernames)}")
-
     try:
         await message.delete()
     except Exception:
