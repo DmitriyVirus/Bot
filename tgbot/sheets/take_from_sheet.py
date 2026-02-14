@@ -1,10 +1,11 @@
+import os
 import re
 import logging
 from .gspread_client import get_gspread_client
 
 logger = logging.getLogger(__name__)
 
-SHEET_NAME = "DareDevils"
+SHEET_NAME = os.environ.get("SHEET_NAME")
 INFO_WORKSHEET = "Инфо"
 ID_WORKSHEET = "ID"
 ADMINS_WORKSHEET = "Админы"
