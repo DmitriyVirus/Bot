@@ -76,7 +76,7 @@ async def kris_handler(message: Message):
     video_url = convert_drive_url(video_url)
 
     # отправляем видео с подписью
-    await message.answer_video(
+    await message.answer_photo(
         video_url,
         caption=caption,
         parse_mode="Markdown"
