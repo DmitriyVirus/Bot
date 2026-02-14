@@ -294,3 +294,22 @@ def get_klaar_data() -> tuple[str, str]:
         logger.error(f"Ошибка чтения I2/I3: {e}")
         return "Данные недоступны", ""
 
+def get_kris_data() -> tuple[str, str]:
+    client = get_gspread_client()
+    if not client:
+        return "Данные недоступны", ""
+
+    try:
+        sheet = client.open(SHEET_NAME).worksheet("Инфо")
+        caption = sheet.acell("I11").value or ""
+        media_url = sheet.acell("I12").value or ""
+
+        # Преобразуем Drive-ссылку, если нужно
+        media_url = convert_drive_url(media_url)
+
+        return caption, media_url
+
+    except Exception as e:
+        logger.error(f"Ошибка чтения I2/I3: {e}")
+        return "Данные недоступны", ""
+
