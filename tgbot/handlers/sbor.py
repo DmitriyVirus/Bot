@@ -113,15 +113,41 @@ async def update_caption(photo_message: types.Message, participants: list,
 async def send_event_photo(message: types.Message, photo_url: str, header_prefix: str):
 
     keyboard = create_keyboard()
-    time_match = re.search(r"\b\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})?\b", message.text or "")
+    text = message.text or ""
+
+    # Извлекаем время
+    time_match = re.search(r"\b\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})?\b", text)
     time = time_match.group(0) if time_match else "когда соберемся"
 
+    # Ищем все числа в команде (номера колонок)
+    numbers = re.findall(r"\b\d+\b", text)
+    col_indexes = [int(n) for n in numbers]
+
+    user_id = message.from_user.id
+    allowed_ids = get_allowed_user_ids()
+
+    participants = []
+
+    # Если пользователь разрешен и переданы номера колонок
+    if user_id in allowed_ids and col_indexes:
+        for col in col_indexes:
+            column_data = get_column_data_from_autosbor(col)
+            if column_data:
+                participants.extend(column_data)
+
+    participants = list(dict.fromkeys(participants))
+
     header_text = escape_md(f"{header_prefix} {time}")
+
     caption = (
         f"*{header_text}*\n\n"
         f"⚡⚡⚡*Нажмите ➕ в сообщении для участия*⚡⚡⚡\n\n"
-        f"Участвуют (0): "
     )
+
+    if participants:
+        caption += f"Участвуют ({len(participants)}): {', '.join(participants)}"
+    else:
+        caption += "Участвуют (0): "
 
     try:
         if photo_url:
@@ -214,3 +240,82 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
 
     await update_caption(message, participants, callback,
                          f"Вы больше не участвуете, {display_name}.", time, keyboard)
+
+@router.message(lambda message: message.text and message.text.startswith("+ "))
+async def handle_plus_message(message: types.Message):
+    user_id = message.from_user.id
+
+    if user_id not in get_allowed_user_ids():
+        return
+
+    username = escape_md(message.text[2:].strip())
+
+    message_obj = message.reply_to_message
+    if not message_obj or not (message_obj.caption or message_obj.text):
+        return
+
+    caption = message_obj.caption or message_obj.text
+    participants = parse_participants(caption)
+
+    if username in participants:
+        await message.answer(f"{username} уже участвует!")
+        return
+
+    participants.append(username)
+
+    time = extract_time_from_caption(caption)
+    keyboard = create_keyboard()
+
+    await update_caption(
+        message_obj,
+        participants,
+        None,
+        f"{username} добавлен!",
+        time,
+        keyboard
+    )
+
+    try:
+        await message.delete()
+    except Exception:
+        pass
+
+@router.message(lambda message: message.text and message.text.startswith("- "))
+async def handle_minus_message(message: types.Message):
+    user_id = message.from_user.id
+
+    if user_id not in get_allowed_user_ids():
+        return
+
+    username = escape_md(message.text[2:].strip())
+
+    message_obj = message.reply_to_message
+    if not message_obj or not (message_obj.caption or message_obj.text):
+        return
+
+    caption = message_obj.caption or message_obj.text
+    participants = parse_participants(caption)
+
+    if username not in participants:
+        await message.answer(f"{username} не участвует.")
+        return
+
+    participants.remove(username)
+
+    time = extract_time_from_caption(caption)
+    keyboard = create_keyboard()
+
+    await update_caption(
+        message_obj,
+        participants,
+        None,
+        f"{username} удален!",
+        time,
+        keyboard
+    )
+
+    try:
+        await message.delete()
+    except Exception:
+        pass
+
