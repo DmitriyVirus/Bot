@@ -294,8 +294,8 @@ def get_bal_data() -> tuple[str, str]:
     if not sheet:
         return "Данные недоступны", ""
     try:
-        text = sheet.acell("A2").value or ""
-        media_url = sheet.acell("B2").value or ""
+        text = sheet.acell("J2").value or ""
+        media_url = sheet.acell("J3").value or ""
         media_url = convert_drive_url(media_url)
         return text, media_url
     except Exception as e:
@@ -308,8 +308,8 @@ def get_inn_data() -> tuple[str, str]:
     if not sheet:
         return "Данные недоступны", ""
     try:
-        text = sheet.acell("A3").value or ""
-        media_url = sheet.acell("B3").value or ""
+        text = sheet.acell("IJ5").value or ""
+        media_url = sheet.acell("J6").value or ""
         media_url = convert_drive_url(media_url)
         return text, media_url
     except Exception as e:
@@ -322,8 +322,8 @@ def get_ork_data() -> tuple[str, str]:
     if not sheet:
         return "Данные недоступны", ""
     try:
-        text = sheet.acell("A4").value or ""
-        media_url = sheet.acell("B4").value or ""
+        text = sheet.acell("J8").value or ""
+        media_url = sheet.acell("J9").value or ""
         media_url = convert_drive_url(media_url)
         return text, media_url
     except Exception as e:
@@ -336,8 +336,8 @@ def get_inst_data() -> tuple[str, str]:
     if not sheet:
         return "Данные недоступны", ""
     try:
-        text = sheet.acell("A5").value or ""
-        media_url = sheet.acell("B5").value or ""
+        text = sheet.acell("J11").value or ""
+        media_url = sheet.acell("J12").value or ""
         media_url = convert_drive_url(media_url)
         return text, media_url
     except Exception as e:
