@@ -274,3 +274,23 @@ def get_nakol_data() -> tuple[str, str]:
     except Exception as e:
         logger.error(f"Ошибка чтения I2/I3: {e}")
         return "Данные недоступны", ""
+
+def get_klaar_data() -> tuple[str, str]:
+    client = get_gspread_client()
+    if not client:
+        return "Данные недоступны", ""
+
+    try:
+        sheet = client.open(SHEET_NAME).worksheet("Инфо")
+        caption = sheet.acell("I8").value or ""
+        media_url = sheet.acell("I9").value or ""
+
+        # Преобразуем Drive-ссылку, если нужно
+        media_url = convert_drive_url(media_url)
+
+        return caption, media_url
+
+    except Exception as e:
+        logger.error(f"Ошибка чтения I2/I3: {e}")
+        return "Данные недоступны", ""
+
