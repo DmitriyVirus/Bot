@@ -101,16 +101,20 @@ async def update_caption(msg: types.Message, participants: list, msg_text: str, 
     main = participants[:7]
     bench = participants[7:]
 
-    # Сохраняем заголовок отдельно
-    caption_orig = msg.caption or msg.text or ""
-    # Если это уже редактированное сообщение, берем первую строку до \n\n как заголовок
-    header_line = caption_orig.split("\n\n")[0] if "\n\n" in caption_orig else caption_orig
-    # Убираем лишние символы Markdown и знаки времени
-    header = re.sub(r"\b\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})?\b", "", header_line).strip()
+    # Берем текст исходного события (оригинальное сообщение, если есть reply_to_message)
+    # Если это callback, msg.caption уже отредактировано, берем msg.reply_to_message.caption
+    caption_orig = getattr(msg, 'original_caption', None) or msg.caption or msg.text or ""
+
+    # Отделяем заголовок и время
+    lines = caption_orig.split("\n")
+    first_line = lines[0] if lines else msg_text
+    # Убираем все цифры времени из заголовка
+    header = re.sub(r"\b\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})?\b", "", first_line).strip()
     header = escape_md(header) or msg_text
 
-    # Вытаскиваем время
-    time = extract_time(caption_orig)
+    # Берем время один раз
+    time_match = re.search(r"\b\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})?\b", first_line)
+    time = time_match.group(0) if time_match else "когда соберемся"
 
     # Формируем текст
     text = f"*{header}* {time}\n\n⚡⚡⚡*Нажмите ➕ в сообщении для участия*⚡⚡⚡\n\n"
