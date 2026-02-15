@@ -17,4 +17,5 @@ python-dotenv
 openpyxl
 pydrive2
 requests
+pyyaml
 
