@@ -5,18 +5,22 @@ import zipfile
 import requests
 from aiogram import Router, types
 from aiogram.filters import Command
+from tgbot.sheets.gspread_client import creds_json
+from google.oauth2.service_account import Credentials
 from pydrive2.auth import GoogleAuth
 from pydrive2.drive import GoogleDrive
+import json
 
 router = Router()
 
-# Путь для временной папки
+# Папка для временных файлов
 TEMP_DIR = "/tmp/Backup"
 
 # Переменные окружения
 GITHUB_REPO_URL = "https://github.com/DmitriyVirus/Bot"
 BACKUP_FOLDER_ID = os.environ.get("BACKUP_FOLDER_ID")
-CREDENTIALS_JSON = os.environ.get("GOOGLE_SHEET_KEY")  # можно положить JSON в проект
+
+# ================= Вспомогательные функции =================
 
 def download_repo_zip():
     """Скачиваем репозиторий с GitHub как ZIP и распаковываем"""
@@ -43,15 +47,25 @@ def download_repo_zip():
     return extracted_folder
 
 def create_archive(folder_path):
+    """Создаём zip-архив с временной меткой"""
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")
     archive_name = f"/tmp/bot_backup_{timestamp}.zip"
     shutil.make_archive(archive_name.replace('.zip',''), 'zip', folder_path)
     return archive_name
 
 def upload_to_gdrive(archive_name):
+    """Загружаем архив на Google Диск через существующие creds_json"""
+    if not creds_json:
+        raise ValueError("Google Sheets API key is missing. Set GOOGLE_SHEET_KEY environment variable.")
+
+    # Создаём Credentials для PyDrive2
+    credentials = Credentials.from_service_account_info(
+        json.loads(creds_json),
+        scopes=["https://www.googleapis.com/auth/drive"]
+    )
+
     gauth = GoogleAuth()
-    gauth.ServiceAuthSettings['client_json_file'] = CREDENTIALS_JSON
-    gauth.ServiceAuth()
+    gauth.credentials = credentials  # напрямую используем credentials
     drive = GoogleDrive(gauth)
 
     file = drive.CreateFile({
@@ -62,6 +76,7 @@ def upload_to_gdrive(archive_name):
     file.Upload()
 
 def cleanup(archive_name):
+    """Удаляем временные файлы"""
     if os.path.exists(TEMP_DIR):
         shutil.rmtree(TEMP_DIR)
     if os.path.exists("/tmp/repo.zip"):
@@ -69,7 +84,8 @@ def cleanup(archive_name):
     if os.path.exists(archive_name):
         os.remove(archive_name)
 
-# Хендлер для команды
+# ================= Хендлер для команды =================
+
 @router.message(Command("backupbotnow"))
 async def backup_now(message: types.Message):
     await message.answer("Начинаю бэкап репозитория...")
