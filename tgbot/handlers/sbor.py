@@ -12,22 +12,21 @@ from tgbot.sheets.take_from_sheet import (
     get_inn_data,
     get_ork_data,
     get_inst_data,
-    get_name_username_dict
+    get_name_username_dict,
 )
 
 logging.basicConfig(level=logging.DEBUG)
 router = Router()
 
-
 # ==========================
-# Markdown escape
+# Markdown escape (aiogram v3 safe)
 # ==========================
 def escape_md(text: str) -> str:
-    return re.sub(r'([_*\[\]()~`>#+\-=|{}.!])', r'\\\1', text)
+    return re.sub(r'([_*\[\]()~>#+\-=|{}.!])', r'\\\1', text)
 
 
 # ==========================
-# EVENT MAP
+# EVENT MAP (универсальный хендлер)
 # ==========================
 EVENT_MAP = {
     "bal": get_bal_data,
@@ -43,7 +42,10 @@ EVENT_MAP = {
 def create_keyboard():
     plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
     minus_button = InlineKeyboardButton(text="➖ Не участвовать", callback_data="join_minus")
-    return InlineKeyboardMarkup(inline_keyboard=[[plus_button, minus_button]])
+
+    return InlineKeyboardMarkup(
+        inline_keyboard=[[plus_button, minus_button]]
+    )
 
 
 # ==========================
@@ -51,70 +53,90 @@ def create_keyboard():
 # ==========================
 def parse_participants(caption: str):
     main_participants = []
-    bench_participants = []
-
-    match_main = re.search(r"Участвуют \(\d+\): ([^\n]+)", caption or "")
+    match_main = re.search(r"Участвуют \(\d+\): ([^\n]+)", caption)
     if match_main:
-        main_participants = [x.strip() for x in match_main.group(1).split(",") if x.strip()]
+        main_participants = [
+            name.strip()
+            for name in match_main.group(1).split(",")
+            if name.strip()
+        ]
 
-    match_bench = re.search(r"Скамейка запасных \(\d+\): ([^\n]+)", caption or "")
+    bench_participants = []
+    match_bench = re.search(r"Скамейка запасных \(\d+\): ([^\n]+)", caption)
     if match_bench:
-        bench_participants = [x.strip() for x in match_bench.group(1).split(",") if x.strip()]
+        bench_participants = [
+            name.strip()
+            for name in match_bench.group(1).split(",")
+            if name.strip()
+        ]
 
-    return main_participants, bench_participants
+    return main_participants + bench_participants
+
+
+def extract_time_from_caption(caption: str):
+    time_match = re.search(r"\b\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})?\b", caption)
+    return time_match.group(0) if time_match else "когда соберемся"
 
 
 # ==========================
 # Обновление подписи
 # ==========================
-async def update_caption(photo_message: types.Message,
-                         main_participants: list,
-                         bench_participants: list,
-                         callback: types.CallbackQuery,
-                         action_message: str,
-                         keyboard: InlineKeyboardMarkup):
+async def update_caption(
+    photo_message: types.Message,
+    participants: list,
+    callback: types.CallbackQuery,
+    action_message: str,
+    time: str,
+    keyboard: InlineKeyboardMarkup,
+):
+    participants = list(dict.fromkeys(participants))
 
-    main_participants = list(dict.fromkeys(main_participants))
-    bench_participants = list(dict.fromkeys(bench_participants))
+    main_participants = participants[:7]
+    bench_participants = participants[7:]
 
-    caption_orig = photo_message.caption or ""
-    first_line = caption_orig.split("\n")[0].replace("*", "").strip()
+    header_match = re.search(
+        r"^\s*[*_]?(.+?)\s*[*_]?[\n\r]",
+        photo_message.caption or "",
+    )
+    header = header_match.group(1) if header_match else f"Идем в {time}"
 
-    header = re.sub(r"\b\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})?\b", "", first_line).strip()
-    if not header:
-        header = "Событие"
+    main_text = f"Участвуют ({len(main_participants)}): {', '.join(main_participants)}"
 
     updated_text = (
         f"*{escape_md(header)}*\n\n"
         f"⚡⚡⚡*Нажмите ➕ в сообщении для участия*⚡⚡⚡\n\n"
-        f"Участвуют ({len(main_participants)}): {', '.join(main_participants) if main_participants else ''}"
+        f"{main_text}"
     )
 
     if bench_participants:
-        updated_text += (
-            f"\n\nСкамейка запасных ({len(bench_participants)}): "
+        bench_text = (
+            f"Скамейка запасных ({len(bench_participants)}): "
             f"{', '.join(bench_participants)}"
         )
+        updated_text += f"\n\n{bench_text}"
 
     try:
         await photo_message.edit_caption(
             caption=updated_text,
             parse_mode="Markdown",
-            reply_markup=keyboard
+            reply_markup=keyboard,
         )
         if callback:
             await callback.answer(action_message)
     except Exception as e:
         logging.error(f"Ошибка при обновлении подписи: {e}")
         if callback:
-            await callback.answer("Ошибка обновления.")
+            await callback.answer("Не удалось обновить подпись.")
 
 
 # ==========================
 # Отправка события
 # ==========================
-async def send_event_photo(message: types.Message, photo_url: str, header_prefix: str):
-
+async def send_event_photo(
+    message: types.Message,
+    photo_url: str,
+    header_prefix: str,
+):
     keyboard = create_keyboard()
     text = message.text or ""
 
@@ -126,61 +148,65 @@ async def send_event_photo(message: types.Message, photo_url: str, header_prefix
 
     user_id = message.from_user.id
     allowed_ids = get_allowed_user_ids()
-
-    main_participants = []
-    bench_participants = []
+    participants = []
 
     if user_id in allowed_ids and col_indexes:
         for col in col_indexes:
             column_data = get_column_data_from_autosbor(col)
             if column_data:
-                main_participants.extend(column_data)
+                participants.extend(column_data)
 
-    main_participants = list(dict.fromkeys(main_participants))
+        participants = list(dict.fromkeys(participants))
 
     header_text = escape_md(f"{header_prefix} {time}")
 
     caption = (
         f"*{header_text}*\n\n"
         f"⚡⚡⚡*Нажмите ➕ в сообщении для участия*⚡⚡⚡\n\n"
-        f"Участвуют ({len(main_participants)}): "
-        f"{', '.join(main_participants) if main_participants else ''}"
     )
 
-    if photo_url:
-        sent_message = await message.bot.send_photo(
-            chat_id=message.chat.id,
-            photo=photo_url,
-            caption=caption,
-            parse_mode="Markdown",
-            reply_markup=keyboard
-        )
+    if participants:
+        caption += f"Участвуют ({len(participants)}): {', '.join(participants)}"
     else:
-        sent_message = await message.answer(
-            caption,
-            parse_mode="Markdown",
-            reply_markup=keyboard
-        )
+        caption += "Участвуют (0): "
 
     try:
-        await message.chat.pin_message(sent_message.message_id)
-    except:
-        pass
+        if photo_url:
+            sent_message = await message.bot.send_photo(
+                chat_id=message.chat.id,
+                photo=photo_url,
+                caption=caption,
+                parse_mode="Markdown",
+                reply_markup=keyboard,
+            )
+        else:
+            sent_message = await message.answer(
+                caption,
+                parse_mode="Markdown",
+                reply_markup=keyboard,
+            )
+
+        try:
+            await message.chat.pin_message(sent_message.message_id)
+        except Exception as e:
+            logging.warning(f"Не удалось закрепить сообщение: {e}")
+
+    except Exception as e:
+        logging.error(f"Ошибка отправки события: {e}")
 
     try:
         await message.delete()
-    except:
+    except Exception:
         pass
 
 
 # ==========================
-# Команды событий
+# Универсальный хендлер команд
 # ==========================
 @router.message(Command(*EVENT_MAP.keys()))
 async def event_handler(message: types.Message):
     command = message.text.split()[0].replace("/", "")
     handler_func = EVENT_MAP.get(command)
-
     if not handler_func:
         return
 
@@ -189,120 +215,208 @@ async def event_handler(message: types.Message):
 
 
 # ==========================
-# ➕ Кнопка
+# Callback ➕
 # ==========================
 @router.callback_query(lambda c: c.data == "join_plus")
-async def handle_plus(callback: types.CallbackQuery):
+async def handle_plus_reaction(callback: types.CallbackQuery):
+    user_id = callback.from_user.id
+    username = callback.from_user.first_name
+
     message = callback.message
-    main_participants, bench_participants = parse_participants(message.caption)
+    participants = parse_participants(message.caption)
 
-    display_name = get_user_from_sheet(callback.from_user.id) or callback.from_user.first_name
+    display_name = get_user_from_sheet(user_id) or username
 
-    if display_name in main_participants or display_name in bench_participants:
+    if display_name in participants:
         await callback.answer("Вы уже участвуете!")
         return
 
-    if len(main_participants) < 7:
-        main_participants.append(display_name)
-    else:
-        bench_participants.append(display_name)
+    participants.append(display_name)
+
+    time = extract_time_from_caption(message.caption)
+    keyboard = create_keyboard()
 
     await update_caption(
         message,
-        main_participants,
-        bench_participants,
+        participants,
         callback,
-        "Вы добавлены!",
-        create_keyboard()
+        f"Вы присоединились, {display_name}!",
+        time,
+        keyboard,
     )
 
 
 # ==========================
-# ➖ Кнопка
+# Callback ➖
 # ==========================
 @router.callback_query(lambda c: c.data == "join_minus")
-async def handle_minus(callback: types.CallbackQuery):
+async def handle_minus_reaction(callback: types.CallbackQuery):
+    user_id = callback.from_user.id
+    username = callback.from_user.first_name
+
     message = callback.message
-    main_participants, bench_participants = parse_participants(message.caption)
+    participants = parse_participants(message.caption)
 
-    display_name = get_user_from_sheet(callback.from_user.id) or callback.from_user.first_name
+    display_name = get_user_from_sheet(user_id) or username
 
-    if display_name in main_participants:
-        main_participants.remove(display_name)
-    elif display_name in bench_participants:
-        bench_participants.remove(display_name)
-    else:
+    if display_name not in participants:
         await callback.answer("Вы не участвуете.")
         return
 
+    participants.remove(display_name)
+
+    time = extract_time_from_caption(message.caption)
+    keyboard = create_keyboard()
+
     await update_caption(
         message,
-        main_participants,
-        bench_participants,
+        participants,
         callback,
-        "Вы удалены.",
-        create_keyboard()
+        f"Вы больше не участвуете, {display_name}.",
+        time,
+        keyboard,
     )
 
 
 # ==========================
-# Ручное добавление + Имя
+# Ручное добавление / удаление участников
 # ==========================
 @router.message(lambda message: message.text and message.text.startswith("+ "))
-async def manual_add(message: types.Message):
-    reply = message.reply_to_message
-    if not reply or not reply.caption:
+async def handle_plus_message(message: types.Message):
+    user_id = message.from_user.id
+    if user_id not in get_allowed_user_ids():
         return
 
-    name = message.text[2:].strip()
-    main_participants, bench_participants = parse_participants(reply.caption)
+    username = message.text[2:].strip()
 
-    if name in main_participants or name in bench_participants:
+    message_obj = message.reply_to_message
+    if not message_obj or not (message_obj.caption or message_obj.text):
         return
 
-    if len(main_participants) < 7:
-        main_participants.append(name)
+    caption = message_obj.caption or message_obj.text
+    participants = parse_participants(caption)
+
+    if username in participants:
+        await message.answer(f"{username} уже участвует!")
+        return
+
+    participants.append(username)
+
+    time = extract_time_from_caption(caption)
+    keyboard = create_keyboard()
+
+    await update_caption(
+        message_obj,
+        participants,
+        None,
+        f"{username} добавлен!",
+        time,
+        keyboard,
+    )
+
+    try:
+        await message.delete()
+    except Exception:
+        pass
+
+
+@router.message(lambda message: message.text and message.text.startswith("- "))
+async def handle_minus_message(message: types.Message):
+    user_id = message.from_user.id
+    if user_id not in get_allowed_user_ids():
+        return
+
+    username = message.text[2:].strip()
+
+    message_obj = message.reply_to_message
+    if not message_obj or not (message_obj.caption or message_obj.text):
+        return
+
+    caption = message_obj.caption or message_obj.text
+    participants = parse_participants(caption)
+
+    if username not in participants:
+        await message.answer(f"{username} не участвует.")
+        return
+
+    participants.remove(username)
+
+    time = extract_time_from_caption(caption)
+    keyboard = create_keyboard()
+
+    await update_caption(
+        message_obj,
+        participants,
+        None,
+        f"{username} удален!",
+        time,
+        keyboard,
+    )
+
+    try:
+        await message.delete()
+    except Exception:
+        pass
+
+
+@router.message(
+    lambda message: message.text
+    and message.text.lower().startswith("го")
+    and message.reply_to_message
+)
+async def handle_go_numbered(message: types.Message):
+    user_id = message.from_user.id
+    allowed_ids = get_allowed_user_ids()
+
+    if user_id not in allowed_ids:
+        return
+
+    reply_msg = message.reply_to_message
+    caption = reply_msg.caption or reply_msg.text or ""
+    if not caption:
+        return
+
+    participants = parse_participants(caption)
+    if not participants:
+        await message.answer("Не удалось найти участников в сообщении.")
+        return
+
+    name_username = get_name_username_dict()
+    if not name_username:
+        await message.answer("Не удалось получить данные из Google Sheets.")
+        return
+
+    numbers = re.findall(r"\d+", message.text)
+
+    if numbers:
+        indexes = [
+            int(n) - 1
+            for n in numbers
+            if 0 < int(n) <= len(participants)
+        ]
+        selected = [participants[i] for i in indexes]
     else:
-        bench_participants.append(name)
+        selected = participants
 
-    await update_caption(
-        reply,
-        main_participants,
-        bench_participants,
-        None,
-        "",
-        create_keyboard()
-    )
+    tg_usernames = []
 
-    await message.delete()
+    for name in selected:
+        username = name_username.get(name)
 
+        if username and username.lower() != "unknown":
+            tg_usernames.append(f"@{username}")
+        else:
+            tg_usernames.append(name)
 
-# ==========================
-# ГО — массовое добавление
-# ==========================
-@router.message(lambda message: message.text and message.text.lower() == "го")
-async def go_all(message: types.Message):
-    reply = message.reply_to_message
-    if not reply or not reply.caption:
+    if not tg_usernames:
+        await message.answer(
+            "Не удалось сопоставить участников с их Telegram-никами."
+        )
         return
 
-    name_dict = get_name_username_dict()
-    main_participants, bench_participants = parse_participants(reply.caption)
+    await message.answer(f"Собираемся: {', '.join(tg_usernames)}")
 
-    for name in name_dict.values():
-        if name not in main_participants and name not in bench_participants:
-            if len(main_participants) < 7:
-                main_participants.append(name)
-            else:
-                bench_participants.append(name)
-
-    await update_caption(
-        reply,
-        main_participants,
-        bench_participants,
-        None,
-        "",
-        create_keyboard()
-    )
-
-    await message.delete()
+    try:
+        await message.delete()
+    except Exception:
+        pass
