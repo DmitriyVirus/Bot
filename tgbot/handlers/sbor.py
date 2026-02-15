@@ -12,17 +12,11 @@ from tgbot.sheets.take_from_sheet import (
     get_inn_data,
     get_ork_data,
     get_inst_data,
-    get_name_username_dict,
+    get_name_username_dict
 )
 
 logging.basicConfig(level=logging.DEBUG)
 router = Router()
-
-# ==========================
-# Markdown escape (aiogram v3 safe)
-# ==========================
-def escape_md(text: str) -> str:
-    return re.sub(r'([_*\[\]()~>#+\-=|{}.!])', r'\\\1', text)
 
 
 # ==========================
@@ -42,10 +36,7 @@ EVENT_MAP = {
 def create_keyboard():
     plus_button = InlineKeyboardButton(text="➕ Присоединиться", callback_data="join_plus")
     minus_button = InlineKeyboardButton(text="➖ Не участвовать", callback_data="join_minus")
-
-    return InlineKeyboardMarkup(
-        inline_keyboard=[[plus_button, minus_button]]
-    )
+    return InlineKeyboardMarkup(inline_keyboard=[[plus_button, minus_button]])
 
 
 # ==========================
@@ -55,20 +46,12 @@ def parse_participants(caption: str):
     main_participants = []
     match_main = re.search(r"Участвуют \(\d+\): ([^\n]+)", caption)
     if match_main:
-        main_participants = [
-            name.strip()
-            for name in match_main.group(1).split(",")
-            if name.strip()
-        ]
+        main_participants = [name.strip() for name in match_main.group(1).split(",") if name.strip()]
 
     bench_participants = []
     match_bench = re.search(r"Скамейка запасных \(\d+\): ([^\n]+)", caption)
     if match_bench:
-        bench_participants = [
-            name.strip()
-            for name in match_bench.group(1).split(",")
-            if name.strip()
-        ]
+        bench_participants = [name.strip() for name in match_bench.group(1).split(",") if name.strip()]
 
     return main_participants + bench_participants
 
@@ -81,45 +64,35 @@ def extract_time_from_caption(caption: str):
 # ==========================
 # Обновление подписи
 # ==========================
-async def update_caption(
-    photo_message: types.Message,
-    participants: list,
-    callback: types.CallbackQuery,
-    action_message: str,
-    time: str,
-    keyboard: InlineKeyboardMarkup,
-):
-    participants = list(dict.fromkeys(participants))
+async def update_caption(photo_message: types.Message, participants: list,
+                         callback: types.CallbackQuery,
+                         action_message: str, time: str,
+                         keyboard: InlineKeyboardMarkup):
 
+    participants = list(dict.fromkeys(participants))
     main_participants = participants[:7]
     bench_participants = participants[7:]
 
-    header_match = re.search(
-        r"^\s*[*_]?(.+?)\s*[*_]?[\n\r]",
-        photo_message.caption or "",
-    )
+    header_match = re.search(r"^\s*[*_]?(.+?)\s*[*_]?[\n\r]", photo_message.caption or "")
     header = header_match.group(1) if header_match else f"Идем в {time}"
 
     main_text = f"Участвуют ({len(main_participants)}): {', '.join(main_participants)}"
 
     updated_text = (
-        f"*{escape_md(header)}*\n\n"
+        f"*{header}*\n\n"
         f"⚡⚡⚡*Нажмите ➕ в сообщении для участия*⚡⚡⚡\n\n"
         f"{main_text}"
     )
 
     if bench_participants:
-        bench_text = (
-            f"Скамейка запасных ({len(bench_participants)}): "
-            f"{', '.join(bench_participants)}"
-        )
+        bench_text = f"Скамейка запасных ({len(bench_participants)}): {', '.join(bench_participants)}"
         updated_text += f"\n\n{bench_text}"
 
     try:
         await photo_message.edit_caption(
             caption=updated_text,
             parse_mode="Markdown",
-            reply_markup=keyboard,
+            reply_markup=keyboard
         )
         if callback:
             await callback.answer(action_message)
@@ -132,11 +105,8 @@ async def update_caption(
 # ==========================
 # Отправка события
 # ==========================
-async def send_event_photo(
-    message: types.Message,
-    photo_url: str,
-    header_prefix: str,
-):
+async def send_event_photo(message: types.Message, photo_url: str, header_prefix: str):
+
     keyboard = create_keyboard()
     text = message.text or ""
 
@@ -148,6 +118,7 @@ async def send_event_photo(
 
     user_id = message.from_user.id
     allowed_ids = get_allowed_user_ids()
+
     participants = []
 
     if user_id in allowed_ids and col_indexes:
@@ -156,9 +127,9 @@ async def send_event_photo(
             if column_data:
                 participants.extend(column_data)
 
-        participants = list(dict.fromkeys(participants))
+    participants = list(dict.fromkeys(participants))
 
-    header_text = escape_md(f"{header_prefix} {time}")
+    header_text = f"{header_prefix} {time}"
 
     caption = (
         f"*{header_text}*\n\n"
@@ -177,13 +148,13 @@ async def send_event_photo(
                 photo=photo_url,
                 caption=caption,
                 parse_mode="Markdown",
-                reply_markup=keyboard,
+                reply_markup=keyboard
             )
         else:
             sent_message = await message.answer(
                 caption,
                 parse_mode="Markdown",
-                reply_markup=keyboard,
+                reply_markup=keyboard
             )
 
         try:
@@ -207,6 +178,7 @@ async def send_event_photo(
 async def event_handler(message: types.Message):
     command = message.text.split()[0].replace("/", "")
     handler_func = EVENT_MAP.get(command)
+
     if not handler_func:
         return
 
@@ -221,7 +193,6 @@ async def event_handler(message: types.Message):
 async def handle_plus_reaction(callback: types.CallbackQuery):
     user_id = callback.from_user.id
     username = callback.from_user.first_name
-
     message = callback.message
     participants = parse_participants(message.caption)
 
@@ -232,18 +203,11 @@ async def handle_plus_reaction(callback: types.CallbackQuery):
         return
 
     participants.append(display_name)
-
     time = extract_time_from_caption(message.caption)
     keyboard = create_keyboard()
 
-    await update_caption(
-        message,
-        participants,
-        callback,
-        f"Вы присоединились, {display_name}!",
-        time,
-        keyboard,
-    )
+    await update_caption(message, participants, callback,
+                         f"Вы присоединились, {display_name}!", time, keyboard)
 
 
 # ==========================
@@ -253,7 +217,6 @@ async def handle_plus_reaction(callback: types.CallbackQuery):
 async def handle_minus_reaction(callback: types.CallbackQuery):
     user_id = callback.from_user.id
     username = callback.from_user.first_name
-
     message = callback.message
     participants = parse_participants(message.caption)
 
@@ -264,22 +227,15 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
         return
 
     participants.remove(display_name)
-
     time = extract_time_from_caption(message.caption)
     keyboard = create_keyboard()
 
-    await update_caption(
-        message,
-        participants,
-        callback,
-        f"Вы больше не участвуете, {display_name}.",
-        time,
-        keyboard,
-    )
+    await update_caption(message, participants, callback,
+                         f"Вы больше не участвуете, {display_name}.", time, keyboard)
 
 
 # ==========================
-# Ручное добавление / удаление участников
+# Ручное добавление
 # ==========================
 @router.message(lambda message: message.text and message.text.startswith("+ "))
 async def handle_plus_message(message: types.Message):
@@ -288,31 +244,22 @@ async def handle_plus_message(message: types.Message):
         return
 
     username = message.text[2:].strip()
-
     message_obj = message.reply_to_message
     if not message_obj or not (message_obj.caption or message_obj.text):
         return
 
     caption = message_obj.caption or message_obj.text
     participants = parse_participants(caption)
-
     if username in participants:
         await message.answer(f"{username} уже участвует!")
         return
 
     participants.append(username)
-
     time = extract_time_from_caption(caption)
     keyboard = create_keyboard()
 
-    await update_caption(
-        message_obj,
-        participants,
-        None,
-        f"{username} добавлен!",
-        time,
-        keyboard,
-    )
+    await update_caption(message_obj, participants, None,
+                         f"{username} добавлен!", time, keyboard)
 
     try:
         await message.delete()
@@ -320,6 +267,9 @@ async def handle_plus_message(message: types.Message):
         pass
 
 
+# ==========================
+# Ручное удаление
+# ==========================
 @router.message(lambda message: message.text and message.text.startswith("- "))
 async def handle_minus_message(message: types.Message):
     user_id = message.from_user.id
@@ -327,31 +277,22 @@ async def handle_minus_message(message: types.Message):
         return
 
     username = message.text[2:].strip()
-
     message_obj = message.reply_to_message
     if not message_obj or not (message_obj.caption or message_obj.text):
         return
 
     caption = message_obj.caption or message_obj.text
     participants = parse_participants(caption)
-
     if username not in participants:
         await message.answer(f"{username} не участвует.")
         return
 
     participants.remove(username)
-
     time = extract_time_from_caption(caption)
     keyboard = create_keyboard()
 
-    await update_caption(
-        message_obj,
-        participants,
-        None,
-        f"{username} удален!",
-        time,
-        keyboard,
-    )
+    await update_caption(message_obj, participants, None,
+                         f"{username} удален!", time, keyboard)
 
     try:
         await message.delete()
@@ -359,15 +300,13 @@ async def handle_minus_message(message: types.Message):
         pass
 
 
-@router.message(
-    lambda message: message.text
-    and message.text.lower().startswith("го")
-    and message.reply_to_message
-)
+# ==========================
+# Команда "го"
+# ==========================
+@router.message(lambda message: message.text and message.text.lower().startswith("го") and message.reply_to_message)
 async def handle_go_numbered(message: types.Message):
     user_id = message.from_user.id
     allowed_ids = get_allowed_user_ids()
-
     if user_id not in allowed_ids:
         return
 
@@ -387,31 +326,22 @@ async def handle_go_numbered(message: types.Message):
         return
 
     numbers = re.findall(r"\d+", message.text)
-
     if numbers:
-        indexes = [
-            int(n) - 1
-            for n in numbers
-            if 0 < int(n) <= len(participants)
-        ]
+        indexes = [int(n)-1 for n in numbers if 0 < int(n) <= len(participants)]
         selected = [participants[i] for i in indexes]
     else:
         selected = participants
 
     tg_usernames = []
-
     for name in selected:
         username = name_username.get(name)
-
         if username and username.lower() != "unknown":
             tg_usernames.append(f"@{username}")
         else:
             tg_usernames.append(name)
 
     if not tg_usernames:
-        await message.answer(
-            "Не удалось сопоставить участников с их Telegram-никами."
-        )
+        await message.answer("Не удалось сопоставить участников с их Telegram-никами.")
         return
 
     await message.answer(f"Собираемся: {', '.join(tg_usernames)}")
