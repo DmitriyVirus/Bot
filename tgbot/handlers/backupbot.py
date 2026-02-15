@@ -6,9 +6,9 @@ import requests
 import tempfile
 from aiogram import Router, types
 from aiogram.filters import Command
+from tgbot.sheets.gspread_client import creds_json
 from pydrive2.auth import GoogleAuth
 from pydrive2.drive import GoogleDrive
-from tgbot.sheets.gspread_client import creds_json
 
 router = Router()
 
@@ -62,9 +62,9 @@ def upload_to_gdrive(archive_name):
         f.write(creds_json)
         json_path = f.name
 
+    # Используем современный метод ServiceAuth
     gauth = GoogleAuth()
-    gauth.ServiceAuthSettings['client_json_file'] = json_path
-    gauth.ServiceAuth()
+    gauth.ServiceAuth(settings_file=json_path)  # <-- рабочий вызов
     drive = GoogleDrive(gauth)
 
     file = drive.CreateFile({
