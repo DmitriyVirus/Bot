@@ -3,13 +3,12 @@ import shutil
 import datetime
 import zipfile
 import requests
+import tempfile
 from aiogram import Router, types
 from aiogram.filters import Command
-from tgbot.sheets.gspread_client import creds_json
-from google.oauth2.service_account import Credentials
 from pydrive2.auth import GoogleAuth
 from pydrive2.drive import GoogleDrive
-import json
+from tgbot.sheets.gspread_client import creds_json
 
 router = Router()
 
@@ -29,7 +28,7 @@ def download_repo_zip():
 
     # Скачиваем ZIP
     r = requests.get(zip_url, stream=True)
-    r.raise_for_status()  # ошибка, если не получилось
+    r.raise_for_status()
     with open(zip_path, "wb") as f:
         for chunk in r.iter_content(1024):
             f.write(chunk)
@@ -54,18 +53,18 @@ def create_archive(folder_path):
     return archive_name
 
 def upload_to_gdrive(archive_name):
-    """Загружаем архив на Google Диск через существующие creds_json"""
+    """Загружаем архив на Google Диск через сервисный аккаунт"""
     if not creds_json:
         raise ValueError("Google Sheets API key is missing. Set GOOGLE_SHEET_KEY environment variable.")
 
-    # Создаём Credentials для PyDrive2
-    credentials = Credentials.from_service_account_info(
-        json.loads(creds_json),
-        scopes=["https://www.googleapis.com/auth/drive"]
-    )
+    # Создаём временный JSON-файл для PyDrive2
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+        f.write(creds_json)
+        json_path = f.name
 
     gauth = GoogleAuth()
-    gauth.credentials = credentials  # напрямую используем credentials
+    gauth.ServiceAuthSettings['client_json_file'] = json_path
+    gauth.ServiceAuth()
     drive = GoogleDrive(gauth)
 
     file = drive.CreateFile({
@@ -74,6 +73,9 @@ def upload_to_gdrive(archive_name):
     })
     file.SetContentFile(archive_name)
     file.Upload()
+
+    # Удаляем временный файл
+    os.remove(json_path)
 
 def cleanup(archive_name):
     """Удаляем временные файлы"""
