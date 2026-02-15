@@ -80,17 +80,18 @@ async def modify_participants(msg: types.Message, username: str, action: str, ca
             if callback: await callback.answer("Вы уже участвуете!")
             return
         participants.append(username)
-        msg_text = f"{username} добавлен!" if not callback else f"Вы присоединились, {username}!"
+        msg_text = f"Вы присоединились, {username}!" if callback else f"{username} добавлен!"
     elif action == "remove":
         if username not in participants:
             if callback: await callback.answer("Вы не участвуете.")
             return
         participants.remove(username)
-        msg_text = f"{username} удален!" if not callback else f"Вы больше не участвуете, {username}."
+        msg_text = f"Вы больше не участвуете, {username}." if callback else f"{username} удален!"
     else:
         return
 
     await update_caption(msg, participants, msg_text, callback)
+
 
 # ==========================
 # Обновление подписи (единственная функция)
@@ -99,11 +100,19 @@ async def update_caption(msg: types.Message, participants: list, msg_text: str, 
     participants = list(dict.fromkeys(participants))
     main = participants[:7]
     bench = participants[7:]
+
+    # Сохраняем заголовок отдельно
     caption_orig = msg.caption or msg.text or ""
-    header_match = re.match(r"^\s*[*_]?(.+?)[*_]?", caption_orig)
-    header = escape_md(header_match.group(1)) if header_match else msg_text
+    # Если это уже редактированное сообщение, берем первую строку до \n\n как заголовок
+    header_line = caption_orig.split("\n\n")[0] if "\n\n" in caption_orig else caption_orig
+    # Убираем лишние символы Markdown и знаки времени
+    header = re.sub(r"\b\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})?\b", "", header_line).strip()
+    header = escape_md(header) or msg_text
+
+    # Вытаскиваем время
     time = extract_time(caption_orig)
 
+    # Формируем текст
     text = f"*{header}* {time}\n\n⚡⚡⚡*Нажмите ➕ в сообщении для участия*⚡⚡⚡\n\n"
     text += f"Участвуют ({len(main)}): {', '.join(main)}"
     if bench:
@@ -116,6 +125,7 @@ async def update_caption(msg: types.Message, participants: list, msg_text: str, 
     except Exception as e:
         logging.error(f"Ошибка обновления подписи {msg.message_id}: {e}")
         if callback: await callback.answer("Не удалось обновить подпись.")
+
 
 # ==========================
 # Отправка события
@@ -134,8 +144,8 @@ async def send_event_photo(message: types.Message, photo_url: str, header_prefix
             if data: participants.extend(data)
     participants = list(dict.fromkeys(participants))
 
-    header_text = f"{escape_md(header_prefix)} {time}"
-    caption = f"*{header_text}*\n\n⚡⚡⚡*Нажмите ➕ в сообщении для участия*⚡⚡⚡\n\n"
+    header_text = escape_md(header_prefix)
+    caption = f"*{header_text}* {extract_time(message.text or '')}\n\n⚡⚡⚡*Нажмите ➕ в сообщении для участия*⚡⚡⚡\n\n"
     caption += f"Участвуют ({len(participants)}): {', '.join(participants)}" if participants else "Участвуют (0): "
 
     keyboard = create_keyboard()
