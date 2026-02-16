@@ -67,7 +67,7 @@ def is_user_in_sheet(user_id: int) -> bool:
 async def check_exist(message: types.Message):
     user_id = message.from_user.id
 
-    exists = is_user_in_sheet(user_id)  # синхронно
+    exists = is_user_in_sheet(user_id)  # синхронно проверяем
 
     if exists:
         await message.answer("✅ Вы есть в таблице.")
