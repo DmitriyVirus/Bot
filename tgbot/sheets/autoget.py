@@ -1,7 +1,7 @@
 import logging
 import asyncio
 from aiogram import Router, types
-from aiogram.filters import Command
+from aiogram import F  # <- для фильтров
 from tgbot.sheets.take_from_sheet import add_user_to_sheet_safe
 
 # Настроим логирование
@@ -13,7 +13,7 @@ router = Router()
 # ==========================
 # Хендлер сообщений
 # ==========================
-@router.message(~Command())
+@router.message(F.text & ~F.text.startswith("/"))
 async def handle_message(message: types.Message):
     """
     При получении любого сообщения пытаемся добавить пользователя в Google Sheets.
