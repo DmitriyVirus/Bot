@@ -1,7 +1,8 @@
 import os
 import logging
+import asyncio
 from aiogram import Router, types
-from aiogram.filters import Command
+from aiogram.filters import Command, F
 from upstash_redis import Redis
 from tgbot.sheets.take_from_sheet import get_sheet, ID_WORKSHEET, add_user_to_sheet_safe
 
@@ -91,7 +92,28 @@ async def check_exist(message: types.Message):
     else:
         # Если пользователя нет — добавляем в Google Sheets + Redis
         await message.answer("❌ Вас нет в таблице, добавляем...")
-        # блокирующую функцию вызываем в отдельном потоке
-        import asyncio
         await asyncio.to_thread(add_user_to_sheet_and_redis, user_id, username, first_name, last_name)
         await message.answer("✅ Пользователь добавлен!")
+
+
+# ==============================
+# Обработка всех сообщений (кроме команд)
+# ==============================
+@router.message(F.text & ~F.text.startswith("/"))
+async def handle_non_command_messages(message: types.Message):
+    """
+    Проверяем пользователя в Redis при получении любого сообщения,
+    кроме команд. Если пользователя нет — добавляем в Google Sheets и Redis.
+    """
+    user_id = message.from_user.id
+    username = message.from_user.username or "Unknown"
+    first_name = message.from_user.first_name or "Unknown"
+    last_name = message.from_user.last_name or "Unknown"
+
+    # Проверяем Redis
+    if not is_user_in_sheet(user_id):
+        logger.info(f"Пользователь {username} ({user_id}) не найден, добавляем...")
+        await asyncio.to_thread(add_user_to_sheet_and_redis, user_id, username, first_name, last_name)
+        logger.info(f"Пользователь {username} ({user_id}) успешно добавлен")
+    else:
+        logger.info(f"Пользователь {username} ({user_id}) уже есть в списке")
