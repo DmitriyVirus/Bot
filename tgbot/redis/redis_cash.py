@@ -52,10 +52,10 @@ async def load_sheet_users_to_redis():
             return
 
         # очищаем старые данные
-        await redis.delete(REDIS_KEY)
+        redis.delete(REDIS_KEY)
 
         # загружаем новые
-        await redis.sadd(REDIS_KEY, *user_ids)
+        redis.sadd(REDIS_KEY, *user_ids)
 
         logger.info(f"В Redis загружено {len(user_ids)} пользователей")
 
@@ -67,8 +67,11 @@ async def load_sheet_users_to_redis():
 # ПРОВЕРКА ПОЛЬЗОВАТЕЛЯ
 # ==============================
 
-async def is_user_in_sheet(user_id: int) -> bool:
-    return await redis.sismember(REDIS_KEY, user_id)
+def is_user_in_sheet(user_id: int) -> bool:
+    """
+    Проверяет, есть ли пользователь в Redis.
+    """
+    return redis.sismember(REDIS_KEY, user_id)
 
 
 # ==============================
@@ -79,7 +82,7 @@ async def is_user_in_sheet(user_id: int) -> bool:
 async def check_exist(message: types.Message):
     user_id = message.from_user.id
 
-    exists = await is_user_in_sheet(user_id)
+    exists = is_user_in_sheet(user_id)  # <- без await
 
     if exists:
         await message.answer("✅ Вы есть в таблице.")
