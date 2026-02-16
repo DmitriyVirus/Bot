@@ -1,6 +1,5 @@
 import os
 import logging
-import asyncio
 from aiogram import Router, types
 from aiogram.filters import Command
 from upstash_redis import Redis
@@ -22,7 +21,7 @@ router = Router()
 # Загрузка пользователей в Redis
 # ==============================
 
-async def load_sheet_users_to_redis():
+def load_sheet_users_to_redis():
     """Загружает все user_id из листа ID в Redis (SET)."""
     logger.info("Загрузка пользователей из Google Sheets в Redis...")
 
@@ -33,7 +32,6 @@ async def load_sheet_users_to_redis():
 
     try:
         records = sheet.get_all_records()
-
         user_ids = [str(row["user_id"]) for row in records if row.get("user_id")]
 
         if not user_ids:
@@ -41,10 +39,10 @@ async def load_sheet_users_to_redis():
             return
 
         # очищаем старые данные
-        await redis.delete(REDIS_KEY)
+        redis.delete(REDIS_KEY)
 
         # загружаем новые
-        await redis.sadd(REDIS_KEY, *user_ids)
+        redis.sadd(REDIS_KEY, *user_ids)
 
         logger.info(f"В Redis загружено {len(user_ids)} пользователей")
 
@@ -56,8 +54,8 @@ async def load_sheet_users_to_redis():
 # Проверка пользователя
 # ==============================
 
-async def is_user_in_sheet(user_id: int) -> bool:
-    return await redis.sismember(REDIS_KEY, str(user_id))
+def is_user_in_sheet(user_id: int) -> bool:
+    return redis.sismember(REDIS_KEY, str(user_id))
 
 
 # ==============================
@@ -68,7 +66,7 @@ async def is_user_in_sheet(user_id: int) -> bool:
 async def check_exist(message: types.Message):
     user_id = message.from_user.id
 
-    exists = await is_user_in_sheet(user_id)
+    exists = is_user_in_sheet(user_id)
 
     if exists:
         await message.answer("✅ Вы есть в таблице.")
@@ -80,5 +78,5 @@ async def check_exist(message: types.Message):
 # Вызов загрузки при старте бота
 # ==============================
 
-async def on_startup():
-    await load_sheet_users_to_redis()
+def on_startup():
+    load_sheet_users_to_redis()
