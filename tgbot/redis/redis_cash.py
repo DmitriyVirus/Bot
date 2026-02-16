@@ -2,7 +2,7 @@ import os
 import logging
 import asyncio
 from aiogram import Router, types
-from aiogram.filters import Command, F
+from aiogram.filters import Command, Text
 from upstash_redis import Redis
 from tgbot.sheets.take_from_sheet import get_sheet, ID_WORKSHEET, add_user_to_sheet_safe
 
@@ -99,7 +99,7 @@ async def check_exist(message: types.Message):
 # ==============================
 # Обработка всех сообщений (кроме команд)
 # ==============================
-@router.message(F.text & ~F.text.startswith("/"))
+@router.message(Text(startswith="/", invert=True))
 async def handle_non_command_messages(message: types.Message):
     """
     Проверяем пользователя в Redis при получении любого сообщения,
