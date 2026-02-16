@@ -1,5 +1,4 @@
 # Импортируем все роутеры из отдельных файлов
-from .autoget import router as autoget_router
 from .gspread_client import get_gspread_client
 from aiogram import Router
 
@@ -35,5 +34,4 @@ from .take_from_sheet import (
 
 # Создаём единый роутер для всех хэндлеров
 router = Router()
-router.include_router(autoget_router)
 
