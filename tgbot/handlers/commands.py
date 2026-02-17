@@ -3,8 +3,14 @@ import logging
 from aiogram import Router, types
 from aiogram.types import Message
 from aiogram.filters import Command
-from tgbot.redis.redis_cash import is_user_in_sheet, add_user_to_sheet_and_redis
-
+from tgbot.redis.redis_cash import (
+    load_sheet_users_to_redis,
+    is_user_in_sheet,
+    add_user_to_sheet_and_redis,
+    load_allowed_users_to_redis,
+    load_event_data_to_redis,
+    load_autosbor_to_redis
+)
 
 from tgbot.sheets.take_from_sheet import (
     get_fu_data,
@@ -40,6 +46,24 @@ async def safe_fetch(func, *args):
     except Exception as e:
         logging.exception(f"Ошибка при вызове {func.__name__}: {e}")
         return None
+
+
+
+@router.message(Command("refresh"))
+async def refresh_redis_command(message: types.Message):
+    """
+    Команда /refresh — вручную обновляет данные в Redis.
+    """
+    sent_msg = await message.answer("Обновление Redis... ⏳")
+    try:
+        await asyncio.to_thread(load_sheet_users_to_redis)
+        await asyncio.to_thread(load_allowed_users_to_redis)
+        await asyncio.to_thread(load_event_data_to_redis)
+        await asyncio.to_thread(load_autosbor_to_redis)
+        await sent_msg.edit_text("✅ Redis успешно обновлён вручную!")
+    except Exception as e:
+        await sent_msg.edit_text(f"❌ Ошибка при обновлении Redis: {e}")
+
 
 
 @router.message(Command("fu"))
