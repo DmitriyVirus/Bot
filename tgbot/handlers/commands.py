@@ -9,7 +9,9 @@ from tgbot.redis.redis_cash import (
     add_user_to_sheet_and_redis,
     load_allowed_users_to_redis,
     load_event_data_to_redis,
-    load_autosbor_to_redis
+    load_autosbor_to_redis,
+    load_admins_to_redis,
+    load_menu_data_to_redis
 )
 
 from tgbot.sheets.take_from_sheet import (
@@ -57,6 +59,8 @@ async def refresh_redis_command(message: types.Message):
     sent_msg = await message.answer("Обновление Redis... ⏳")
     try:
         await asyncio.to_thread(load_sheet_users_to_redis)
+        await asyncio.to_thread(load_admins_to_redis)
+        await asyncio.to_thread(load_menu_data_to_redis)
         await asyncio.to_thread(load_allowed_users_to_redis)
         await asyncio.to_thread(load_event_data_to_redis)
         await asyncio.to_thread(load_autosbor_to_redis)
