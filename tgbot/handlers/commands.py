@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from aiogram import Router
+from aiogram import Router, types
 from aiogram.types import Message
 from aiogram.filters import Command
 from tgbot.redis.redis_cash import is_user_in_sheet, add_user_to_sheet_and_redis
