@@ -18,7 +18,8 @@ REDIS_KEY_USERS = "sheet_users"       # user_id -> JSON {name, username, user_id
 REDIS_KEY_ALLOWED = "allowed_users"   # set of allowed user_ids
 REDIS_KEY_EVENTS = "event_data"       # hash для событий
 REDIS_KEY_AUTOSBOR = "autosbor_data"  # список всех значений из листа "Автосбор"
-
+REDIS_KEY_MENU = "menu_data"
+REDIS_KEY_ADMINS = "admins_data"
 
 # ==============================
 # Redis клиент
@@ -289,7 +290,6 @@ def get_column_data_from_autosbor(column_index: int, row_width: int = 10) -> lis
         return []
 
 
-
 @router.message()
 async def handle_all_messages(message: types.Message):
     user_id = message.from_user.id
@@ -309,3 +309,66 @@ async def handle_all_messages(message: types.Message):
         logger.info(f"Пользователь {username} ({user_id}) успешно добавлен")
     else:
         logger.info(f"Пользователь {username} ({user_id}) уже есть в списке")
+
+# ============================================================
+# ADMINS
+# ============================================================
+
+
+def load_admins_to_redis():
+    sheet = get_sheet("Админы")
+    if not sheet:
+        return
+
+    records = sheet.get_all_records()
+    redis.set(REDIS_KEY_ADMINS, json.dumps(records))
+    logger.info(f"Админы загружены: {len(records)}")
+
+def get_admins_records() -> list[dict]:
+    data = redis.get(REDIS_KEY_ADMINS)
+    return json.loads(data) if data else []
+
+# ============================================================
+# MENU (тексты + картинки)
+# ============================================================
+def load_menu_data_to_redis():
+    sheet = get_sheet("Инфо")
+    if not sheet:
+        return
+
+    pipe = redis.pipeline()
+    pipe.delete(REDIS_KEY_MENU)
+
+    hello_text = "\n".join([r[0] for r in sheet.get("B2:B19") if r])
+    about_text = "\n".join([r[0] for r in sheet.get("C2:C19") if r])
+    cmd_info = "\n".join([r[0] for r in sheet.get("D2:D19") if r])
+
+    hello_img = convert_drive_url(sheet.acell("B20").value or "")
+    about_img = convert_drive_url(sheet.acell("C20").value or "")
+
+    pipe.hset(REDIS_KEY_MENU, "hello_text", hello_text)
+    pipe.hset(REDIS_KEY_MENU, "about_text", about_text)
+    pipe.hset(REDIS_KEY_MENU, "cmd_info", cmd_info)
+    pipe.hset(REDIS_KEY_MENU, "hello_image", hello_img)
+    pipe.hset(REDIS_KEY_MENU, "about_image", about_img)
+
+    pipe.exec()
+    logger.info("Menu загружено")
+
+def get_hello():
+    return redis.hget(REDIS_KEY_MENU, "hello_text") or ""
+
+def get_about_bot():
+    return redis.hget(REDIS_KEY_MENU, "about_text") or ""
+
+def get_cmd_info():
+    return redis.hget(REDIS_KEY_MENU, "cmd_info") or ""
+
+def get_hello_image():
+    return redis.hget(REDIS_KEY_MENU, "hello_image") or ""
+
+def get_about_bot_image():
+    return redis.hget(REDIS_KEY_MENU, "about_image") or ""
+
+
+
