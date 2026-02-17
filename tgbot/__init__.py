@@ -15,7 +15,7 @@ router.include_router(redis_router)
 load_sheet_users_to_redis()
 load_allowed_users_to_redis()
 load_event_data_to_redis()
-load_autosbor_to_redis(()
+load_autosbor_to_redis()
 
 class TGBot:
     def __init__(self, router: Router) -> None:
@@ -42,6 +42,7 @@ class TGBot:
 
 
 tgbot = TGBot(router)
+
 
 
 
