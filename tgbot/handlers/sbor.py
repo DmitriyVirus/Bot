@@ -14,6 +14,7 @@ from tgbot.sheets.take_from_sheet import (
     get_inst_data,
     get_name_username_dict
 )
+from tgbot.redis.redis_cash import get_name
 
 logging.basicConfig(level=logging.DEBUG)
 router = Router()
@@ -199,22 +200,31 @@ async def event_handler(message: types.Message):
 @router.callback_query(lambda c: c.data == "join_plus")
 async def handle_plus_reaction(callback: types.CallbackQuery):
     user_id = callback.from_user.id
-    username = callback.from_user.first_name
+    telegram_name = callback.from_user.first_name or "Unknown"
     message = callback.message
+
     participants = parse_participants(message.caption)
 
-    display_name = get_user_from_sheet(user_id) or username
+    # 🔥 Берём имя из Redis
+    display_name = get_name(user_id, telegram_name)
 
     if display_name in participants:
         await callback.answer("Вы уже участвуете!")
         return
 
     participants.append(display_name)
+
     time = extract_time_from_caption(message.caption)
     keyboard = create_keyboard()
 
-    await update_caption(message, participants, callback,
-                         f"Вы присоединились, {display_name}!", time, keyboard)
+    await update_caption(
+        message,
+        participants,
+        callback,
+        f"Вы присоединились, {display_name}!",
+        time,
+        keyboard
+    )
 
 
 # ==========================
@@ -223,23 +233,31 @@ async def handle_plus_reaction(callback: types.CallbackQuery):
 @router.callback_query(lambda c: c.data == "join_minus")
 async def handle_minus_reaction(callback: types.CallbackQuery):
     user_id = callback.from_user.id
-    username = callback.from_user.first_name
+    telegram_name = callback.from_user.first_name or "Unknown"
     message = callback.message
+
     participants = parse_participants(message.caption)
 
-    display_name = get_user_from_sheet(user_id) or username
+    # 🔥 Берём имя из Redis
+    display_name = get_name(user_id, telegram_name)
 
     if display_name not in participants:
         await callback.answer("Вы не участвуете.")
         return
 
     participants.remove(display_name)
+
     time = extract_time_from_caption(message.caption)
     keyboard = create_keyboard()
 
-    await update_caption(message, participants, callback,
-                         f"Вы больше не участвуете, {display_name}.", time, keyboard)
-
+    await update_caption(
+        message,
+        participants,
+        callback,
+        f"Вы больше не участвуете, {display_name}.",
+        time,
+        keyboard
+    )
 
 # ==========================
 # Ручное добавление
