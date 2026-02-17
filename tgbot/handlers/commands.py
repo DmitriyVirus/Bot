@@ -3,6 +3,8 @@ import logging
 from aiogram import Router
 from aiogram.types import Message
 from aiogram.filters import Command
+from tgbot.redis.redis_cash import is_user_in_sheet, add_user_to_sheet_and_redis
+
 
 from tgbot.sheets.take_from_sheet import (
     get_fu_data,
@@ -15,6 +17,20 @@ from tgbot.sheets.take_from_sheet import (
 )
 
 router = Router()
+
+@router.message(Command("exist"))
+async def check_exist(message: types.Message):
+    user_id = message.from_user.id
+    username = message.from_user.username or "Unknown"
+    first_name = message.from_user.first_name or "Unknown"
+    last_name = message.from_user.last_name or "Unknown"
+
+    if is_user_in_sheet(user_id):
+        await message.answer("✅ Вы есть в таблице.")
+    else:
+        await message.answer("❌ Вас нет в таблице, добавляем...")
+        await asyncio.to_thread(add_user_to_sheet_and_redis, user_id, username, first_name, last_name)
+        await message.answer("✅ Пользователь добавлен!")
 
 
 async def safe_fetch(func, *args):
