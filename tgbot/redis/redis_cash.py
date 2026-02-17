@@ -36,7 +36,10 @@ def load_sheet_users_to_redis():
             logger.warning("В листе нет пользователей для загрузки")
             return
 
-        mapping = {}
+        pipe = redis.pipeline()
+
+        # очищаем старый hash
+        pipe.delete(REDIS_KEY_USERS)
 
         for row in records:
             user_id = row.get("user_id")
@@ -49,13 +52,12 @@ def load_sheet_users_to_redis():
                 last_name = row.get("last_name") or ""
                 name = f"{first_name} {last_name}".strip() or "Unknown"
 
-            mapping[str(user_id)] = name
+            pipe.hset(REDIS_KEY_USERS, str(user_id), name)
 
-        # ❗ ДВА запроса вместо тысячи
-        redis.delete(REDIS_KEY_USERS)
-        redis.hset(REDIS_KEY_USERS, mapping)
+        # 🔥 один HTTP вызов вместо тысячи
+        pipe.exec()
 
-        logger.info(f"В Redis загружено {len(mapping)} пользователей")
+        logger.info(f"В Redis загружено {len(records)} пользователей")
 
     except Exception as e:
         logger.error(f"Ошибка загрузки пользователей в Redis: {e}")
