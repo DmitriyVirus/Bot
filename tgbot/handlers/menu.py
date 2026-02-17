@@ -4,17 +4,18 @@ import logging
 from aiogram import Router, types
 from aiogram.filters import Command
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
-
-from tgbot.sheets.take_from_sheet import (
-    get_bot_commands,
-    get_bot_deb_cmd,
-    fetch_participants,
+from tgbot.redis.redis_cash import (
     get_admins_records,
     get_hello,
     get_about_bot,
     get_hello_image,
     get_about_bot_image,
     get_cmd_info
+)
+from tgbot.sheets.take_from_sheet import (
+    get_bot_commands,
+    get_bot_deb_cmd,
+    fetch_participants,
 )
 
 router = Router()
