@@ -56,23 +56,6 @@ def add_user_to_sheet_and_redis(user_id: int, username: str, first_name: str, la
     logger.info(f"Пользователь {username} ({user_id}) добавлен в Redis")
 
 
-# ==============================
-# Команда /exist
-# ==============================
-@router.message(Command("exist"))
-async def check_exist(message: types.Message):
-    user_id = message.from_user.id
-    username = message.from_user.username or "Unknown"
-    first_name = message.from_user.first_name or "Unknown"
-    last_name = message.from_user.last_name or "Unknown"
-
-    if is_user_in_sheet(user_id):
-        await message.answer("✅ Вы есть в таблице.")
-    else:
-        await message.answer("❌ Вас нет в таблице, добавляем...")
-        await asyncio.to_thread(add_user_to_sheet_and_redis, user_id, username, first_name, last_name)
-        await message.answer("✅ Пользователь добавлен!")
-
 
 # ==============================
 # Обработка всех сообщений
