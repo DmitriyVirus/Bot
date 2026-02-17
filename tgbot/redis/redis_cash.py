@@ -32,28 +32,28 @@ def load_sheet_users_to_redis():
         return
     try:
         records = sheet.get_all_records()
-        user_ids = []
-        user_mapping = {}
-        for row in records:
-            uid = row.get("user_id")
-            name = row.get("name", "").strip() or "Unknown"
-            if uid:
-                user_ids.append(str(uid))
-                user_mapping[str(uid)] = name
-
-        if not user_ids:
-            logger.warning("В листе нет пользователей для загрузки")
+        if not records:
+            logger.warning("В листе ID нет пользователей для загрузки")
             return
 
-        # Множество для проверки наличия
-        redis.delete(REDIS_KEY)
-        redis.sadd(REDIS_KEY, *user_ids)
+        redis.delete(REDIS_KEY)  # множество для проверки наличия
+        redis.delete(REDIS_KEY_USERS)  # хеш для имен
 
-        # Хеш для имен
-        redis.delete(REDIS_KEY_USERS)
-        redis.hset(REDIS_KEY_USERS, user_mapping)
+        for row in records:
+            user_id = str(row.get("user_id"))
+            if not user_id:
+                continue
+            name = row.get("name")
+            if not name:
+                first_name = row.get("first_name") or ""
+                last_name = row.get("last_name") or ""
+                name = f"{first_name} {last_name}".strip() or "Unknown"
 
-        logger.info(f"В Redis загружено {len(user_ids)} пользователей")
+            redis.sadd(REDIS_KEY, user_id)
+            redis.hset(REDIS_KEY_USERS, user_id, name)
+
+        logger.info(f"В Redis загружено {len(records)} пользователей с именами")
+
     except Exception as e:
         logger.error(f"Ошибка загрузки пользователей в Redis: {e}")
 
