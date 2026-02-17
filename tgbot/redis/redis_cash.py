@@ -8,8 +8,10 @@ from tgbot.sheets.take_from_sheet import get_sheet, ID_WORKSHEET, add_user_to_sh
 
 logger = logging.getLogger(__name__)
 
-# Один ключ — один hash: user_id -> name
+# Один hash: user_id -> name
 REDIS_KEY_USERS = "sheet_users"
+# Отдельный set для allowed users
+REDIS_KEY_ALLOWED = "allowed_users"
 
 redis = Redis(
     url=os.getenv("UPSTASH_REDIS_REST_URL"),
@@ -37,9 +39,7 @@ def load_sheet_users_to_redis():
             return
 
         pipe = redis.pipeline()
-
-        # очищаем старый hash
-        pipe.delete(REDIS_KEY_USERS)
+        pipe.delete(REDIS_KEY_USERS)  # очищаем старый hash
 
         for row in records:
             user_id = row.get("user_id")
@@ -61,6 +61,48 @@ def load_sheet_users_to_redis():
 
     except Exception as e:
         logger.error(f"Ошибка загрузки пользователей в Redis: {e}")
+
+
+# ==============================
+# Загрузка allowed users в Redis
+# ==============================
+def load_allowed_users_to_redis():
+    sheet = get_sheet("Добавление")
+    if not sheet:
+        logger.error("Лист 'Добавление' не найден")
+        return
+
+    try:
+        data = sheet.get_all_records()
+        pipe = redis.pipeline()
+
+        # очищаем старый set
+        pipe.delete(REDIS_KEY_ALLOWED)
+
+        # добавляем всех allowed users через pipeline
+        for row in data:
+            user_id = row.get("id")
+            if user_id:
+                pipe.sadd(REDIS_KEY_ALLOWED, int(user_id))
+
+        # один вызов к Redis
+        pipe.exec()
+
+        logger.info(f"Allowed users загружены в Redis: {len(data)} записей")
+
+    except Exception as e:
+        logger.error(f"Ошибка загрузки allowed users: {e}")
+
+# ==============================
+# Получение allowed user ids
+# ==============================
+def get_allowed_user_ids() -> set[int]:
+    try:
+        ids = redis.smembers(REDIS_KEY_ALLOWED)
+        return {int(user_id) for user_id in ids}
+    except Exception as e:
+        logger.error(f"Ошибка get_allowed_user_ids из Redis: {e}")
+        return set()
 
 
 # ==============================
@@ -96,34 +138,6 @@ def add_user_to_sheet_and_redis(user_id: int, username: str, first_name: str, la
     redis.hset(REDIS_KEY_USERS, str(user_id), full_name)
 
     logger.info(f"Пользователь {username} ({user_id}) добавлен в Redis")
-
-def load_allowed_users_to_redis():
-
-    sheet = get_sheet("Добавление")
-    if not sheet:
-        return
-
-    try:
-        data = sheet.get_all_records()
-
-        r.delete("allowed_users")  # очищаем перед загрузкой
-
-        for row in data:
-            if "id" in row and row["id"]:
-                r.sadd("allowed_users", int(row["id"]))
-
-        logger.info("Allowed users загружены в Redis")
-
-    except Exception as e:
-        logger.error(f"Ошибка загрузки allowed users: {e}")
-
-def get_allowed_user_ids():
-    try:
-        ids = r.smembers("allowed_users")
-        return {int(user_id) for user_id in ids}
-    except Exception as e:
-        logger.error(f"Ошибка get_allowed_user_ids из Redis: {e}")
-        return set()
 
 
 # ==============================
