@@ -6,7 +6,6 @@ from aiogram.filters import Command
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from tgbot.sheets.take_from_sheet import (
     get_user_from_sheet,
-    get_allowed_user_ids,
     get_column_data_from_autosbor,
     get_bal_data,
     get_inn_data,
@@ -14,7 +13,7 @@ from tgbot.sheets.take_from_sheet import (
     get_inst_data,
     get_name_username_dict
 )
-from tgbot.redis.redis_cash import get_name
+from tgbot.redis.redis_cash import get_name, get_allowed_user_ids
 
 logging.basicConfig(level=logging.DEBUG)
 router = Router()
