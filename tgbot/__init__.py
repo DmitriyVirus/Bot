@@ -4,7 +4,7 @@ from aiogram import Bot, Dispatcher, Router
 from tgbot.handlers import router as handlers_router
 from tgbot.sheets import router as sheets_router
 from tgbot.redis import router as redis_router
-from tgbot.redis.redis_cash import load_sheet_users_to_redis  # синхронная загрузка
+from tgbot.redis.redis_cash import load_sheet_users_to_redis, load_allowed_users_to_redis
 
 
 router = Router()
@@ -13,6 +13,7 @@ router.include_router(sheets_router)
 router.include_router(redis_router)
 
 load_sheet_users_to_redis()
+load_allowed_users_to_redis()
 
 class TGBot:
     def __init__(self, router: Router) -> None:
@@ -39,6 +40,7 @@ class TGBot:
 
 
 tgbot = TGBot(router)
+
 
 
 
