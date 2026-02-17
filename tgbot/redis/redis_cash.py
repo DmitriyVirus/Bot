@@ -97,6 +97,34 @@ def add_user_to_sheet_and_redis(user_id: int, username: str, first_name: str, la
 
     logger.info(f"Пользователь {username} ({user_id}) добавлен в Redis")
 
+def load_allowed_users_to_redis():
+
+    sheet = get_sheet("Добавление")
+    if not sheet:
+        return
+
+    try:
+        data = sheet.get_all_records()
+
+        r.delete("allowed_users")  # очищаем перед загрузкой
+
+        for row in data:
+            if "id" in row and row["id"]:
+                r.sadd("allowed_users", int(row["id"]))
+
+        logger.info("Allowed users загружены в Redis")
+
+    except Exception as e:
+        logger.error(f"Ошибка загрузки allowed users: {e}")
+
+def get_allowed_user_ids():
+    try:
+        ids = r.smembers("allowed_users")
+        return {int(user_id) for user_id in ids}
+    except Exception as e:
+        logger.error(f"Ошибка get_allowed_user_ids из Redis: {e}")
+        return set()
+
 
 # ==============================
 # Обработка всех сообщений
