@@ -108,26 +108,32 @@ async def update_caption(photo_message: types.Message, participants: list,
 async def send_event_photo(message: types.Message, photo_url: str, header_prefix: str):
 
     keyboard = create_keyboard()
-    text = message.text or ""
+    text = message.text
 
+    # --- Старый алгоритм извлечения времени ---
     time_match = re.search(r"\b\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})?\b", text)
     time = time_match.group(0) if time_match else "когда соберемся"
 
-    numbers = re.findall(r"\b\d+\b", text)
-    col_indexes = [int(n) for n in numbers]
+    # --- Старый алгоритм извлечения одной колонки ---
+    col_index = None
+
+    if time_match:
+        after_time = text[time_match.end():]
+        col_match = re.search(r"\b\d+\b", after_time)
+        if col_match:
+            col_index = int(col_match.group(0))
+    else:
+        col_match = re.search(r"\b\d+\b", text)
+        if col_match:
+            col_index = int(col_match.group(0))
 
     user_id = message.from_user.id
     allowed_ids = get_allowed_user_ids()
 
     participants = []
 
-    if user_id in allowed_ids and col_indexes:
-        for col in col_indexes:
-            column_data = get_column_data_from_autosbor(col)
-            if column_data:
-                participants.extend(column_data)
-
-    participants = list(dict.fromkeys(participants))
+    if col_index and user_id in allowed_ids:
+        participants = get_column_data_from_autosbor(col_index)
 
     header_text = f"{header_prefix} {time}"
 
@@ -169,6 +175,7 @@ async def send_event_photo(message: types.Message, photo_url: str, header_prefix
         await message.delete()
     except Exception:
         pass
+
 
 
 # ==========================
