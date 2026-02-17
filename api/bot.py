@@ -15,6 +15,8 @@ from tgbot.redis.redis_cash import (
     load_sheet_users_to_redis,
     load_allowed_users_to_redis,
     load_event_data_to_redis,
+    load_admins_to_redis,
+    load_menu_data_to_redis,
     load_autosbor_to_redis,
     redis
 )
@@ -93,6 +95,8 @@ async def refresh_redis():
         load_allowed_users_to_redis()
         load_event_data_to_redis()
         load_autosbor_to_redis()
+        load_menu_data_to_redis()
+        load_admins_to_redis()
         return JSONResponse({"status": "ok", "message": "Redis обновлён"})
     except Exception as e:
         return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
@@ -232,6 +236,7 @@ async def save_autosbor(request: Request):
         sheet.update_cell(i + 1, column_index + 1, value)  # <<< изменено: включаем первую строку
 
     return JSONResponse({"status": "ok"})
+
 
 
 
