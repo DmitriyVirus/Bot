@@ -16,6 +16,8 @@ logger = logging.getLogger(__name__)
 REDIS_KEY_USERS = "sheet_users"       # user_id -> JSON {name, username, user_id}
 REDIS_KEY_ALLOWED = "allowed_users"   # set of allowed user_ids
 REDIS_KEY_EVENTS = "event_data"       # hash для событий
+REDIS_KEY_AUTOSBOR = "autosbor_data"  # список всех значений из листа "Автосбор"
+
 
 # ==============================
 # Redis клиент
@@ -221,6 +223,70 @@ def get_inst_data() -> tuple[str, str]:
     text = redis.hget(REDIS_KEY_EVENTS, "inst_text") or "Данные недоступны"
     media_url = redis.hget(REDIS_KEY_EVENTS, "inst_media") or ""
     return text, media_url
+
+# ==============================
+# Загрузка данных Автосбор в Redis
+# ==============================
+def load_autosbor_to_redis():
+    """
+    Загружает данные из листа 'Автосбор' в Redis.
+    Все значения складываются в один список.
+    Пустые ячейки заменяются на маркер '1'.
+    """
+    sheet = get_sheet("Автосбор")
+    if not sheet:
+        logger.error("Лист 'Автосбор' не найден")
+        return
+
+    try:
+        all_values = sheet.get_all_values()  # получаем все строки
+        flat_list = []
+
+        for row in all_values:
+            for cell in row:
+                value = cell.strip() if cell.strip() else "1"
+                flat_list.append(value)
+
+        # Сохраняем в Redis через pipeline
+        pipe = redis.pipeline()
+        pipe.delete(REDIS_KEY_AUTOSBOR)
+        if flat_list:
+            pipe.rpush(REDIS_KEY_AUTOSBOR, *flat_list)
+        pipe.exec()
+
+        logger.info(f"Данные 'Автосбор' загружены в Redis ({len(flat_list)} элементов)")
+
+    except Exception as e:
+        logger.error(f"Ошибка загрузки 'Автосбор' в Redis: {e}")
+
+
+# ==============================
+# Получение колонки из Redis
+# ==============================
+def get_column_data_from_autosbor(column_index: int, row_width: int = 10) -> list[str]:
+    """
+    Возвращает список значений из колонки column_index (1 = первый столбец)
+    row_width: количество столбцов в таблице
+    Пустые ячейки возвращаются как "".
+    """
+    try:
+        all_values = redis.lrange(REDIS_KEY_AUTOSBOR, 0, -1)
+        if not all_values or column_index <= 0 or column_index > row_width:
+            return []
+
+        col_data = []
+        for i in range(column_index - 1, len(all_values), row_width):
+            value = all_values[i]
+            if value == "1":  # маркер пустой ячейки
+                value = ""
+            col_data.append(value)
+
+        return col_data
+
+    except Exception as e:
+        logger.error(f"Ошибка при get_column_data_from_autosbor из Redis: {e}")
+        return []
+
 
 
 @router.message()
