@@ -1,4 +1,3 @@
-import time 
 import asyncio
 import logging
 from aiogram import Router, types
@@ -7,6 +6,7 @@ from aiogram.filters import Command
 from tgbot.sheets.take_from_sheet import fetch_participants
 from tgbot.redis.redis_cash import (
     redis,
+    refresh_redis,
     get_fu_data,
     get_nakol_data,
     get_klaar_data,
@@ -17,9 +17,6 @@ from tgbot.redis.redis_cash import (
     load_all_to_redis,
     get_welcome
 )
-
-
-LAST_UPDATE_KEY = "last_update_redis"
 
 
 router = Router()
@@ -51,17 +48,12 @@ async def safe_fetch(func, *args):
 @router.message(Command("refresh"))
 async def refresh_redis_command(message: types.Message):
     """
-    Команда /refresh — вручную обновляет все данные в Redis.
+    Хендлер для команды /refresh
     """
     sent_msg = await message.answer("Обновление Redis... ⏳")
     try:
-        # Загружаем все данные одним вызовом
-        await asyncio.to_thread(load_all_to_redis)
-
-        # Обновляем отметку последнего обновления
-        redis.set(LAST_UPDATE_KEY, int(time.time()))
-
-        await sent_msg.edit_text("✅ Redis успешно обновлён вручную!")
+        result_text = await refresh_redis()
+        await sent_msg.edit_text(result_text)
     except Exception as e:
         await sent_msg.edit_text(f"❌ Ошибка при обновлении Redis: {e}")
 
