@@ -95,6 +95,26 @@ def get_inst_data() -> tuple[str, str]:
     media_url = redis.hget(REDIS_KEY_ALL_DATA, "inst_media") or ""
     return text, media_url
 
+def get_fu_data() -> tuple[str, str]:
+    text = redis.hget(REDIS_KEY_ALL_DATA, "fu_text") or "Данные недоступны"
+    media_url = redis.hget(REDIS_KEY_ALL_DATA, "fu_media") or ""
+    return text, media_url
+
+def get_nakol_data() -> tuple[str, str]:
+    text = redis.hget(REDIS_KEY_ALL_DATA, "nakol_text") or "Данные недоступны"
+    media_url = redis.hget(REDIS_KEY_ALL_DATA, "nakol_media") or ""
+    return text, media_url
+
+def get_klaar_data() -> tuple[str, str]:
+    text = redis.hget(REDIS_KEY_ALL_DATA, "klaar_text") or "Данные недоступны"
+    media_url = redis.hget(REDIS_KEY_ALL_DATA, "klaar_media") or ""
+    return text, media_url
+
+def get_kris_data() -> tuple[str, str]:
+    text = redis.hget(REDIS_KEY_ALL_DATA, "kris_text") or "Данные недоступны"
+    media_url = redis.hget(REDIS_KEY_ALL_DATA, "kris_media") or ""
+    return text, media_url
+
 def get_hello(): return redis.hget(REDIS_KEY_ALL_DATA, "hello_text") or ""
 def get_about_bot(): return redis.hget(REDIS_KEY_ALL_DATA, "about_text") or ""
 def get_cmd_info(): return redis.hget(REDIS_KEY_ALL_DATA, "cmd_info") or ""
@@ -201,6 +221,14 @@ def load_all_to_redis():
             media_url = convert_drive_url(sheet_info.acell(media_cell).value or "")
             pipe_all.hset(REDIS_KEY_ALL_DATA, f"{event}_text", text)
             pipe_all.hset(REDIS_KEY_ALL_DATA, f"{event}_media", media_url)
+
+        # Media команды (fu, nakol, klaar, kris)
+        media_map = {"fu": ("I2", "I3"), "nakol": ("I5", "I6"), "klaar": ("I8", "I9"), "kris": ("I11", "I12")}
+        for media, (text_cell, media_cell) in media_map.items():
+            text = sheet_info.acell(text_cell).value or ""
+            media_url = convert_drive_url(sheet_info.acell(media_cell).value or "")
+            pipe_all.hset(REDIS_KEY_ALL_DATA, f"{media}_text", text)
+            pipe_all.hset(REDIS_KEY_ALL_DATA, f"{media}_media", media_url)
 
         # Menu
         hello_text = "\n".join([r[0] for r in sheet_info.get("B2:B19") if r])
