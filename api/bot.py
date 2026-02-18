@@ -13,6 +13,9 @@ from fastapi import FastAPI, Request, HTTPException
 from tgbot.sheets.gspread_client import get_gspread_client
 from tgbot.redis.redis_cash import load_all_to_redis, redis, LAST_UPDATE_KEY
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, HTMLResponse
+from .backupbot import router as backup_router
+
+app.include_router(backup_router)
 
 app = FastAPI()
 
@@ -205,3 +208,4 @@ async def cron_refresh_redis():
         return JSONResponse({"status": "ok", "message": "✅ Redis успешно обновлён!"})
     except Exception as e:
         return JSONResponse({"status": "error", "message": f"❌ Ошибка при обновлении Redis: {e}"})
+
