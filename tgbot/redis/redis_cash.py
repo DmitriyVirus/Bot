@@ -15,12 +15,11 @@ logger = logging.getLogger(__name__)
 # ==============================
 REDIS_KEY_USERS = "sheet_users"
 REDIS_KEY_ALLOWED = "allowed_users"
-REDIS_KEY_EVENTS = "event_data"
 REDIS_KEY_AUTOSBOR = "autosbor_data"
-REDIS_KEY_MENU = "menu_data"
 REDIS_KEY_ADMINS = "admins_data"
 REDIS_KEY_BOT_CMD = "bot_cmd"
 REDIS_KEY_BOT_DEB_CMD = "bot_deb_cmd"
+REDIS_KEY_ALL_DATA = "all_data"  # объединяем events + menu
 
 # ==============================
 # Redis клиент
@@ -77,40 +76,30 @@ def get_name(user_id: int, telegram_first_name: str) -> str:
     return telegram_first_name or "Unknown"
 
 def get_bal_data() -> tuple[str, str]:
-    text = redis.hget(REDIS_KEY_EVENTS, "bal_text") or "Данные недоступны"
-    media_url = redis.hget(REDIS_KEY_EVENTS, "bal_media") or ""
+    text = redis.hget(REDIS_KEY_ALL_DATA, "bal_text") or "Данные недоступны"
+    media_url = redis.hget(REDIS_KEY_ALL_DATA, "bal_media") or ""
     return text, media_url
 
 def get_inn_data() -> tuple[str, str]:
-    text = redis.hget(REDIS_KEY_EVENTS, "inn_text") or "Данные недоступны"
-    media_url = redis.hget(REDIS_KEY_EVENTS, "inn_media") or ""
+    text = redis.hget(REDIS_KEY_ALL_DATA, "inn_text") or "Данные недоступны"
+    media_url = redis.hget(REDIS_KEY_ALL_DATA, "inn_media") or ""
     return text, media_url
 
 def get_ork_data() -> tuple[str, str]:
-    text = redis.hget(REDIS_KEY_EVENTS, "ork_text") or "Данные недоступны"
-    media_url = redis.hget(REDIS_KEY_EVENTS, "ork_media") or ""
+    text = redis.hget(REDIS_KEY_ALL_DATA, "ork_text") or "Данные недоступны"
+    media_url = redis.hget(REDIS_KEY_ALL_DATA, "ork_media") or ""
     return text, media_url
 
 def get_inst_data() -> tuple[str, str]:
-    text = redis.hget(REDIS_KEY_EVENTS, "inst_text") or "Данные недоступны"
-    media_url = redis.hget(REDIS_KEY_EVENTS, "inst_media") or ""
+    text = redis.hget(REDIS_KEY_ALL_DATA, "inst_text") or "Данные недоступны"
+    media_url = redis.hget(REDIS_KEY_ALL_DATA, "inst_media") or ""
     return text, media_url
 
-def get_column_data_from_autosbor(column_index: int, row_width: int = 10) -> list[str]:
-    try:
-        all_values = redis.lrange(REDIS_KEY_AUTOSBOR, 0, -1)
-        if not all_values or column_index <= 0 or column_index > row_width:
-            return []
-        return ["" if all_values[i]=="1" else all_values[i] for i in range(column_index-1, len(all_values), row_width)]
-    except Exception as e:
-        logger.error(f"Ошибка при get_column_data_from_autosbor из Redis: {e}")
-        return []
-
-def get_hello(): return redis.hget(REDIS_KEY_MENU, "hello_text") or ""
-def get_about_bot(): return redis.hget(REDIS_KEY_MENU, "about_text") or ""
-def get_cmd_info(): return redis.hget(REDIS_KEY_MENU, "cmd_info") or ""
-def get_hello_image(): return redis.hget(REDIS_KEY_MENU, "hello_image") or ""
-def get_about_bot_image(): return redis.hget(REDIS_KEY_MENU, "about_image") or ""
+def get_hello(): return redis.hget(REDIS_KEY_ALL_DATA, "hello_text") or ""
+def get_about_bot(): return redis.hget(REDIS_KEY_ALL_DATA, "about_text") or ""
+def get_cmd_info(): return redis.hget(REDIS_KEY_ALL_DATA, "cmd_info") or ""
+def get_hello_image(): return redis.hget(REDIS_KEY_ALL_DATA, "hello_image") or ""
+def get_about_bot_image(): return redis.hget(REDIS_KEY_ALL_DATA, "about_image") or ""
 
 def get_bot_commands() -> list[str]:
     try: return redis.lrange(REDIS_KEY_BOT_CMD, 0, -1) or ["Команды недоступны"]
@@ -199,37 +188,35 @@ def load_all_to_redis():
     else:
         logger.warning("Лист 'Добавление' не найден")
 
-    # ---------- Events и Menu и Bot Commands ----------
+    # ---------- Events + Menu + Bot Commands в один ключ ----------
     sheet_info = get_sheet("Инфо")
     if sheet_info:
+        pipe_all = redis.pipeline()
+        pipe_all.delete(REDIS_KEY_ALL_DATA)
+
         # Events
         events_map = {"bal": ("J2","J3"), "inn":("J5","J6"), "ork":("J8","J9"), "inst":("J11","J12")}
-        pipe_events = redis.pipeline()
-        pipe_events.delete(REDIS_KEY_EVENTS)
         for event, (text_cell, media_cell) in events_map.items():
             text = sheet_info.acell(text_cell).value or ""
             media_url = convert_drive_url(sheet_info.acell(media_cell).value or "")
-            pipe_events.hset(REDIS_KEY_EVENTS, f"{event}_text", text)
-            pipe_events.hset(REDIS_KEY_EVENTS, f"{event}_media", media_url)
-        pipe_events.exec()
-        logger.info("Данные событий загружены")
+            pipe_all.hset(REDIS_KEY_ALL_DATA, f"{event}_text", text)
+            pipe_all.hset(REDIS_KEY_ALL_DATA, f"{event}_media", media_url)
 
         # Menu
-        pipe_menu = redis.pipeline()
-        pipe_menu.delete(REDIS_KEY_MENU)
         hello_text = "\n".join([r[0] for r in sheet_info.get("B2:B19") if r])
         about_text = "\n".join([r[0] for r in sheet_info.get("C2:C19") if r])
         cmd_info = "\n".join([r[0] for r in sheet_info.get("D2:D19") if r])
         hello_img = convert_drive_url(sheet_info.acell("B20").value or "")
         about_img = convert_drive_url(sheet_info.acell("C20").value or "")
-        # Убираем mapping, используем отдельные hset
-        pipe_menu.hset(REDIS_KEY_MENU, "hello_text", hello_text)
-        pipe_menu.hset(REDIS_KEY_MENU, "about_text", about_text)
-        pipe_menu.hset(REDIS_KEY_MENU, "cmd_info", cmd_info)
-        pipe_menu.hset(REDIS_KEY_MENU, "hello_image", hello_img)
-        pipe_menu.hset(REDIS_KEY_MENU, "about_image", about_img)
-        pipe_menu.exec()
-        logger.info("Menu загружено")
+
+        pipe_all.hset(REDIS_KEY_ALL_DATA, "hello_text", hello_text)
+        pipe_all.hset(REDIS_KEY_ALL_DATA, "about_text", about_text)
+        pipe_all.hset(REDIS_KEY_ALL_DATA, "cmd_info", cmd_info)
+        pipe_all.hset(REDIS_KEY_ALL_DATA, "hello_image", hello_img)
+        pipe_all.hset(REDIS_KEY_ALL_DATA, "about_image", about_img)
+
+        pipe_all.exec()
+        logger.info("Events + Menu загружены в all_data")
 
         # Bot Commands
         try:
