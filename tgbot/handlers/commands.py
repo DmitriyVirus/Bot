@@ -3,6 +3,7 @@ import logging
 from aiogram import Router, types
 from aiogram.types import Message
 from aiogram.filters import Command
+from api.backupbot import backup_repo 
 from tgbot.sheets.take_from_sheet import fetch_participants
 from tgbot.redis.redis_cash import (
     redis,
@@ -57,6 +58,16 @@ async def refresh_redis_command(message: types.Message):
     except Exception as e:
         await sent_msg.edit_text(f"❌ Ошибка при обновлении Redis: {e}")
 
+@router.message(Command("backupbot"))
+async def cmd_backupbot(message: types.Message):
+    await message.reply("⚙️ Начинаю бэкап репозитория...")
+
+    try:
+        backup_repo()
+        await message.reply("✅ Бэкап выполнен успешно!")
+    except Exception as e:
+        logger.exception("Ошибка при бэкапе")
+        await message.reply(f"❌ Ошибка при бэкапе: {e}")
 
 
 @router.message(Command("fu"))
