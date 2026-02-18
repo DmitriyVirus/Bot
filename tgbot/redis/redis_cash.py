@@ -482,5 +482,14 @@ def get_bot_deb_cmd() -> list[str]:
         return data if data else ["Команды недоступны"]
     except Exception as e:
         logger.error(f"Ошибка чтения debug-команд из Redis: {e}")
-        return ["Команды недоступны"]
+        return ["Команды недоступны"] 
+
+def load_info_sheet_to_redis():
+    """
+    Загружает данные листа 'Инфо' в Redis.
+    Используется для совместимости с импортом в handlers/commands.py
+    """
+    load_menu_data_to_redis()
+    load_bot_commands_to_redis()
+
 
