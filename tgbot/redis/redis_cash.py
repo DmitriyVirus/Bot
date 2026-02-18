@@ -119,6 +119,7 @@ def get_about_bot(): return redis.hget(REDIS_KEY_ALL_DATA, "about_text") or ""
 def get_cmd_info(): return redis.hget(REDIS_KEY_ALL_DATA, "cmd_info") or ""
 def get_hello_image(): return redis.hget(REDIS_KEY_ALL_DATA, "hello_image") or ""
 def get_about_bot_image(): return redis.hget(REDIS_KEY_ALL_DATA, "about_image") or ""
+def get_welcome(): return redis.hget(REDIS_KEY_ALL_DATA, "welcome_text") or ""
 
 def get_bot_commands() -> list[str]:
     try: return redis.lrange(REDIS_KEY_BOT_CMD, 0, -1) or ["Команды недоступны"]
@@ -230,12 +231,14 @@ def load_all_to_redis():
             pipe_all.hset(REDIS_KEY_ALL_DATA, f"{media}_media", media_url)
 
         # Menu
+        welcome_text = "\n".join([r[0] for r in sheet_info.get("A2:A19") if r])
         hello_text = "\n".join([r[0] for r in sheet_info.get("B2:B19") if r])
         about_text = "\n".join([r[0] for r in sheet_info.get("C2:C19") if r])
         cmd_info = "\n".join([r[0] for r in sheet_info.get("D2:D19") if r])
         hello_img = convert_drive_url(sheet_info.acell("B20").value or "")
         about_img = convert_drive_url(sheet_info.acell("C20").value or "")
 
+        pipe_all.hset(REDIS_KEY_ALL_DATA, "welcome_text", welcome_text)
         pipe_all.hset(REDIS_KEY_ALL_DATA, "hello_text", hello_text)
         pipe_all.hset(REDIS_KEY_ALL_DATA, "about_text", about_text)
         pipe_all.hset(REDIS_KEY_ALL_DATA, "cmd_info", cmd_info)
