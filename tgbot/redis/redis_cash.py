@@ -10,19 +10,17 @@ from tgbot.sheets.take_from_sheet import get_sheet, ID_WORKSHEET, add_user_to_sh
 
 logger = logging.getLogger(__name__)
 
-
 # ==============================
 # Redis ключи
 # ==============================
-REDIS_KEY_USERS = "sheet_users"       # user_id -> JSON {name, username, user_id}
-REDIS_KEY_ALLOWED = "allowed_users"   # set of allowed user_ids
-REDIS_KEY_EVENTS = "event_data"       # hash для событий
-REDIS_KEY_AUTOSBOR = "autosbor_data"  # список всех значений из листа "Автосбор"
+REDIS_KEY_USERS = "sheet_users"
+REDIS_KEY_ALLOWED = "allowed_users"
+REDIS_KEY_EVENTS = "event_data"
+REDIS_KEY_AUTOSBOR = "autosbor_data"
 REDIS_KEY_MENU = "menu_data"
 REDIS_KEY_ADMINS = "admins_data"
 REDIS_KEY_BOT_CMD = "bot_cmd"
 REDIS_KEY_BOT_DEB_CMD = "bot_deb_cmd"
-
 
 # ==============================
 # Redis клиент
@@ -34,7 +32,6 @@ redis = Redis(
 
 router = Router()
 
-
 # ==============================
 # Конвертер ссылок Google Drive
 # ==============================
@@ -45,169 +42,39 @@ def convert_drive_url(url: str) -> str:
         return f"https://drive.google.com/uc?export=download&id={file_id}"
     return url
 
-
 # ==============================
-# Загрузка пользователей в Redis (одним запросом, JSON)
-# ==============================
-def load_sheet_users_to_redis():
-    logger.info("Загрузка пользователей из Google Sheets в Redis...")
-
-    sheet = get_sheet(ID_WORKSHEET)
-    if not sheet:
-        logger.error("Не удалось получить лист ID")
-        return
-
-    try:
-        records = sheet.get_all_records()
-        if not records:
-            logger.warning("В листе нет пользователей для загрузки")
-            return
-
-        pipe = redis.pipeline()
-        pipe.delete(REDIS_KEY_USERS)
-
-        for row in records:
-            user_id = row.get("user_id")
-            if not user_id:
-                continue
-
-            # Формируем name
-            name = row.get("name")
-            if not name:
-                first_name = row.get("first_name") or ""
-                last_name = row.get("last_name") or ""
-                name = f"{first_name} {last_name}".strip() or "Unknown"
-
-            # Берём username из таблицы
-            username = row.get("username") or "Unknown"
-
-            # JSON объект
-            user_json = json.dumps({
-                "user_id": int(user_id),
-                "name": name,
-                "username": username
-            })
-
-            pipe.hset(REDIS_KEY_USERS, str(user_id), user_json)
-
-        pipe.exec()
-        logger.info(f"В Redis загружено {len(records)} пользователей")
-
-    except Exception as e:
-        logger.error(f"Ошибка загрузки пользователей в Redis: {e}")
-
-
-# ==============================
-# Получение словаря name -> username
+# Получение данных из Redis
 # ==============================
 def get_name_username_dict() -> dict[str, str]:
-    """
-    Возвращает словарь:
-    ключ = name (например 'Дмитрий(маКароноВирус)')
-    значение = username Telegram (например 'DDestopia')
-    Алиасы игнорируются.
-    Данные берутся из Redis, а не из Google Sheets.
-    """
     try:
         all_users = redis.hgetall(REDIS_KEY_USERS)
-        name_username = {}
-        for user_json in all_users.values():
-            try:
-                data = json.loads(user_json)
-                name = data.get("name")
-                username = data.get("username")
-                if name and username:
-                    name_username[name.strip()] = username.strip()
-            except Exception:
-                continue
-        return name_username
+        return {
+            data["name"].strip(): data["username"].strip()
+            for user_json in all_users.values()
+            if (data := json.loads(user_json)).get("name") and data.get("username")
+        }
     except Exception as e:
         logger.error(f"Ошибка при получении данных name -> username из Redis: {e}")
         return {}
 
-# ==============================
-# Остальной функционал
-# ==============================
-def load_allowed_users_to_redis():
-    sheet = get_sheet("Добавление")
-    if not sheet:
-        logger.error("Лист 'Добавление' не найден")
-        return
-    try:
-        data = sheet.get_all_records()
-        pipe = redis.pipeline()
-        pipe.delete(REDIS_KEY_ALLOWED)
-        for row in data:
-            user_id = row.get("id")
-            if user_id:
-                pipe.sadd(REDIS_KEY_ALLOWED, int(user_id))
-        pipe.exec()
-        logger.info(f"Allowed users загружены в Redis: {len(data)} записей")
-    except Exception as e:
-        logger.error(f"Ошибка загрузки allowed users: {e}")
-
-
-def load_event_data_to_redis():
-    sheet = get_sheet("Инфо")
-    if not sheet:
-        logger.error("Лист 'Инфо' недоступен для загрузки событий")
-        return
-    try:
-        events_map = {
-            "bal": ("J2", "J3"),
-            "inn": ("J5", "J6"),
-            "ork": ("J8", "J9"),
-            "inst": ("J11", "J12")
-        }
-        pipe = redis.pipeline()
-        pipe.delete(REDIS_KEY_EVENTS)
-        for event, (text_cell, media_cell) in events_map.items():
-            text = sheet.acell(text_cell).value or ""
-            media_url = sheet.acell(media_cell).value or ""
-            media_url = convert_drive_url(media_url)
-            pipe.hset(REDIS_KEY_EVENTS, f"{event}_text", text)
-            pipe.hset(REDIS_KEY_EVENTS, f"{event}_media", media_url)
-        pipe.exec()
-        logger.info("Данные событий загружены в Redis")
-    except Exception as e:
-        logger.error(f"Ошибка загрузки данных событий: {e}")
-
-
 def get_allowed_user_ids() -> set[int]:
     try:
-        ids = redis.smembers(REDIS_KEY_ALLOWED)
-        return {int(user_id) for user_id in ids}
+        return {int(uid) for uid in redis.smembers(REDIS_KEY_ALLOWED)}
     except Exception as e:
         logger.error(f"Ошибка get_allowed_user_ids из Redis: {e}")
         return set()
 
-
 def is_user_in_sheet(user_id: int) -> bool:
     return redis.hexists(REDIS_KEY_USERS, str(user_id))
-
 
 def get_name(user_id: int, telegram_first_name: str) -> str:
     user_json = redis.hget(REDIS_KEY_USERS, str(user_id))
     if user_json:
         try:
-            data = json.loads(user_json)
-            return data.get("name") or telegram_first_name or "Unknown"
+            return json.loads(user_json).get("name") or telegram_first_name or "Unknown"
         except Exception:
             return telegram_first_name or "Unknown"
     return telegram_first_name or "Unknown"
-
-
-def add_user_to_sheet_and_redis(user_id: int, username: str, first_name: str, last_name: str):
-    add_user_to_sheet_safe(user_id, username, first_name, last_name)
-    full_name = f"{first_name} {last_name}".strip() or "Unknown"
-    user_json = json.dumps({
-        "user_id": int(user_id),
-        "name": full_name,
-        "username": username
-    })
-    redis.hset(REDIS_KEY_USERS, str(user_id), user_json)
-    logger.info(f"Пользователь {username} ({user_id}) добавлен в Redis")
-
 
 def get_bal_data() -> tuple[str, str]:
     text = redis.hget(REDIS_KEY_EVENTS, "bal_text") or "Данные недоступны"
@@ -229,70 +96,57 @@ def get_inst_data() -> tuple[str, str]:
     media_url = redis.hget(REDIS_KEY_EVENTS, "inst_media") or ""
     return text, media_url
 
-# ==============================
-# Загрузка данных Автосбор в Redis
-# ==============================
-def load_autosbor_to_redis():
-    """
-    Загружает данные из листа 'Автосбор' в Redis.
-    Все значения складываются в один список.
-    Пустые ячейки заменяются на маркер '1'.
-    """
-    sheet = get_sheet("Автосбор")
-    if not sheet:
-        logger.error("Лист 'Автосбор' не найден")
-        return
-
-    try:
-        all_values = sheet.get_all_values()  # получаем все строки
-        flat_list = []
-
-        for row in all_values:
-            for cell in row:
-                value = cell.strip() if cell.strip() else "1"
-                flat_list.append(value)
-
-        # Сохраняем в Redis через pipeline
-        pipe = redis.pipeline()
-        pipe.delete(REDIS_KEY_AUTOSBOR)
-        if flat_list:
-            pipe.rpush(REDIS_KEY_AUTOSBOR, *flat_list)
-        pipe.exec()
-
-        logger.info(f"Данные 'Автосбор' загружены в Redis ({len(flat_list)} элементов)")
-
-    except Exception as e:
-        logger.error(f"Ошибка загрузки 'Автосбор' в Redis: {e}")
-
-
-# ==============================
-# Получение колонки из Redis
-# ==============================
 def get_column_data_from_autosbor(column_index: int, row_width: int = 10) -> list[str]:
-    """
-    Возвращает список значений из колонки column_index (1 = первый столбец)
-    row_width: количество столбцов в таблице
-    Пустые ячейки возвращаются как "".
-    """
     try:
         all_values = redis.lrange(REDIS_KEY_AUTOSBOR, 0, -1)
         if not all_values or column_index <= 0 or column_index > row_width:
             return []
-
-        col_data = []
-        for i in range(column_index - 1, len(all_values), row_width):
-            value = all_values[i]
-            if value == "1":  # маркер пустой ячейки
-                value = ""
-            col_data.append(value)
-
-        return col_data
-
+        return ["" if all_values[i]=="1" else all_values[i] for i in range(column_index-1, len(all_values), row_width)]
     except Exception as e:
         logger.error(f"Ошибка при get_column_data_from_autosbor из Redis: {e}")
         return []
 
+def get_hello(): return redis.hget(REDIS_KEY_MENU, "hello_text") or ""
+def get_about_bot(): return redis.hget(REDIS_KEY_MENU, "about_text") or ""
+def get_cmd_info(): return redis.hget(REDIS_KEY_MENU, "cmd_info") or ""
+def get_hello_image(): return redis.hget(REDIS_KEY_MENU, "hello_image") or ""
+def get_about_bot_image(): return redis.hget(REDIS_KEY_MENU, "about_image") or ""
 
+def get_bot_commands() -> list[str]:
+    try: return redis.lrange(REDIS_KEY_BOT_CMD, 0, -1) or ["Команды недоступны"]
+    except Exception as e:
+        logger.error(f"Ошибка чтения команд бота из Redis: {e}")
+        return ["Команды недоступны"]
+
+def get_bot_deb_cmd() -> list[str]:
+    try: return redis.lrange(REDIS_KEY_BOT_DEB_CMD, 0, -1) or ["Команды недоступны"]
+    except Exception as e:
+        logger.error(f"Ошибка чтения debug-команд из Redis: {e}")
+        return ["Команды недоступны"]
+
+def get_admins_records() -> set[int]:
+    try:
+        return {int(uid) for uid in redis.smembers(REDIS_KEY_ADMINS)}
+    except Exception as e:
+        logger.error(f"Ошибка получения админов из Redis: {e}")
+        return set()
+
+# ==============================
+# Добавление пользователя
+# ==============================
+def add_user_to_sheet_and_redis(user_id: int, username: str, first_name: str, last_name: str):
+    add_user_to_sheet_safe(user_id, username, first_name, last_name)
+    full_name = f"{first_name} {last_name}".strip() or "Unknown"
+    redis.hset(
+        REDIS_KEY_USERS,
+        str(user_id),
+        json.dumps({"user_id": int(user_id), "name": full_name, "username": username})
+    )
+    logger.info(f"Пользователь {username} ({user_id}) добавлен в Redis")
+
+# ==============================
+# Обработка сообщений
+# ==============================
 @router.message()
 async def handle_all_messages(message: types.Message):
     user_id = message.from_user.id
@@ -302,194 +156,138 @@ async def handle_all_messages(message: types.Message):
 
     if not is_user_in_sheet(user_id):
         logger.info(f"Пользователь {username} ({user_id}) не найден, добавляем...")
-        await asyncio.to_thread(
-            add_user_to_sheet_and_redis,
-            user_id,
-            username,
-            first_name,
-            last_name
-        )
+        await asyncio.to_thread(add_user_to_sheet_and_redis, user_id, username, first_name, last_name)
         logger.info(f"Пользователь {username} ({user_id}) успешно добавлен")
     else:
         logger.info(f"Пользователь {username} ({user_id}) уже есть в списке")
 
-# ============================================================
-# ADMINS
-# ============================================================
+# ==============================
+# Загрузка всех данных в Redis
+# ==============================
+def load_all_to_redis():
+    logger.info("=== Загрузка всех данных в Redis ===")
 
+    # ---------- Пользователи ----------
+    sheet_users = get_sheet(ID_WORKSHEET)
+    if sheet_users:
+        records = sheet_users.get_all_records()
+        if records:
+            pipe_users = redis.pipeline()
+            pipe_users.delete(REDIS_KEY_USERS)
+            for row in records:
+                user_id = row.get("user_id")
+                if not user_id: continue
+                name = row.get("name") or f"{row.get('first_name','')} {row.get('last_name','')}".strip() or "Unknown"
+                username = row.get("username") or "Unknown"
+                pipe_users.hset(
+                    REDIS_KEY_USERS,
+                    str(user_id),
+                    json.dumps({"user_id": int(user_id), "name": name, "username": username})
+                )
+            pipe_users.exec()
+            logger.info(f"Загружено пользователей: {len(records)}")
+    else:
+        logger.warning("Лист пользователей не найден")
 
-def load_admins_to_redis():
-    sheet = get_sheet("Админы")
-    if not sheet:
-        logger.error("Лист 'Админы' не найден")
-        return
-
-    try:
-        records = sheet.get_all_records()
-
-        pipe = redis.pipeline()
-        pipe.delete(REDIS_KEY_ADMINS)
-
+    # ---------- Allowed Users ----------
+    sheet_allowed = get_sheet("Добавление")
+    if sheet_allowed:
+        records = sheet_allowed.get_all_records()
+        pipe_allowed = redis.pipeline()
+        pipe_allowed.delete(REDIS_KEY_ALLOWED)
         for row in records:
-            admin_id = row.get("id")  # колонка id
-            if admin_id:
-                pipe.sadd(REDIS_KEY_ADMINS, int(admin_id))
+            user_id = row.get("id")
+            if user_id: pipe_allowed.sadd(REDIS_KEY_ALLOWED, int(user_id))
+        pipe_allowed.exec()
+        logger.info(f"Allowed users загружены: {len(records)}")
+    else:
+        logger.warning("Лист 'Добавление' не найден")
 
-        pipe.exec()
+    # ---------- Events и Menu и Bot Commands ----------
+    sheet_info = get_sheet("Инфо")
+    if sheet_info:
+        # Events
+        events_map = {"bal": ("J2","J3"), "inn":("J5","J6"), "ork":("J8","J9"), "inst":("J11","J12")}
+        pipe_events = redis.pipeline()
+        pipe_events.delete(REDIS_KEY_EVENTS)
+        for event, (text_cell, media_cell) in events_map.items():
+            text = sheet_info.acell(text_cell).value or ""
+            media_url = convert_drive_url(sheet_info.acell(media_cell).value or "")
+            pipe_events.hset(REDIS_KEY_EVENTS, f"{event}_text", text)
+            pipe_events.hset(REDIS_KEY_EVENTS, f"{event}_media", media_url)
+        pipe_events.exec()
+        logger.info("Данные событий загружены")
 
-        logger.info(f"Админы загружены в Redis: {len(records)} записей")
+        # Menu
+        pipe_menu = redis.pipeline()
+        pipe_menu.delete(REDIS_KEY_MENU)
+        hello_text = "\n".join([r[0] for r in sheet_info.get("B2:B19") if r])
+        about_text = "\n".join([r[0] for r in sheet_info.get("C2:C19") if r])
+        cmd_info = "\n".join([r[0] for r in sheet_info.get("D2:D19") if r])
+        hello_img = convert_drive_url(sheet_info.acell("B20").value or "")
+        about_img = convert_drive_url(sheet_info.acell("C20").value or "")
+        pipe_menu.hset(REDIS_KEY_MENU, mapping={
+            "hello_text": hello_text, "about_text": about_text,
+            "cmd_info": cmd_info, "hello_image": hello_img, "about_image": about_img
+        })
+        pipe_menu.exec()
+        logger.info("Menu загружено")
 
-    except Exception as e:
-        logger.error(f"Ошибка загрузки админов: {e}")
+        # Bot Commands
+        try:
+            headers = sheet_info.row_values(1)
+            cmd_index = headers.index("cmd_bot")+1
+            text_index = headers.index("cmd_bot_text")+1
+            deb_cmd_index = headers.index("cmd_bot_deb")+1
+            deb_text_index = headers.index("cmd_bot_deb_text")+1
 
+            cmd_values = sheet_info.col_values(cmd_index)[1:]
+            text_values = sheet_info.col_values(text_index)[1:]
+            deb_cmd_values = sheet_info.col_values(deb_cmd_index)[1:]
+            deb_text_values = sheet_info.col_values(deb_text_index)[1:]
 
-def get_admins_records() -> set[int]:
-    try:
-        ids = redis.smembers(REDIS_KEY_ADMINS)
-        return {int(admin_id) for admin_id in ids}
-    except Exception as e:
-        logger.error(f"Ошибка получения админов из Redis: {e}")
-        return set()
+            pipe_cmd = redis.pipeline()
+            pipe_cmd.delete(REDIS_KEY_BOT_CMD)
+            pipe_cmd.delete(REDIS_KEY_BOT_DEB_CMD)
 
+            bot_cmd_list = [f"{c} — {t}" if t else c for c,t in zip(cmd_values,text_values) if c.strip()]
+            bot_deb_cmd_list = [f"{c} — {t}" if t else c for c,t in zip(deb_cmd_values,deb_text_values) if c.strip()]
 
-# ============================================================
-# MENU (тексты + картинки)
-# ============================================================
-def load_menu_data_to_redis():
-    sheet = get_sheet("Инфо")
-    if not sheet:
-        return
+            if bot_cmd_list: pipe_cmd.rpush(REDIS_KEY_BOT_CMD,*bot_cmd_list)
+            if bot_deb_cmd_list: pipe_cmd.rpush(REDIS_KEY_BOT_DEB_CMD,*bot_deb_cmd_list)
 
-    pipe = redis.pipeline()
-    pipe.delete(REDIS_KEY_MENU)
+            pipe_cmd.exec()
+            logger.info(f"Команды загружены: {len(bot_cmd_list)} обычных, {len(bot_deb_cmd_list)} debug")
+        except Exception as e:
+            logger.error(f"Ошибка загрузки bot_cmd: {e}")
+    else:
+        logger.warning("Лист 'Инфо' не найден")
 
-    hello_text = "\n".join([r[0] for r in sheet.get("B2:B19") if r])
-    about_text = "\n".join([r[0] for r in sheet.get("C2:C19") if r])
-    cmd_info = "\n".join([r[0] for r in sheet.get("D2:D19") if r])
+    # ---------- Autosbor ----------
+    sheet_autosbor = get_sheet("Автосбор")
+    if sheet_autosbor:
+        all_values = sheet_autosbor.get_all_values()
+        flat_list = [cell.strip() if cell.strip() else "1" for row in all_values for cell in row]
+        pipe_autosbor = redis.pipeline()
+        pipe_autosbor.delete(REDIS_KEY_AUTOSBOR)
+        if flat_list: pipe_autosbor.rpush(REDIS_KEY_AUTOSBOR,*flat_list)
+        pipe_autosbor.exec()
+        logger.info(f"Автосбор загружен ({len(flat_list)} элементов)")
+    else:
+        logger.warning("Лист 'Автосбор' не найден")
 
-    hello_img = convert_drive_url(sheet.acell("B20").value or "")
-    about_img = convert_drive_url(sheet.acell("C20").value or "")
+    # ---------- Admins ----------
+    sheet_admins = get_sheet("Админы")
+    if sheet_admins:
+        records = sheet_admins.get_all_records()
+        pipe_admins = redis.pipeline()
+        pipe_admins.delete(REDIS_KEY_ADMINS)
+        for row in records:
+            admin_id = row.get("id")
+            if admin_id: pipe_admins.sadd(REDIS_KEY_ADMINS,int(admin_id))
+        pipe_admins.exec()
+        logger.info(f"Админы загружены ({len(records)} записей)")
+    else:
+        logger.warning("Лист 'Админы' не найден")
 
-    pipe.hset(REDIS_KEY_MENU, "hello_text", hello_text)
-    pipe.hset(REDIS_KEY_MENU, "about_text", about_text)
-    pipe.hset(REDIS_KEY_MENU, "cmd_info", cmd_info)
-    pipe.hset(REDIS_KEY_MENU, "hello_image", hello_img)
-    pipe.hset(REDIS_KEY_MENU, "about_image", about_img)
-
-    pipe.exec()
-    logger.info("Menu загружено")
-
-def get_hello():
-    return redis.hget(REDIS_KEY_MENU, "hello_text") or ""
-
-def get_about_bot():
-    return redis.hget(REDIS_KEY_MENU, "about_text") or ""
-
-def get_cmd_info():
-    return redis.hget(REDIS_KEY_MENU, "cmd_info") or ""
-
-def get_hello_image():
-    return redis.hget(REDIS_KEY_MENU, "hello_image") or ""
-
-def get_about_bot_image():
-    return redis.hget(REDIS_KEY_MENU, "about_image") or ""
-
-
-# ============================================================
-# BOT COMMANDS (из листа Инфо)
-# ============================================================
-
-def load_bot_commands_to_redis():
-    sheet = get_sheet("Инфо")
-    if not sheet:
-        logger.error("Лист 'Инфо' не найден для загрузки команд")
-        return
-
-    try:
-        headers = sheet.row_values(1)
-
-        cmd_index = headers.index("cmd_bot") + 1
-        text_index = headers.index("cmd_bot_text") + 1
-        deb_cmd_index = headers.index("cmd_bot_deb") + 1
-        deb_text_index = headers.index("cmd_bot_deb_text") + 1
-
-        cmd_values = sheet.col_values(cmd_index)[1:]
-        text_values = sheet.col_values(text_index)[1:]
-        deb_cmd_values = sheet.col_values(deb_cmd_index)[1:]
-        deb_text_values = sheet.col_values(deb_text_index)[1:]
-
-        pipe = redis.pipeline()
-        pipe.delete(REDIS_KEY_BOT_CMD)
-        pipe.delete(REDIS_KEY_BOT_DEB_CMD)
-
-        # ======================
-        # Обычные команды
-        # ======================
-        bot_cmd_list = []
-        for cmd, text in zip(cmd_values, text_values):
-            cmd = cmd.strip() if cmd else ""
-            text = text.strip() if text else ""
-
-            # 🔴 Останавливаемся при первой пустой ячейке
-            if not cmd:
-                break
-
-            bot_cmd_list.append(f"{cmd} — {text}" if text else cmd)
-
-        if bot_cmd_list:
-            pipe.rpush(REDIS_KEY_BOT_CMD, *bot_cmd_list)
-
-        # ======================
-        # Debug команды
-        # ======================
-        bot_deb_cmd_list = []
-        for cmd, text in zip(deb_cmd_values, deb_text_values):
-            cmd = cmd.strip() if cmd else ""
-            text = text.strip() if text else ""
-
-            # 🔴 Останавливаемся при первой пустой ячейке
-            if not cmd:
-                break
-
-            bot_deb_cmd_list.append(f"{cmd} — {text}" if text else cmd)
-
-        if bot_deb_cmd_list:
-            pipe.rpush(REDIS_KEY_BOT_DEB_CMD, *bot_deb_cmd_list)
-
-        pipe.exec()
-
-        logger.info(
-            f"Команды загружены: "
-            f"{len(bot_cmd_list)} обычных, "
-            f"{len(bot_deb_cmd_list)} debug"
-        )
-
-    except Exception as e:
-        logger.error(f"Ошибка загрузки bot_cmd в Redis: {e}")
-
-def get_bot_commands() -> list[str]:
-    try:
-        data = redis.lrange(REDIS_KEY_BOT_CMD, 0, -1)
-        return data if data else ["Команды недоступны"]
-    except Exception as e:
-        logger.error(f"Ошибка чтения команд бота из Redis: {e}")
-        return ["Команды недоступны"]
-
-
-def get_bot_deb_cmd() -> list[str]:
-    try:
-        data = redis.lrange(REDIS_KEY_BOT_DEB_CMD, 0, -1)
-        return data if data else ["Команды недоступны"]
-    except Exception as e:
-        logger.error(f"Ошибка чтения debug-команд из Redis: {e}")
-        return ["Команды недоступны"] 
-
-def load_info_sheet_to_redis():
-    """
-    Загружает данные листа 'Инфо' в Redis.
-    Используется для совместимости с импортом в handlers/commands.py
-    """
-    load_menu_data_to_redis()
-    load_bot_commands_to_redis()
-
-
+    logger.info("=== Загрузка всех данных завершена ===")
