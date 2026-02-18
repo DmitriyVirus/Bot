@@ -6,7 +6,7 @@ import asyncio
 from aiogram import Router
 from aiogram.types import Message
 from aiogram.filters import Command
-from tgbot.redis.redis_cash import get_welcome
+from tgbot.sheets.take_from_sheet import get_welcome
 
 router = Router()
 logger = logging.getLogger(__name__)
