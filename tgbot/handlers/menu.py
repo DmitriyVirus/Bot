@@ -40,8 +40,7 @@ async def is_user_allowed(user_id: int) -> bool:
     records = await safe_fetch(get_admins_records)
     if not records:
         return False
-    return any(str(record.get("id")) == str(user_id) for record in records)
-
+    return user_id in records
 
 # ===== КЛАВИАТУРЫ =====
 
