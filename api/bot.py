@@ -2,18 +2,17 @@ import os
 import json
 import time
 import random
+import asyncio
 from tgbot import tgbot
 from fastapi import FastAPI
 from decouple import config
 from pydantic import BaseModel
 from aiogram import Bot, Router, types
 from fastapi.staticfiles import StaticFiles
-from tgbot.sheets.gspread_client import get_gspread_client
 from fastapi import FastAPI, Request, HTTPException
+from tgbot.sheets.gspread_client import get_gspread_client
+from tgbot.redis.redis_cash import load_all_to_redis, redis, LAST_UPDATE_KEY
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, HTMLResponse
-
-
-
 
 app = FastAPI()
 
@@ -51,8 +50,6 @@ async def tgbot_webhook_route(request: Request):
     except Exception as e:
         print(f"Error processing update: {e}")
         return {"error": str(e)}
-
-
 
 # ==============================
 # Основной лист "ID" в DareDevils
@@ -189,7 +186,22 @@ async def save_autosbor(request: Request):
     return JSONResponse({"status": "ok"})
 
 
+# ==============================
+# Крон/внешний вызов обновления Redis
+# ==============================
+@app.get("/api/cron/refresh_redis")
+async def cron_refresh_redis():
+    """
+    Эндпоинт для крон-задачи.
+    Вызывает обновление всех данных в Redis.
+    """
+    try:
+        # Выполняем блокирующую функцию в отдельном потоке
+        await asyncio.to_thread(load_all_to_redis)
 
+        # Обновляем отметку последнего обновления
+        redis.set(LAST_UPDATE_KEY, int(time.time()))
 
-
-
+        return JSONResponse({"status": "ok", "message": "✅ Redis успешно обновлён!"})
+    except Exception as e:
+        return JSONResponse({"status": "error", "message": f"❌ Ошибка при обновлении Redis: {e}"})
