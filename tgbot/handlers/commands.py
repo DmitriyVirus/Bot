@@ -5,19 +5,10 @@ from aiogram.types import Message
 from aiogram.filters import Command
 from tgbot.redis.redis_cash import (
     redis,
-    load_sheet_users_to_redis,
     is_user_in_sheet,
     add_user_to_sheet_and_redis,
-    load_allowed_users_to_redis,
-    load_admins_to_redis,
-    load_info_sheet_to_redis,   
-    load_event_data_to_redis,
-    load_autosbor_to_redis,
-    load_menu_data_to_redis,
-    load_bot_commands_to_redis
+    load_all_to_redis
 )
-
-
 from tgbot.sheets.take_from_sheet import (
     get_fu_data,
     get_nakol_data,
@@ -27,6 +18,9 @@ from tgbot.sheets.take_from_sheet import (
     convert_drive_url,
     fetch_participants
 )
+
+LAST_UPDATE_KEY = "last_update_redis"
+
 
 router = Router()
 
@@ -54,7 +48,6 @@ async def safe_fetch(func, *args):
         return None
 
 
-
 @router.message(Command("refresh"))
 async def refresh_redis_command(message: types.Message):
     """
@@ -62,22 +55,16 @@ async def refresh_redis_command(message: types.Message):
     """
     sent_msg = await message.answer("Обновление Redis... ⏳")
     try:
-        # Загружаем все данные через to_thread, чтобы не блокировать event loop
-        await asyncio.to_thread(load_sheet_users_to_redis)
-        await asyncio.to_thread(load_allowed_users_to_redis)
-        await asyncio.to_thread(load_event_data_to_redis)
-        await asyncio.to_thread(load_autosbor_to_redis)
-        await asyncio.to_thread(load_menu_data_to_redis)
-        await asyncio.to_thread(load_admins_to_redis)
-        await asyncio.to_thread(load_bot_commands_to_redis)
+        # Загружаем все данные одним вызовом
+        await asyncio.to_thread(load_all_to_redis)
 
         # Обновляем отметку последнего обновления
-        import time
         redis.set(LAST_UPDATE_KEY, int(time.time()))
 
         await sent_msg.edit_text("✅ Redis успешно обновлён вручную!")
     except Exception as e:
         await sent_msg.edit_text(f"❌ Ошибка при обновлении Redis: {e}")
+
 
 
 @router.message(Command("fu"))
