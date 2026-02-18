@@ -1,5 +1,6 @@
 import os
 import re
+import time
 import json
 import logging
 import asyncio
@@ -18,7 +19,8 @@ REDIS_KEY_AUTOSBOR = "autosbor_data"
 REDIS_KEY_ADMINS = "admins_data"
 REDIS_KEY_BOT_CMD = "bot_cmd"
 REDIS_KEY_BOT_DEB_CMD = "bot_deb_cmd"
-REDIS_KEY_ALL_DATA = "all_data"  # объединяем events + menu
+REDIS_KEY_ALL_DATA = "all_data" 
+LAST_UPDATE_KEY = "last_update_redis"
 
 # ==============================
 # Redis клиент
@@ -29,6 +31,15 @@ redis = Redis(
 )
 
 router = Router()
+
+async def refresh_redis():
+    """
+    Основная функция обновления Redis.
+    Можно вызывать из хендлера и из крон-задачи.
+    """
+    await asyncio.to_thread(load_all_to_redis)
+    redis.set(LAST_UPDATE_KEY, int(time.time()))
+    return "✅ Redis успешно обновлён!"
 
 # ==============================
 # Конвертер ссылок Google Drive
