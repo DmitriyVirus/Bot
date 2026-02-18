@@ -8,12 +8,11 @@ from tgbot.redis.redis_cash import (
     is_user_in_sheet,
     add_user_to_sheet_and_redis,
     load_allowed_users_to_redis,
-    load_event_data_to_redis,
     load_autosbor_to_redis,
     load_admins_to_redis,
-    load_menu_data_to_redis,
-    load_bot_commands_to_redis
+    load_info_sheet_to_redis
 )
+
 
 from tgbot.sheets.take_from_sheet import (
     get_fu_data,
@@ -59,17 +58,19 @@ async def refresh_redis_command(message: types.Message):
     """
     sent_msg = await message.answer("Обновление Redis... ⏳")
     try:
+        # Пользователи
         await asyncio.to_thread(load_sheet_users_to_redis)
-        await asyncio.to_thread(load_admins_to_redis)
-        await asyncio.to_thread(load_menu_data_to_redis)
+        # Allowed + Admins
         await asyncio.to_thread(load_allowed_users_to_redis)
-        await asyncio.to_thread(load_event_data_to_redis)
-        await asyncio.to_thread(load_bot_commands_to_redis)
+        await asyncio.to_thread(load_admins_to_redis)
+        # Инфо лист (EVENTS, MENU, BOT COMMANDS)
+        await asyncio.to_thread(load_info_sheet_to_redis)
+        # Автосбор
         await asyncio.to_thread(load_autosbor_to_redis)
+
         await sent_msg.edit_text("✅ Redis успешно обновлён вручную!")
     except Exception as e:
         await sent_msg.edit_text(f"❌ Ошибка при обновлении Redis: {e}")
-
 
 
 @router.message(Command("fu"))
