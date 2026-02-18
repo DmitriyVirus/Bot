@@ -10,13 +10,11 @@ from tgbot.redis.redis_cash import (
     get_about_bot,
     get_hello_image,
     get_about_bot_image,
-    get_cmd_info
-)
-from tgbot.sheets.take_from_sheet import (
+    get_cmd_info,
     get_bot_commands,
-    get_bot_deb_cmd,
-    fetch_participants,
+    get_bot_deb_cmd
 )
+from tgbot.sheets.take_from_sheet import fetch_participants
 
 router = Router()
 WEBAPP_URL = os.environ.get("WEBAPP_URL")
