@@ -35,7 +35,7 @@ router = Router()
 
 
 # ============================================================
-# Redis helpers (универсальные)
+# Redis helpers
 # ============================================================
 
 def redis_replace_set(key: str, values: list[int]):
@@ -57,16 +57,15 @@ def redis_replace_list(key: str, values: list[str]):
 def redis_replace_hash(key: str, mapping: dict):
     pipe = redis.pipeline()
     pipe.delete(key)
-
     if mapping:
-        pipe.hset(key, values=mapping)  # <-- ВАЖНО
-
+        pipe.hset(key, values=mapping)  # Upstash синтаксис
     pipe.exec()
 
 
-# ==============================
-# Конвертер ссылок Google Drive
-# ==============================
+# ============================================================
+# Google Drive URL
+# ============================================================
+
 def convert_drive_url(url: str) -> str:
     match = re.search(r'/d/([a-zA-Z0-9_-]+)', url)
     if match:
@@ -168,7 +167,7 @@ def add_user_to_sheet_and_redis(user_id, username, first_name, last_name):
 
 
 # ============================================================
-# ALLOWED + ADMINS (объединённая логика)
+# ALLOWED + ADMINS
 # ============================================================
 
 def load_allowed_users_to_redis():
@@ -204,14 +203,27 @@ def get_admins_records() -> set[int]:
 
 
 # ============================================================
+# ИНФО (ОДИН ВЫЗОВ ЛИСТА)
+# ============================================================
+
+def load_info_sheet_to_redis():
+    sheet = get_sheet("Инфо")
+    if not sheet:
+        logger.error("Лист 'Инфо' не найден")
+        return
+
+    load_event_data_from_sheet(sheet)
+    load_menu_from_sheet(sheet)
+    load_bot_commands_from_sheet(sheet)
+
+    logger.info("Лист 'Инфо' полностью загружен")
+
+
+# ============================================================
 # EVENTS
 # ============================================================
 
-def load_event_data_to_redis():
-    sheet = get_sheet("Инфо")
-    if not sheet:
-        return
-
+def load_event_data_from_sheet(sheet):
     events_map = {
         "bal": ("J2", "J3"),
         "inn": ("J5", "J6"),
@@ -230,28 +242,28 @@ def load_event_data_to_redis():
     redis_replace_hash(REDIS_KEY_EVENTS, data)
 
 
-def get_bal_data() -> tuple[str, str]:
+def get_bal_data():
     return (
         redis.hget(REDIS_KEY_EVENTS, "bal_text") or "Данные недоступны",
         redis.hget(REDIS_KEY_EVENTS, "bal_media") or ""
     )
 
 
-def get_inn_data() -> tuple[str, str]:
+def get_inn_data():
     return (
         redis.hget(REDIS_KEY_EVENTS, "inn_text") or "Данные недоступны",
         redis.hget(REDIS_KEY_EVENTS, "inn_media") or ""
     )
 
 
-def get_ork_data() -> tuple[str, str]:
+def get_ork_data():
     return (
         redis.hget(REDIS_KEY_EVENTS, "ork_text") or "Данные недоступны",
         redis.hget(REDIS_KEY_EVENTS, "ork_media") or ""
     )
 
 
-def get_inst_data() -> tuple[str, str]:
+def get_inst_data():
     return (
         redis.hget(REDIS_KEY_EVENTS, "inst_text") or "Данные недоступны",
         redis.hget(REDIS_KEY_EVENTS, "inst_media") or ""
@@ -259,47 +271,10 @@ def get_inst_data() -> tuple[str, str]:
 
 
 # ============================================================
-# AUTOSBOR
-# ============================================================
-
-def load_autosbor_to_redis():
-    sheet = get_sheet("Автосбор")
-    if not sheet:
-        return
-
-    flat_list = []
-    for row in sheet.get_all_values():
-        for cell in row:
-            flat_list.append(cell.strip() if cell.strip() else "1")
-
-    redis_replace_list(REDIS_KEY_AUTOSBOR, flat_list)
-
-
-def get_column_data_from_autosbor(column_index: int, row_width: int = 10) -> list[str]:
-    try:
-        all_values = redis.lrange(REDIS_KEY_AUTOSBOR, 0, -1)
-        if not all_values:
-            return []
-
-        result = []
-        for i in range(column_index - 1, len(all_values), row_width):
-            val = all_values[i]
-            result.append("" if val == "1" else val)
-
-        return result
-    except Exception:
-        return []
-
-
-# ============================================================
 # MENU
 # ============================================================
 
-def load_menu_data_to_redis():
-    sheet = get_sheet("Инфо")
-    if not sheet:
-        return
-
+def load_menu_from_sheet(sheet):
     data = {
         "hello_text": "\n".join([r[0] for r in sheet.get("B2:B19") if r]),
         "about_text": "\n".join([r[0] for r in sheet.get("C2:C19") if r]),
@@ -335,11 +310,7 @@ def get_about_bot_image():
 # BOT COMMANDS
 # ============================================================
 
-def load_bot_commands_to_redis():
-    sheet = get_sheet("Инфо")
-    if not sheet:
-        return
-
+def load_bot_commands_from_sheet(sheet):
     headers = sheet.row_values(1)
 
     cmd_index = headers.index("cmd_bot") + 1
@@ -372,11 +343,11 @@ def load_bot_commands_to_redis():
     redis_replace_list(REDIS_KEY_BOT_DEB_CMD, bot_deb)
 
 
-def get_bot_commands() -> list[str]:
+def get_bot_commands():
     data = redis.lrange(REDIS_KEY_BOT_CMD, 0, -1)
     return data if data else ["Команды недоступны"]
 
 
-def get_bot_deb_cmd() -> list[str]:
+def get_bot_deb_cmd():
     data = redis.lrange(REDIS_KEY_BOT_DEB_CMD, 0, -1)
     return data if data else ["Команды недоступны"]
