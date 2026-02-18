@@ -343,7 +343,7 @@ def load_admins_to_redis():
         logger.error(f"Ошибка загрузки админов: {e}")
 
 
-def get_admin_ids() -> set[int]:
+def get_admins_records() -> set[int]:
     try:
         ids = redis.smembers(REDIS_KEY_ADMINS)
         return {int(admin_id) for admin_id in ids}
