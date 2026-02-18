@@ -321,15 +321,36 @@ async def handle_all_messages(message: types.Message):
 def load_admins_to_redis():
     sheet = get_sheet("Админы")
     if not sheet:
+        logger.error("Лист 'Админы' не найден")
         return
 
-    records = sheet.get_all_records()
-    redis.set(REDIS_KEY_ADMINS, json.dumps(records))
-    logger.info(f"Админы загружены: {len(records)}")
+    try:
+        records = sheet.get_all_records()
 
-def get_admins_records() -> list[dict]:
-    data = redis.get(REDIS_KEY_ADMINS)
-    return json.loads(data) if data else []
+        pipe = redis.pipeline()
+        pipe.delete(REDIS_KEY_ADMINS)
+
+        for row in records:
+            admin_id = row.get("id")  # колонка id
+            if admin_id:
+                pipe.sadd(REDIS_KEY_ADMINS, int(admin_id))
+
+        pipe.exec()
+
+        logger.info(f"Админы загружены в Redis: {len(records)} записей")
+
+    except Exception as e:
+        logger.error(f"Ошибка загрузки админов: {e}")
+
+
+def get_admin_ids() -> set[int]:
+    try:
+        ids = redis.smembers(REDIS_KEY_ADMINS)
+        return {int(admin_id) for admin_id in ids}
+    except Exception as e:
+        logger.error(f"Ошибка получения админов из Redis: {e}")
+        return set()
+
 
 # ============================================================
 # MENU (тексты + картинки)
