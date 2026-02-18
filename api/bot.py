@@ -11,16 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from tgbot.sheets.gspread_client import get_gspread_client
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, HTMLResponse
-from tgbot.redis.redis_cash import (
-    redis,
-    load_sheet_users_to_redis,
-    load_allowed_users_to_redis,
-    load_event_data_to_redis,
-    load_autosbor_to_redis,
-    load_admins_to_redis,
-    load_menu_data_to_redis,
-    load_bot_commands_to_redis
-)
+
 
 
 
@@ -60,49 +51,6 @@ async def tgbot_webhook_route(request: Request):
     except Exception as e:
         print(f"Error processing update: {e}")
         return {"error": str(e)}
-
-
-# Ключ в Redis для хранения времени последнего обновления
-LAST_UPDATE_KEY = "last_update_timestamp"
-
-def can_update_redis(min_interval_sec=60) -> bool:
-    """
-    Проверяет, прошло ли min_interval_sec секунд с последнего обновления.
-    Если прошло — обновление разрешено, иначе — нет.
-    """
-    ts = redis.get(LAST_UPDATE_KEY)
-    now = int(time.time())
-    if not ts or now - int(ts) >= min_interval_sec:
-        redis.set(LAST_UPDATE_KEY, now)
-        return True
-    return False
-
-
-
-@app.get("/api/refresh_redis")
-async def refresh_redis():
-    """
-    Обновление всех данных в Redis:
-    - лист ID
-    - allowed users
-    - события
-    - автосбор
-    Можно вызывать через Cron Job каждые N минут.
-    """
-    if not can_update_redis(60):  # не чаще 1 минуты
-        return JSONResponse({"status": "skipped", "message": "Обновление не требуется"})
-
-    try:      
-        load_sheet_users_to_redis()
-        load_allowed_users_to_redis()
-        load_event_data_to_redis()
-        load_autosbor_to_redis()
-        load_menu_data_to_redis()
-        load_admins_to_redis()
-        load_bot_commands_to_redis()
-        return JSONResponse({"status": "ok", "message": "Redis обновлён"})
-    except Exception as e:
-        return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
 
 
 
@@ -239,6 +187,7 @@ async def save_autosbor(request: Request):
         sheet.update_cell(i + 1, column_index + 1, value)  # <<< изменено: включаем первую строку
 
     return JSONResponse({"status": "ok"})
+
 
 
 
