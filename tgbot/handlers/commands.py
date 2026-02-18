@@ -9,7 +9,11 @@ from tgbot.redis.redis_cash import (
     add_user_to_sheet_and_redis,
     load_allowed_users_to_redis,
     load_admins_to_redis,
-    load_info_sheet_to_redis
+    load_info_sheet_to_redis,   
+    load_event_data_to_redis,
+    load_autosbor_to_redis,
+    load_menu_data_to_redis,
+    load_bot_commands_to_redis
 )
 
 
@@ -53,14 +57,22 @@ async def safe_fetch(func, *args):
 @router.message(Command("refresh"))
 async def refresh_redis_command(message: types.Message):
     """
-    Команда /refresh — вручную обновляет данные в Redis.
+    Команда /refresh — вручную обновляет все данные в Redis.
     """
     sent_msg = await message.answer("Обновление Redis... ⏳")
     try:
-        # Пользователи
-        await asyncio.to_thread(load_menu_data_to_redis)
+        # Загружаем все данные через to_thread, чтобы не блокировать event loop
+        await asyncio.to_thread(load_sheet_users_to_redis)
+        await asyncio.to_thread(load_allowed_users_to_redis)
         await asyncio.to_thread(load_event_data_to_redis)
+        await asyncio.to_thread(load_autosbor_to_redis)
+        await asyncio.to_thread(load_menu_data_to_redis)
+        await asyncio.to_thread(load_admins_to_redis)
         await asyncio.to_thread(load_bot_commands_to_redis)
+
+        # Обновляем отметку последнего обновления
+        import time
+        redis.set(LAST_UPDATE_KEY, int(time.time()))
 
         await sent_msg.edit_text("✅ Redis успешно обновлён вручную!")
     except Exception as e:
