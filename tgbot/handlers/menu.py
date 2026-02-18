@@ -4,6 +4,7 @@ import logging
 from aiogram import Router, types
 from aiogram.filters import Command
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
+from tgbot.sheets.take_from_sheet import fetch_participants
 from tgbot.redis.redis_cash import (
     get_admins_records,
     get_hello,
@@ -14,7 +15,7 @@ from tgbot.redis.redis_cash import (
     get_bot_commands,
     get_bot_deb_cmd
 )
-from tgbot.sheets.take_from_sheet import fetch_participants
+
 
 router = Router()
 WEBAPP_URL = os.environ.get("WEBAPP_URL")
