@@ -20,6 +20,9 @@ REDIS_KEY_EVENTS = "event_data"       # hash для событий
 REDIS_KEY_AUTOSBOR = "autosbor_data"  # список всех значений из листа "Автосбор"
 REDIS_KEY_MENU = "menu_data"
 REDIS_KEY_ADMINS = "admins_data"
+REDIS_KEY_BOT_CMD = "bot_cmd"
+REDIS_KEY_BOT_DEB_CMD = "bot_deb_cmd"
+
 
 # ==============================
 # Redis клиент
@@ -371,4 +374,92 @@ def get_about_bot_image():
     return redis.hget(REDIS_KEY_MENU, "about_image") or ""
 
 
+# ============================================================
+# BOT COMMANDS (из листа Инфо)
+# ============================================================
+
+def load_bot_commands_to_redis():
+    sheet = get_sheet("Инфо")
+    if not sheet:
+        logger.error("Лист 'Инфо' не найден для загрузки команд")
+        return
+
+    try:
+        headers = sheet.row_values(1)
+
+        cmd_index = headers.index("cmd_bot") + 1
+        text_index = headers.index("cmd_bot_text") + 1
+        deb_cmd_index = headers.index("cmd_bot_deb") + 1
+        deb_text_index = headers.index("cmd_bot_deb_text") + 1
+
+        cmd_values = sheet.col_values(cmd_index)[1:]
+        text_values = sheet.col_values(text_index)[1:]
+        deb_cmd_values = sheet.col_values(deb_cmd_index)[1:]
+        deb_text_values = sheet.col_values(deb_text_index)[1:]
+
+        pipe = redis.pipeline()
+        pipe.delete(REDIS_KEY_BOT_CMD)
+        pipe.delete(REDIS_KEY_BOT_DEB_CMD)
+
+        # ======================
+        # Обычные команды
+        # ======================
+        bot_cmd_list = []
+        for cmd, text in zip(cmd_values, text_values):
+            cmd = cmd.strip() if cmd else ""
+            text = text.strip() if text else ""
+
+            # 🔴 Останавливаемся при первой пустой ячейке
+            if not cmd:
+                break
+
+            bot_cmd_list.append(f"{cmd} — {text}" if text else cmd)
+
+        if bot_cmd_list:
+            pipe.rpush(REDIS_KEY_BOT_CMD, *bot_cmd_list)
+
+        # ======================
+        # Debug команды
+        # ======================
+        bot_deb_cmd_list = []
+        for cmd, text in zip(deb_cmd_values, deb_text_values):
+            cmd = cmd.strip() if cmd else ""
+            text = text.strip() if text else ""
+
+            # 🔴 Останавливаемся при первой пустой ячейке
+            if not cmd:
+                break
+
+            bot_deb_cmd_list.append(f"{cmd} — {text}" if text else cmd)
+
+        if bot_deb_cmd_list:
+            pipe.rpush(REDIS_KEY_BOT_DEB_CMD, *bot_deb_cmd_list)
+
+        pipe.exec()
+
+        logger.info(
+            f"Команды загружены: "
+            f"{len(bot_cmd_list)} обычных, "
+            f"{len(bot_deb_cmd_list)} debug"
+        )
+
+    except Exception as e:
+        logger.error(f"Ошибка загрузки bot_cmd в Redis: {e}")
+
+def get_bot_commands() -> list[str]:
+    try:
+        data = redis.lrange(REDIS_KEY_BOT_CMD, 0, -1)
+        return data if data else ["Команды недоступны"]
+    except Exception as e:
+        logger.error(f"Ошибка чтения команд бота из Redis: {e}")
+        return ["Команды недоступны"]
+
+
+def get_bot_deb_cmd() -> list[str]:
+    try:
+        data = redis.lrange(REDIS_KEY_BOT_DEB_CMD, 0, -1)
+        return data if data else ["Команды недоступны"]
+    except Exception as e:
+        logger.error(f"Ошибка чтения debug-команд из Redis: {e}")
+        return ["Команды недоступны"]
 
