@@ -319,13 +319,18 @@ def load_all_to_redis():
     logger.info("=== Загрузка всех данных завершена ===")
 
 
-
 def get_column_data_from_autosbor(column_index: int, row_width: int = 10) -> list[str]:
     try:
-        all_values = json.loads(redis.hget("all_data", "autosbor_data") or "[]")
+        # Получаем весь список из Redis
+        all_values = redis.lrange("autosbor_data", 0, -1)
+        all_values = [v.decode() if isinstance(v, bytes) else v for v in all_values]
+
         if not all_values or column_index <= 0 or column_index > row_width:
             return []
-        return ["" if all_values[i]=="1" else all_values[i] for i in range(column_index-1, len(all_values), row_width)]
+
+        # Берём значения нужного столбца по всем строкам, игнорируя "1"
+        return [all_values[i] for i in range(column_index - 1, len(all_values), row_width) if all_values[i] != "1"]
+
     except Exception as e:
         logger.error(f"Ошибка при get_column_data_from_autosbor из Redis: {e}")
         return []
