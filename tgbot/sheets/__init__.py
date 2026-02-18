@@ -1,37 +1,5 @@
-# Импортируем все роутеры из отдельных файлов
 from .gspread_client import get_gspread_client
 from aiogram import Router
+from .take_from_sheet import get_sheet, ID_WORKSHEET, fetch_participants, add_user_to_sheet_safe, is_user_exists
 
-# Импортируем функции для работы с Google Sheets
-from .take_from_sheet import (
-    get_info_column_by_header,
-    get_bot_commands,
-    get_bot_deb_cmd,
-    fetch_participants,
-    get_admins_records,
-    get_welcome,
-    get_hello,
-    get_about_bot,
-    get_hello_image,
-    get_about_bot_image,
-    get_cmd_info,
-    get_fu_data,
-    get_nakol_data,
-    convert_drive_url,
-    get_klaar_data,
-    get_kris_data,
-    get_user_from_sheet,
-    get_allowed_user_ids,
-    get_column_data_from_autosbor,
-    get_bal_data,
-    get_inn_data,
-    get_ork_data,
-    get_inst_data,
-    get_name_username_dict,
-    is_user_exists,
-    add_user_to_sheet_safe
-)
-
-# Создаём единый роутер для всех хэндлеров
 router = Router()
-
