@@ -11,7 +11,7 @@ from tgbot.redis.redis_cash import (
     get_ork_data,
     get_inst_data,
     get_name_username_dict,
-    get_column_data_from_autosbor,
+    get_column_data_from_autosbor
 )
 logging.basicConfig(level=logging.DEBUG)
 router = Router()
