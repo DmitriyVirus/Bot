@@ -3,14 +3,13 @@ import logging
 from aiogram import Router, types
 from aiogram.types import Message
 from aiogram.filters import Command
-from tgbot.sheets.take_from_sheet import fetch_participants
+from tgbot.sheets.take_from_sheet import fetch_participants, get_welcome
 from tgbot.redis.redis_cash import (
     redis,
     get_fu_data,
     get_nakol_data,
     get_klaar_data,
     get_kris_data,
-    get_welcome,
     convert_drive_url,
     is_user_in_sheet,
     add_user_to_sheet_and_redis,
