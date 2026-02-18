@@ -4,6 +4,7 @@ from aiogram import Router, types
 from aiogram.types import Message
 from aiogram.filters import Command
 from tgbot.redis.redis_cash import (
+    redis,
     load_sheet_users_to_redis,
     is_user_in_sheet,
     add_user_to_sheet_and_redis,
