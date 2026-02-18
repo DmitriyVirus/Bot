@@ -1,11 +1,18 @@
-import os
 import re
 import logging
 from aiogram import types, Router
 from aiogram.filters import Command
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from tgbot.redis.redis_cash import get_name, get_allowed_user_ids, get_bal_data, get_inn_data, get_ork_data, get_inst_data, get_name_username_dict, get_column_data_from_autosbor
-
+from tgbot.redis.redis_cash import (
+    get_name,
+    get_allowed_user_ids,
+    get_bal_data,
+    get_inn_data,
+    get_ork_data,
+    get_inst_data,
+    get_name_username_dict,
+    get_column_data_from_autosbor,
+)
 logging.basicConfig(level=logging.DEBUG)
 router = Router()
 
