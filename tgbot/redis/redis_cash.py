@@ -75,7 +75,6 @@ def get_name(user_id: int, telegram_first_name: str) -> str:
             return telegram_first_name or "Unknown"
     return telegram_first_name or "Unknown"
 
-# ====== Events и Media функции ======
 def get_bal_data() -> tuple[str, str]:
     text = redis.hget(REDIS_KEY_ALL_DATA, "bal_text") or "Данные недоступны"
     media_url = redis.hget(REDIS_KEY_ALL_DATA, "bal_media") or ""
@@ -96,35 +95,12 @@ def get_inst_data() -> tuple[str, str]:
     media_url = redis.hget(REDIS_KEY_ALL_DATA, "inst_media") or ""
     return text, media_url
 
-# ====== Media команды из all_data ======
-def get_fu_data() -> tuple[str, str]:
-    text = redis.hget(REDIS_KEY_ALL_DATA, "fu_text") or "Данные недоступны"
-    media_url = redis.hget(REDIS_KEY_ALL_DATA, "fu_media") or ""
-    return text, media_url
-
-def get_nakol_data() -> tuple[str, str]:
-    text = redis.hget(REDIS_KEY_ALL_DATA, "nakol_text") or "Данные недоступны"
-    media_url = redis.hget(REDIS_KEY_ALL_DATA, "nakol_media") or ""
-    return text, media_url
-
-def get_klaar_data() -> tuple[str, str]:
-    text = redis.hget(REDIS_KEY_ALL_DATA, "klaar_text") or "Данные недоступны"
-    media_url = redis.hget(REDIS_KEY_ALL_DATA, "klaar_media") or ""
-    return text, media_url
-
-def get_kris_data() -> tuple[str, str]:
-    text = redis.hget(REDIS_KEY_ALL_DATA, "kris_text") or "Данные недоступны"
-    media_url = redis.hget(REDIS_KEY_ALL_DATA, "kris_media") or ""
-    return text, media_url
-
-# ====== Menu ======
 def get_hello(): return redis.hget(REDIS_KEY_ALL_DATA, "hello_text") or ""
 def get_about_bot(): return redis.hget(REDIS_KEY_ALL_DATA, "about_text") or ""
 def get_cmd_info(): return redis.hget(REDIS_KEY_ALL_DATA, "cmd_info") or ""
 def get_hello_image(): return redis.hget(REDIS_KEY_ALL_DATA, "hello_image") or ""
 def get_about_bot_image(): return redis.hget(REDIS_KEY_ALL_DATA, "about_image") or ""
 
-# ====== Bot Commands ======
 def get_bot_commands() -> list[str]:
     try: return redis.lrange(REDIS_KEY_BOT_CMD, 0, -1) or ["Команды недоступны"]
     except Exception as e:
@@ -212,7 +188,7 @@ def load_all_to_redis():
     else:
         logger.warning("Лист 'Добавление' не найден")
 
-    # ---------- Events + Menu + Media команды ----------
+    # ---------- Events + Menu + Bot Commands в один ключ ----------
     sheet_info = get_sheet("Инфо")
     if sheet_info:
         pipe_all = redis.pipeline()
@@ -225,14 +201,6 @@ def load_all_to_redis():
             media_url = convert_drive_url(sheet_info.acell(media_cell).value or "")
             pipe_all.hset(REDIS_KEY_ALL_DATA, f"{event}_text", text)
             pipe_all.hset(REDIS_KEY_ALL_DATA, f"{event}_media", media_url)
-
-        # Media команды
-        media_map = {"fu": ("I2","I3"), "nakol":("I5","I6"), "klaar":("I8","I9"), "kris":("I11","I12")}
-        for media, (text_cell, media_cell) in media_map.items():
-            text = sheet_info.acell(text_cell).value or ""
-            media_url = convert_drive_url(sheet_info.acell(media_cell).value or "")
-            pipe_all.hset(REDIS_KEY_ALL_DATA, f"{media}_text", text)
-            pipe_all.hset(REDIS_KEY_ALL_DATA, f"{media}_media", media_url)
 
         # Menu
         hello_text = "\n".join([r[0] for r in sheet_info.get("B2:B19") if r])
@@ -248,7 +216,67 @@ def load_all_to_redis():
         pipe_all.hset(REDIS_KEY_ALL_DATA, "about_image", about_img)
 
         pipe_all.exec()
-        logger.info("Events + Menu + Media команды загружены в all_data")
+        logger.info("Events + Menu загружены в all_data")
+
+        # Bot Commands
+        try:
+            headers = sheet_info.row_values(1)
+            cmd_index = headers.index("cmd_bot")+1
+            text_index = headers.index("cmd_bot_text")+1
+            deb_cmd_index = headers.index("cmd_bot_deb")+1
+            deb_text_index = headers.index("cmd_bot_deb_text")+1
+
+            cmd_values = sheet_info.col_values(cmd_index)[1:]
+            text_values = sheet_info.col_values(text_index)[1:]
+            deb_cmd_values = sheet_info.col_values(deb_cmd_index)[1:]
+            deb_text_values = sheet_info.col_values(deb_text_index)[1:]
+
+            pipe_cmd = redis.pipeline()
+            pipe_cmd.delete(REDIS_KEY_BOT_CMD)
+            pipe_cmd.delete(REDIS_KEY_BOT_DEB_CMD)
+
+            bot_cmd_list = [f"{c} — {t}" if t else c for c,t in zip(cmd_values,text_values) if c.strip()]
+            bot_deb_cmd_list = [f"{c} — {t}" if t else c for c,t in zip(deb_cmd_values,deb_text_values) if c.strip()]
+
+            if bot_cmd_list: pipe_cmd.rpush(REDIS_KEY_BOT_CMD,*bot_cmd_list)
+            if bot_deb_cmd_list: pipe_cmd.rpush(REDIS_KEY_BOT_DEB_CMD,*bot_deb_cmd_list)
+
+            pipe_cmd.exec()
+            logger.info(f"Команды загружены: {len(bot_cmd_list)} обычных, {len(bot_deb_cmd_list)} debug")
+        except Exception as e:
+            logger.error(f"Ошибка загрузки bot_cmd: {e}")
+    else:
+        logger.warning("Лист 'Инфо' не найден")
+
+    # ---------- Autosbor ----------
+    sheet_autosbor = get_sheet("Автосбор")
+    if sheet_autosbor:
+        all_values = sheet_autosbor.get_all_values()
+        flat_list = [cell.strip() if cell.strip() else "1" for row in all_values for cell in row]
+        pipe_autosbor = redis.pipeline()
+        pipe_autosbor.delete(REDIS_KEY_AUTOSBOR)
+        if flat_list: pipe_autosbor.rpush(REDIS_KEY_AUTOSBOR,*flat_list)
+        pipe_autosbor.exec()
+        logger.info(f"Автосбор загружен ({len(flat_list)} элементов)")
+    else:
+        logger.warning("Лист 'Автосбор' не найден")
+
+    # ---------- Admins ----------
+    sheet_admins = get_sheet("Админы")
+    if sheet_admins:
+        records = sheet_admins.get_all_records()
+        pipe_admins = redis.pipeline()
+        pipe_admins.delete(REDIS_KEY_ADMINS)
+        for row in records:
+            admin_id = row.get("id")
+            if admin_id: pipe_admins.sadd(REDIS_KEY_ADMINS,int(admin_id))
+        pipe_admins.exec()
+        logger.info(f"Админы загружены ({len(records)} записей)")
+    else:
+        logger.warning("Лист 'Админы' не найден")
+
+    logger.info("=== Загрузка всех данных завершена ===")
+
 
 
 def get_column_data_from_autosbor(column_index: int, row_width: int = 10) -> list[str]:
@@ -260,4 +288,3 @@ def get_column_data_from_autosbor(column_index: int, row_width: int = 10) -> lis
     except Exception as e:
         logger.error(f"Ошибка при get_column_data_from_autosbor из Redis: {e}")
         return []
-
