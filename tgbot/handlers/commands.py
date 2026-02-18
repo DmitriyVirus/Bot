@@ -61,7 +61,6 @@ async def refresh_redis_command(message: types.Message):
         await asyncio.to_thread(load_menu_data_to_redis)
         await asyncio.to_thread(load_event_data_to_redis)
         await asyncio.to_thread(load_bot_commands_to_redis)
-        await asyncio.to_thread(load_autosbor_to_redis)
 
         await sent_msg.edit_text("✅ Redis успешно обновлён вручную!")
     except Exception as e:
