@@ -58,8 +58,8 @@ async def refresh_redis_command(message: types.Message):
     except Exception as e:
         await sent_msg.edit_text(f"❌ Ошибка при обновлении Redis: {e}")
 
-@router.message(Command("backupbot"))
-async def cmd_backupbot(message: types.Message):
+@router.message(Command("backupbotnow"))
+async def cmd_backupbotnow(message: types.Message):
     await message.reply("⚙️ Начинаю бэкап репозитория...")
 
     try:
