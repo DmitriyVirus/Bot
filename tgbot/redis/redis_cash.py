@@ -57,8 +57,10 @@ def redis_replace_list(key: str, values: list[str]):
 def redis_replace_hash(key: str, mapping: dict):
     pipe = redis.pipeline()
     pipe.delete(key)
+
     if mapping:
-        pipe.hset(key, mapping=mapping)
+        pipe.hset(key, values=mapping)  # <-- ВАЖНО
+
     pipe.exec()
 
 
