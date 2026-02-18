@@ -276,3 +276,16 @@ def load_all_to_redis():
         logger.warning("Лист 'Админы' не найден")
 
     logger.info("=== Загрузка всех данных завершена ===")
+
+
+
+def get_column_data_from_autosbor(column_index: int, row_width: int = 10) -> list[str]:
+    try:
+        all_values = json.loads(redis.hget("all_data", "autosbor_data") or "[]")
+        if not all_values or column_index <= 0 or column_index > row_width:
+            return []
+        return ["" if all_values[i]=="1" else all_values[i] for i in range(column_index-1, len(all_values), row_width)]
+    except Exception as e:
+        logger.error(f"Ошибка при get_column_data_from_autosbor из Redis: {e}")
+        return []
+
