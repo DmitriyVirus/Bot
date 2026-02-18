@@ -179,11 +179,7 @@ def load_all_to_redis():
                 if not user_id: continue
                 name = row.get("name") or f"{row.get('first_name','')} {row.get('last_name','')}".strip() or "Unknown"
                 username = row.get("username") or "Unknown"
-                pipe_users.hset(
-                    REDIS_KEY_USERS,
-                    str(user_id),
-                    json.dumps({"user_id": int(user_id), "name": name, "username": username})
-                )
+                pipe_users.hset(REDIS_KEY_USERS, str(user_id), json.dumps({"user_id": int(user_id), "name": name, "username": username}))
             pipe_users.exec()
             logger.info(f"Загружено пользователей: {len(records)}")
     else:
@@ -226,10 +222,12 @@ def load_all_to_redis():
         cmd_info = "\n".join([r[0] for r in sheet_info.get("D2:D19") if r])
         hello_img = convert_drive_url(sheet_info.acell("B20").value or "")
         about_img = convert_drive_url(sheet_info.acell("C20").value or "")
-        pipe_menu.hset(REDIS_KEY_MENU, mapping={
-            "hello_text": hello_text, "about_text": about_text,
-            "cmd_info": cmd_info, "hello_image": hello_img, "about_image": about_img
-        })
+        # Убираем mapping, используем отдельные hset
+        pipe_menu.hset(REDIS_KEY_MENU, "hello_text", hello_text)
+        pipe_menu.hset(REDIS_KEY_MENU, "about_text", about_text)
+        pipe_menu.hset(REDIS_KEY_MENU, "cmd_info", cmd_info)
+        pipe_menu.hset(REDIS_KEY_MENU, "hello_image", hello_img)
+        pipe_menu.hset(REDIS_KEY_MENU, "about_image", about_img)
         pipe_menu.exec()
         logger.info("Menu загружено")
 
