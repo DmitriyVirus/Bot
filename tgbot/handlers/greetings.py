@@ -35,32 +35,3 @@ async def goodbye(message: Message):
     user = message.left_chat_member
     if not user.is_bot:
         await message.answer(f"Прощай, {user.first_name}! 👋")
-
-
-@router.message(Command("goodmornigeverydayGG"))
-async def good_morning(message: Message):
-    day = datetime.datetime.now().weekday()
-
-    mapping = {
-        0: ("Понедельник… держимся 💀", "mond_url.txt"),
-        4: ("ПЯТНИЦА!!! 🎉", "fri_url.txt"),
-        5: ("Выходныеее 😎", "weekend_url.txt"),
-        6: ("Выходныеее 😎", "weekend_url.txt"),
-    }
-
-    text, file_name = mapping.get(
-        day, ("Доброе утро ☀️", "workdays_url.txt")
-    )
-
-    path = os.path.join(os.getcwd(), "urls", file_name)
-    if not os.path.exists(path):
-        await message.answer("Файл не найден")
-        return
-
-    with open(path) as f:
-        urls = [u.strip() for u in f if u.strip()]
-
-    await message.answer_photo(
-        random.choice(urls),
-        caption=text
-    )
