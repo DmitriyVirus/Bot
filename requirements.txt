@@ -19,6 +19,7 @@ pydrive2
 requests
 pyyaml
 upstash-redis
+pillow
 
 
 
