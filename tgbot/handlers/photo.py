@@ -1,3 +1,4 @@
+import os
 import io
 import logging
 from PIL import Image
@@ -5,7 +6,9 @@ import httpx
 from aiogram import Bot, Router, F, types
 
 # ---------- Настройки ----------
-OCR_API_KEY = "helloworld"       # Бесплатный тестовый ключ OCR.Space
+OCR_API_KEY = os.getenv("OCR_API_KEY")  # Берем ключ из переменной окружения
+if not OCR_API_KEY:
+    raise RuntimeError("OCR_API_KEY не задан в переменных окружения")
 OCR_URL = "https://api.ocr.space/parse/image"
 
 router = Router()
