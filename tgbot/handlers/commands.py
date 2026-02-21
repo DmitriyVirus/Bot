@@ -244,14 +244,9 @@ async def handle_list_command(message: types.Message):
                 for v in existing_list
             ]
 
-            creator = existing_list[0]
-            participants = existing_list[1:]
-
+            # Все участники в одной строке, включая имя пользователя
             await message.answer(
-                f"📋 Твой текущий лист:\n\n"
-                f"Создатель: {creator}\n"
-                f"Участники ({len(participants)}): "
-                f"{', '.join(participants) if participants else 'нет'}"
+                f"📋 Участники: {', '.join(existing_list)}"
             )
 
         except Exception as e:
@@ -262,7 +257,6 @@ async def handle_list_command(message: types.Message):
     # =====================================
     # 🔹 Создание / обновление листа
     # =====================================
-
     if len(input_names) > 6:
         await message.answer("❌ Можно указать не более 6 имён.")
         return
@@ -273,18 +267,15 @@ async def handle_list_command(message: types.Message):
         pipe = redis.pipeline()
         pipe.delete(redis_key)
 
+        # Первая строка — имя пользователя
         pipe.rpush(redis_key, creator_name)
+        # Остальные строки — введённые имена
         pipe.rpush(redis_key, *input_names)
 
         pipe.exec()
 
-        await message.answer(
-            f"✅ Лист обновлён.\n\n"
-            f"Создатель: {creator_name}\n"
-            f"Участники ({len(input_names)}): {', '.join(input_names)}"
-        )
+        await message.answer("✅ Готово...")
 
     except Exception as e:
         logger.error(f"Ошибка при создании {redis_key}: {e}")
         await message.answer("❌ Ошибка при сохранении списка.")
-
