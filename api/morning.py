@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 # Конфиги
-CHAT_ID = int(os.environ.get("TELEGRAM_CHAT_ID"))
+CHAT_ID = int(os.environ.get("CHAT_ID"))
 SHEET_NAME = os.environ.get("SHEET_NAME", "DareDevils")
 WORKSHEET_NAME = "Утро"
 
