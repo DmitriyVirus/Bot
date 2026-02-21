@@ -13,4 +13,3 @@ pydrive2
 openpyxl
 upstash-redis
 python-dotenv
-httpx
