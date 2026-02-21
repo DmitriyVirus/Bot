@@ -4,9 +4,7 @@ uvicorn
 aiogram
 python-decouple
 pytz 
-celery
 redis
-kombu
 gspread 
 oauth2client 
 google-api-python-client
@@ -17,9 +15,9 @@ python-dotenv
 openpyxl
 pydrive2
 requests
-pyyaml
 upstash-redis
 pillow
+
 
 
 
