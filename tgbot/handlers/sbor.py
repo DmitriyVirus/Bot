@@ -115,16 +115,21 @@ async def send_event_photo(message: types.Message, photo_url: str, header_prefix
 
     # --- Старый алгоритм извлечения одной колонки ---
     col_index = None
-    after_time = ""
+    after_text = text  # будем искать букву l после команды, кроме первого слова
     if time_match:
-        after_time = text[time_match.end():]
-        col_match = re.search(r"\b\d+\b", after_time)
+        after_text = text[time_match.end():]
+        col_match = re.search(r"\b\d+\b", after_text)
         if col_match:
             col_index = int(col_match.group(0))
     else:
         col_match = re.search(r"\b\d+\b", text)
         if col_match:
             col_index = int(col_match.group(0))
+
+    # --- Проверка буквы "l" в тексте после команды ---
+    parts = text.split()
+    after_command = " ".join(parts[1:])  # всё кроме первого слова (команды)
+    include_list = "l" in after_command.lower()
 
     user_id = message.from_user.id
     allowed_ids = get_allowed_user_ids()
@@ -135,33 +140,26 @@ async def send_event_photo(message: types.Message, photo_url: str, header_prefix
     if col_index and user_id in allowed_ids:
         participants = get_column_data_from_autosbor(col_index)
 
-    # --- Новая проверка буквы "l" во всех словах после команды ---
-    words_after_command = text.split()[1:]  # игнорируем саму команду
-    include_list = any("l" in w.lower() for w in words_after_command)
-
+    # --- Если есть буква "l", добавляем участников из листа ---
     if include_list and user_id in allowed_ids:
         redis_key = f"list_{user_id}"
         try:
             existing_list = redis.lrange(redis_key, 0, -1)
             if existing_list:
-                # декодируем и добавляем участников из листа, кроме первого элемента (создателя)
+                # декодируем и добавляем всех участников из листа (включая создателя)
                 existing_list = [
                     v.decode() if isinstance(v, bytes) else v
                     for v in existing_list
                 ]
-                for name in existing_list[1:]:
+                for name in existing_list:
                     if name not in participants:
                         participants.append(name)
             else:
                 # листа нет
-                await message.answer(
-                    "ℹ️ Листа у тебя нет, используем обычный набор участников."
-                )
+                await message.answer("ℹ️ Листа у тебя нет, используем обычный набор участников.")
         except Exception as e:
             logging.error(f"Ошибка при получении листа {redis_key}: {e}")
-            await message.answer(
-                "❌ Ошибка при попытке загрузить лист, используем обычный набор участников."
-            )
+            await message.answer("❌ Ошибка при попытке загрузить лист, используем обычный набор участников.")
 
     header_text = f"{header_prefix} {time}"
 
@@ -203,7 +201,6 @@ async def send_event_photo(message: types.Message, photo_url: str, header_prefix
         await message.delete()
     except Exception:
         pass
-
 
 # ==========================
 # Универсальный хендлер команд
