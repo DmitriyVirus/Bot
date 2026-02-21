@@ -210,16 +210,16 @@ def load_users_to_redis():
     if not records:
         return 0
 
-    with redis.pipeline() as pipe:
-        pipe.delete(REDIS_KEY_USERS)
-        for row in records:
-            user_id = row.get("user_id")
-            if not user_id:
-                continue
-            name = row.get("name") or f"{row.get('first_name','')} {row.get('last_name','')}".strip() or "Unknown"
-            username = row.get("username") or "Unknown"
-            pipe.hset(REDIS_KEY_USERS, str(user_id), json.dumps({"user_id": int(user_id), "name": name, "username": username}))
-        pipe.execute()
+    pipe_users = redis.pipeline()
+    pipe_users.delete(REDIS_KEY_USERS)
+    for row in records:
+        user_id = row.get("user_id")
+        if not user_id:
+            continue
+        name = row.get("name") or f"{row.get('first_name','')} {row.get('last_name','')}".strip() or "Unknown"
+        username = row.get("username") or "Unknown"
+        pipe_users.hset(REDIS_KEY_USERS, str(user_id), json.dumps({"user_id": int(user_id), "name": name, "username": username}))
+    pipe_users.exec()
     logger.info(f"Загружено пользователей: {len(records)}")
     return len(records)
 
@@ -234,15 +234,16 @@ def load_allowed_to_redis():
         return 0
     records = sheet_allowed.get_all_records()
 
-    with redis.pipeline() as pipe:
-        pipe.delete(REDIS_KEY_ALLOWED)
-        for row in records:
-            user_id = row.get("id")
-            if user_id:
-                pipe.sadd(REDIS_KEY_ALLOWED, int(user_id))
-        pipe.execute()
+    pipe_allowed = redis.pipeline()
+    pipe_allowed.delete(REDIS_KEY_ALLOWED)
+    for row in records:
+        user_id = row.get("id")
+        if user_id:
+            pipe_allowed.sadd(REDIS_KEY_ALLOWED, int(user_id))
+    pipe_allowed.exec()
     logger.info(f"Allowed users загружены: {len(records)}")
     return len(records)
+
 
 # ==============================
 # Events + Menu + Bot Commands
@@ -253,44 +254,44 @@ def load_all_data_to_redis():
         logger.warning("Лист 'Инфо' не найден")
         return 0
 
-    with redis.pipeline() as pipe_all:
-        pipe_all.delete(REDIS_KEY_ALL_DATA)
+    pipe_all = redis.pipeline()
+    pipe_all.delete(REDIS_KEY_ALL_DATA)
 
-        # --------- Events ---------
-        events_map = {"bal": ("J2","J3"), "inn":("J5","J6"), "ork":("J8","J9"), "inst":("J11","J12")}
-        for event, (text_cell, media_cell) in events_map.items():
-            text = sheet_info.acell(text_cell).value or ""
-            media_url = convert_drive_url(sheet_info.acell(media_cell).value or "")
-            pipe_all.hset(REDIS_KEY_ALL_DATA, f"{event}_text", text)
-            pipe_all.hset(REDIS_KEY_ALL_DATA, f"{event}_media", media_url)
+    # Events
+    events_map = {"bal": ("J2","J3"), "inn":("J5","J6"), "ork":("J8","J9"), "inst":("J11","J12")}
+    for event, (text_cell, media_cell) in events_map.items():
+        text = sheet_info.acell(text_cell).value or ""
+        media_url = convert_drive_url(sheet_info.acell(media_cell).value or "")
+        pipe_all.hset(REDIS_KEY_ALL_DATA, f"{event}_text", text)
+        pipe_all.hset(REDIS_KEY_ALL_DATA, f"{event}_media", media_url)
 
-        # --------- Media команды ---------
-        media_map = {"fu": ("I2", "I3"), "nakol": ("I5", "I6"), "klaar": ("I8", "I9"), "kris": ("I11", "I12")}
-        for media, (text_cell, media_cell) in media_map.items():
-            text = sheet_info.acell(text_cell).value or ""
-            media_url = convert_drive_url(sheet_info.acell(media_cell).value or "")
-            pipe_all.hset(REDIS_KEY_ALL_DATA, f"{media}_text", text)
-            pipe_all.hset(REDIS_KEY_ALL_DATA, f"{media}_media", media_url)
+    # Media команды (fu, nakol, klaar, kris)
+    media_map = {"fu": ("I2", "I3"), "nakol": ("I5", "I6"), "klaar": ("I8", "I9"), "kris": ("I11", "I12")}
+    for media, (text_cell, media_cell) in media_map.items():
+        text = sheet_info.acell(text_cell).value or ""
+        media_url = convert_drive_url(sheet_info.acell(media_cell).value or "")
+        pipe_all.hset(REDIS_KEY_ALL_DATA, f"{media}_text", text)
+        pipe_all.hset(REDIS_KEY_ALL_DATA, f"{media}_media", media_url)
 
-        # --------- Menu ---------
-        welcome_text = "\n".join([r[0] for r in sheet_info.get("A2:A19") if r])
-        hello_text = "\n".join([r[0] for r in sheet_info.get("B2:B19") if r])
-        about_text = "\n".join([r[0] for r in sheet_info.get("C2:C19") if r])
-        cmd_info = "\n".join([r[0] for r in sheet_info.get("D2:D19") if r])
-        hello_img = convert_drive_url(sheet_info.acell("B20").value or "")
-        about_img = convert_drive_url(sheet_info.acell("C20").value or "")
+    # Menu
+    welcome_text = "\n".join([r[0] for r in sheet_info.get("A2:A19") if r])
+    hello_text = "\n".join([r[0] for r in sheet_info.get("B2:B19") if r])
+    about_text = "\n".join([r[0] for r in sheet_info.get("C2:C19") if r])
+    cmd_info = "\n".join([r[0] for r in sheet_info.get("D2:D19") if r])
+    hello_img = convert_drive_url(sheet_info.acell("B20").value or "")
+    about_img = convert_drive_url(sheet_info.acell("C20").value or "")
 
-        pipe_all.hset(REDIS_KEY_ALL_DATA, "welcome_text", welcome_text)
-        pipe_all.hset(REDIS_KEY_ALL_DATA, "hello_text", hello_text)
-        pipe_all.hset(REDIS_KEY_ALL_DATA, "about_text", about_text)
-        pipe_all.hset(REDIS_KEY_ALL_DATA, "cmd_info", cmd_info)
-        pipe_all.hset(REDIS_KEY_ALL_DATA, "hello_image", hello_img)
-        pipe_all.hset(REDIS_KEY_ALL_DATA, "about_image", about_img)
+    pipe_all.hset(REDIS_KEY_ALL_DATA, "welcome_text", welcome_text)
+    pipe_all.hset(REDIS_KEY_ALL_DATA, "hello_text", hello_text)
+    pipe_all.hset(REDIS_KEY_ALL_DATA, "about_text", about_text)
+    pipe_all.hset(REDIS_KEY_ALL_DATA, "cmd_info", cmd_info)
+    pipe_all.hset(REDIS_KEY_ALL_DATA, "hello_image", hello_img)
+    pipe_all.hset(REDIS_KEY_ALL_DATA, "about_image", about_img)
 
-        pipe_all.execute()
+    pipe_all.exec()
     logger.info("Events + Menu загружены в all_data")
 
-    # --------- Bot Commands ---------
+    # Bot Commands
     try:
         headers = sheet_info.row_values(1)
         cmd_index = headers.index("cmd_bot")+1
@@ -303,17 +304,17 @@ def load_all_data_to_redis():
         deb_cmd_values = sheet_info.col_values(deb_cmd_index)[1:]
         deb_text_values = sheet_info.col_values(deb_text_index)[1:]
 
-        with redis.pipeline() as pipe_cmd:
-            pipe_cmd.delete(REDIS_KEY_BOT_CMD)
-            pipe_cmd.delete(REDIS_KEY_BOT_DEB_CMD)
+        pipe_cmd = redis.pipeline()
+        pipe_cmd.delete(REDIS_KEY_BOT_CMD)
+        pipe_cmd.delete(REDIS_KEY_BOT_DEB_CMD)
 
-            bot_cmd_list = [f"{c} — {t}" if t else c for c,t in zip(cmd_values,text_values) if c.strip()]
-            bot_deb_cmd_list = [f"{c} — {t}" if t else c for c,t in zip(deb_cmd_values,deb_text_values) if c.strip()]
+        bot_cmd_list = [f"{c} — {t}" if t else c for c,t in zip(cmd_values,text_values) if c.strip()]
+        bot_deb_cmd_list = [f"{c} — {t}" if t else c for c,t in zip(deb_cmd_values,deb_text_values) if c.strip()]
 
-            if bot_cmd_list: pipe_cmd.rpush(REDIS_KEY_BOT_CMD,*bot_cmd_list)
-            if bot_deb_cmd_list: pipe_cmd.rpush(REDIS_KEY_BOT_DEB_CMD,*bot_deb_cmd_list)
+        if bot_cmd_list: pipe_cmd.rpush(REDIS_KEY_BOT_CMD,*bot_cmd_list)
+        if bot_deb_cmd_list: pipe_cmd.rpush(REDIS_KEY_BOT_DEB_CMD,*bot_deb_cmd_list)
 
-            pipe_cmd.execute()
+        pipe_cmd.exec()
         logger.info(f"Команды загружены: {len(bot_cmd_list)} обычных, {len(bot_deb_cmd_list)} debug")
     except Exception as e:
         logger.error(f"Ошибка загрузки bot_cmd: {e}")
@@ -332,11 +333,10 @@ def load_autosbor_to_redis():
     all_values = sheet_autosbor.get_all_values()
     flat_list = [cell.strip() if cell.strip() else "1" for row in all_values for cell in row]
 
-    with redis.pipeline() as pipe:
-        pipe.delete(REDIS_KEY_AUTOSBOR)
-        if flat_list:
-            pipe.rpush(REDIS_KEY_AUTOSBOR, *flat_list)
-        pipe.execute()
+    pipe_autosbor = redis.pipeline()
+    pipe_autosbor.delete(REDIS_KEY_AUTOSBOR)
+    if flat_list: pipe_autosbor.rpush(REDIS_KEY_AUTOSBOR,*flat_list)
+    pipe_autosbor.exec()
     logger.info(f"Автосбор загружен ({len(flat_list)} элементов)")
     return len(flat_list)
 
@@ -351,13 +351,12 @@ def load_admins_to_redis():
         return 0
     records = sheet_admins.get_all_records()
 
-    with redis.pipeline() as pipe:
-        pipe.delete(REDIS_KEY_ADMINS)
-        for row in records:
-            admin_id = row.get("id")
-            if admin_id:
-                pipe.sadd(REDIS_KEY_ADMINS, int(admin_id))
-        pipe.execute()
+    pipe_admins = redis.pipeline()
+    pipe_admins.delete(REDIS_KEY_ADMINS)
+    for row in records:
+        admin_id = row.get("id")
+        if admin_id: pipe_admins.sadd(REDIS_KEY_ADMINS,int(admin_id))
+    pipe_admins.exec()
     logger.info(f"Админы загружены ({len(records)} записей)")
     return len(records)
 
@@ -373,4 +372,3 @@ def load_all_to_redis():
     load_autosbor_to_redis()
     load_admins_to_redis()
     logger.info("=== Загрузка всех данных завершена ===")
-
