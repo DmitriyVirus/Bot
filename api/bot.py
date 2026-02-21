@@ -11,10 +11,19 @@ from aiogram import Bot, Router, types
 from fastapi.staticfiles import StaticFiles
 from fastapi import FastAPI, Request, HTTPException
 from tgbot.sheets.gspread_client import get_gspread_client
-from tgbot.redis.redis_cash import load_all_to_redis, redis, LAST_UPDATE_KEY
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, HTMLResponse
 from .backupbot import router as backup_router
 from .morning import router as morning_router
+from tgbot.redis.redis_cash import (
+    redis,
+    LAST_UPDATE_KEY,
+    load_users_to_redis,
+    load_allowed_to_redis,
+    load_all_data_to_redis,
+    load_autosbor_to_redis,
+    load_admins_to_redis
+)
+
 
 
 app = FastAPI()
@@ -195,22 +204,59 @@ async def save_autosbor(request: Request):
 # ==============================
 # Крон/внешний вызов обновления Redis
 # ==============================
-@app.get("/api/cron/refresh_redis")
-async def cron_refresh_redis():
-    """
-    Эндпоинт для крон-задачи.
-    Вызывает обновление всех данных в Redis.
-    """
+
+@app.get("/api/cron/refresh_users")
+async def cron_refresh_users():
+    from tgbot.redis.redis_cash import load_users_to_redis
     try:
-        # Выполняем блокирующую функцию в отдельном потоке
-        await asyncio.to_thread(load_all_to_redis)
-
-        # Обновляем отметку последнего обновления
+        count = await asyncio.to_thread(load_users_to_redis)
         redis.set(LAST_UPDATE_KEY, int(time.time()))
-
-        return JSONResponse({"status": "ok", "message": "✅ Redis успешно обновлён!"})
+        return JSONResponse({"status": "ok", "message": f"✅ Пользователи обновлены ({count})"})
     except Exception as e:
-        return JSONResponse({"status": "error", "message": f"❌ Ошибка при обновлении Redis: {e}"})
+        return JSONResponse({"status": "error", "message": str(e)})
 
+
+@app.get("/api/cron/refresh_allowed")
+async def cron_refresh_allowed():
+    from tgbot.redis.redis_cash import load_allowed_to_redis
+    try:
+        count = await asyncio.to_thread(load_allowed_to_redis)
+        redis.set(LAST_UPDATE_KEY, int(time.time()))
+        return JSONResponse({"status": "ok", "message": f"✅ Allowed users обновлены ({count})"})
+    except Exception as e:
+        return JSONResponse({"status": "error", "message": str(e)})
+
+
+@app.get("/api/cron/refresh_all_data")
+async def cron_refresh_all_data():
+    from tgbot.redis.redis_cash import load_all_data_to_redis
+    try:
+        await asyncio.to_thread(load_all_data_to_redis)
+        redis.set(LAST_UPDATE_KEY, int(time.time()))
+        return JSONResponse({"status": "ok", "message": "✅ Events, Menu и Bot Commands обновлены"})
+    except Exception as e:
+        return JSONResponse({"status": "error", "message": str(e)})
+
+
+@app.get("/api/cron/refresh_autosbor")
+async def cron_refresh_autosbor():
+    from tgbot.redis.redis_cash import load_autosbor_to_redis
+    try:
+        count = await asyncio.to_thread(load_autosbor_to_redis)
+        redis.set(LAST_UPDATE_KEY, int(time.time()))
+        return JSONResponse({"status": "ok", "message": f"✅ Автосбор обновлён ({count})"})
+    except Exception as e:
+        return JSONResponse({"status": "error", "message": str(e)})
+
+
+@app.get("/api/cron/refresh_admins")
+async def cron_refresh_admins():
+    from tgbot.redis.redis_cash import load_admins_to_redis
+    try:
+        count = await asyncio.to_thread(load_admins_to_redis)
+        redis.set(LAST_UPDATE_KEY, int(time.time()))
+        return JSONResponse({"status": "ok", "message": f"✅ Админы обновлены ({count})"})
+    except Exception as e:
+        return JSONResponse({"status": "error", "message": str(e)})
 
 
