@@ -257,6 +257,30 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
     )
 
 # ==========================
+# Проверка целевого сообщения бота
+# ==========================
+def is_target_bot_message(message: types.Message) -> bool:
+    if not message:
+        return False
+
+    # сообщение должно быть от бота
+    if not message.from_user or not message.from_user.is_bot:
+        return False
+
+    # должна быть inline клавиатура
+    if not message.reply_markup or not message.reply_markup.inline_keyboard:
+        return False
+
+    # проверяем callback_data кнопок
+    for row in message.reply_markup.inline_keyboard:
+        for button in row:
+            if button.callback_data in ("join_plus", "join_minus"):
+                return True
+
+    return False
+
+
+# ==========================
 # Ручное добавление
 # ==========================
 @router.message(lambda message: message.text and message.text.startswith("+ "))
@@ -265,10 +289,11 @@ async def handle_plus_message(message: types.Message):
     if user_id not in get_allowed_user_ids():
         return
 
-    username = message.text[2:].strip()
     message_obj = message.reply_to_message
-    if not message_obj or not (message_obj.caption or message_obj.text):
+    if not is_target_bot_message(message_obj):
         return
+
+    username = message.text[2:].strip()
 
     caption = message_obj.caption or message_obj.text
     participants = parse_participants(caption)
@@ -280,8 +305,14 @@ async def handle_plus_message(message: types.Message):
     time = extract_time_from_caption(caption)
     keyboard = create_keyboard()
 
-    await update_caption(message_obj, participants, None,
-                         f"{username} добавлен!", time, keyboard)
+    await update_caption(
+        message_obj,
+        participants,
+        None,
+        f"{username} добавлен!",
+        time,
+        keyboard
+    )
 
     try:
         await message.delete()
@@ -298,10 +329,11 @@ async def handle_minus_message(message: types.Message):
     if user_id not in get_allowed_user_ids():
         return
 
-    username = message.text[2:].strip()
     message_obj = message.reply_to_message
-    if not message_obj or not (message_obj.caption or message_obj.text):
+    if not is_target_bot_message(message_obj):
         return
+
+    username = message.text[2:].strip()
 
     caption = message_obj.caption or message_obj.text
     participants = parse_participants(caption)
@@ -313,8 +345,14 @@ async def handle_minus_message(message: types.Message):
     time = extract_time_from_caption(caption)
     keyboard = create_keyboard()
 
-    await update_caption(message_obj, participants, None,
-                         f"{username} удален!", time, keyboard)
+    await update_caption(
+        message_obj,
+        participants,
+        None,
+        f"{username} удален!",
+        time,
+        keyboard
+    )
 
     try:
         await message.delete()
@@ -333,6 +371,9 @@ async def handle_go_numbered(message: types.Message):
         return
 
     reply_msg = message.reply_to_message
+    if not is_target_bot_message(reply_msg):
+        return
+
     caption = reply_msg.caption or reply_msg.text or ""
     if not caption:
         return
@@ -349,7 +390,7 @@ async def handle_go_numbered(message: types.Message):
 
     numbers = re.findall(r"\d+", message.text)
     if numbers:
-        indexes = [int(n)-1 for n in numbers if 0 < int(n) <= len(participants)]
+        indexes = [int(n) - 1 for n in numbers if 0 < int(n) <= len(participants)]
         selected = [participants[i] for i in indexes]
     else:
         selected = participants
