@@ -135,30 +135,33 @@ async def send_event_photo(message: types.Message, photo_url: str, header_prefix
     if col_index and user_id in allowed_ids:
         participants = get_column_data_from_autosbor(col_index)
 
-    # --- Новая проверка: если есть буква "l" после времени ---
-    include_list = False
-    if after_time.lower().find("l") != -1:
-        include_list = True
+    # --- Новая проверка буквы "l" во всех словах после команды ---
+    words_after_command = text.split()[1:]  # игнорируем саму команду
+    include_list = any("l" in w.lower() for w in words_after_command)
 
     if include_list and user_id in allowed_ids:
         redis_key = f"list_{user_id}"
         try:
             existing_list = redis.lrange(redis_key, 0, -1)
             if existing_list:
-                # декодируем и добавляем участников из листа
+                # декодируем и добавляем участников из листа, кроме первого элемента (создателя)
                 existing_list = [
                     v.decode() if isinstance(v, bytes) else v
                     for v in existing_list
                 ]
-                for name in existing_list:
+                for name in existing_list[1:]:
                     if name not in participants:
                         participants.append(name)
             else:
                 # листа нет
-                await message.answer("ℹ️ Листа у тебя нет, используем обычный набор участников.")
+                await message.answer(
+                    "ℹ️ Листа у тебя нет, используем обычный набор участников."
+                )
         except Exception as e:
             logging.error(f"Ошибка при получении листа {redis_key}: {e}")
-            await message.answer("❌ Ошибка при попытке загрузить лист, используем обычный набор участников.")
+            await message.answer(
+                "❌ Ошибка при попытке загрузить лист, используем обычный набор участников."
+            )
 
     header_text = f"{header_prefix} {time}"
 
