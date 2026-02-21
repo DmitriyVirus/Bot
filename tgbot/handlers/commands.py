@@ -16,6 +16,8 @@ from tgbot.redis.redis_cash import (
     is_user_in_sheet,
     add_user_to_sheet_and_redis,
     load_all_to_redis,
+    get_allowed_user_ids,
+    get_name,
     get_welcome
 )
 
@@ -206,3 +208,83 @@ async def who_is_this(message: Message):
             await message.answer(response)
         else:
             await message.answer(f"Информация о пользователе '{args[1]}' не найдена.")
+
+# ==========================
+# Команда /list
+# ==========================
+@router.message(lambda message: message.text and message.text.startswith("/list"))
+async def handle_list_command(message: types.Message):
+    user_id = message.from_user.id
+
+    # 1️⃣ Проверка allowed_users
+    if user_id not in get_allowed_user_ids():
+        await message.answer("❌ Недостаточно прав для выполнения команды.")
+        return
+
+    parts = message.text.split()
+    input_names = parts[1:]
+    redis_key = f"list_{user_id}"
+
+    # =====================================
+    # 🔹 Если просто /list — показать лист
+    # =====================================
+    if len(input_names) == 0:
+        try:
+            existing_list = redis.lrange(redis_key, 0, -1)
+
+            if not existing_list:
+                await message.answer(
+                    "Чтобы сделать лист впиши:\n"
+                    "/list имя1 имя2 имя3 ..."
+                )
+                return
+
+            existing_list = [
+                v.decode() if isinstance(v, bytes) else v
+                for v in existing_list
+            ]
+
+            creator = existing_list[0]
+            participants = existing_list[1:]
+
+            await message.answer(
+                f"📋 Твой текущий лист:\n\n"
+                f"Создатель: {creator}\n"
+                f"Участники ({len(participants)}): "
+                f"{', '.join(participants) if participants else 'нет'}"
+            )
+
+        except Exception as e:
+            logger.error(f"Ошибка чтения {redis_key}: {e}")
+            await message.answer("❌ Ошибка при получении списка.")
+        return
+
+    # =====================================
+    # 🔹 Создание / обновление листа
+    # =====================================
+
+    if len(input_names) > 6:
+        await message.answer("❌ Можно указать не более 6 имён.")
+        return
+
+    creator_name = get_name(user_id, message.from_user.first_name)
+
+    try:
+        pipe = redis.pipeline()
+        pipe.delete(redis_key)
+
+        pipe.rpush(redis_key, creator_name)
+        pipe.rpush(redis_key, *input_names)
+
+        pipe.exec()
+
+        await message.answer(
+            f"✅ Лист обновлён.\n\n"
+            f"Создатель: {creator_name}\n"
+            f"Участники ({len(input_names)}): {', '.join(input_names)}"
+        )
+
+    except Exception as e:
+        logger.error(f"Ошибка при создании {redis_key}: {e}")
+        await message.answer("❌ Ошибка при сохранении списка.")
+
