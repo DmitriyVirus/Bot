@@ -18,7 +18,7 @@ GOOD_MORNING_MAPPING = {
 }
 GOOD_MORNING_DEFAULT = ("Доброе утро ☀️", "workdays_url.txt")
 
-CHAT_ID = int(os.environ.get("TELEGRAM_CHAT_ID"))
+CHAT_ID = int(os.environ.get("CHAT_ID"))
 
 async def send_photo(chat_id: int, photo_url: str, caption: str):
     await tgbot.bot.send_photo(chat_id=chat_id, photo=photo_url, caption=caption)
