@@ -11,6 +11,8 @@ from tgbot.redis.redis_cash import (
     get_inn_data,
     get_ork_data,
     get_inst_data,
+    get_freya_data,
+    get_ramona_data,
     get_name_username_dict,
     get_column_data_from_autosbor
 )
@@ -26,6 +28,8 @@ EVENT_MAP = {
     "inn": get_inn_data,
     "ork": get_ork_data,
     "inst": get_inst_data,
+    "freya": get_freya_data,
+    "ramona": get_ramona_data,
 }
 
 
