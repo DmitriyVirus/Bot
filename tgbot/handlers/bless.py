@@ -152,35 +152,39 @@ async def bless(message: types.Message):
 # ЛОГИКА
 # =================================
 async def process_action(callback, day, action, name):
-
+    """
+    day: "sb" или "vs"
+    action: "plus" или "minus"
+    name: имя участника
+    """
     message = callback.message
     text = message.caption or message.text
 
     sb, vs = parse_lists(text)
-
     participants = sb if day == "sb" else vs
 
     if action == "plus":
-
         if name not in participants:
             participants.append(name)
-
-    else:
-
+    elif action == "minus":
         if name in participants:
             participants.remove(name)
 
     caption = build_caption(sb, vs)
 
     try:
-
-        await message.edit_caption(
-            caption=caption,
-            reply_markup=create_bless_keyboard()
-        )
-
+        # Проверяем тип сообщения и обновляем
+        if message.photo:
+            await message.edit_caption(
+                caption=caption,
+                reply_markup=create_bless_keyboard()
+            )
+        else:
+            await message.edit_text(
+                text=caption,
+                reply_markup=create_bless_keyboard()
+            )
         await callback.answer()
-
     except Exception as e:
         logging.error(e)
 
