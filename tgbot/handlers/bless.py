@@ -3,144 +3,150 @@ import logging
 from aiogram import types, Router
 from aiogram.filters import Command
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-
 from tgbot.redis.redis_cash import (
     get_name,
+    get_allowed_user_ids,
     get_bless_data
 )
 
-logging.basicConfig(level=logging.INFO)
 router = Router()
+logging.basicConfig(level=logging.INFO)
 
 
-# ==========================
-# Клавиатура
-# ==========================
-def create_keyboard():
+# =================================
+# КНОПКИ
+# =================================
 
+def create_bless_keyboard():
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(
-                    text="➕ Присоединиться",
-                    callback_data="join_plus"
-                ),
-                InlineKeyboardButton(
-                    text="➖ Не участвовать",
-                    callback_data="join_minus"
-                )
-            ]
+                InlineKeyboardButton(text="➕ Сб", callback_data="bless_plus_sb"),
+                InlineKeyboardButton(text="➖ Сб", callback_data="bless_minus_sb"),
+            ],
+            [
+                InlineKeyboardButton(text="➕ Вс", callback_data="bless_plus_vs"),
+                InlineKeyboardButton(text="➖ Вс", callback_data="bless_minus_vs"),
+            ],
         ]
     )
 
 
-# ==========================
-# Парсинг списка имен
-# ==========================
-def parse_names(block_text):
+# =================================
+# ПАРСИНГ
+# =================================
 
-    names = re.findall(r"\d+\.\s*([^\n]+)", block_text)
+def parse_lists(text: str):
 
-    return [x.strip() for x in names]
+    sb = []
+    vs = []
 
+    current = None
 
-# ==========================
-# Построение списка
-# ==========================
-def build_numbered(names):
+    for line in text.splitlines():
 
-    result = ""
+        if "СУББОТА" in line:
+            current = "sb"
 
-    for i, name in enumerate(names, 1):
-        result += f"{i}. {name}\n"
+        elif "ВОСКРЕСЕНЬЕ" in line:
+            current = "vs"
 
-    return result
+        match = re.match(r"\d+\.\s*(.+)", line)
 
+        if match:
+            name = match.group(1).strip()
 
-# ==========================
-# Обновление текста
-# ==========================
-def update_caption_text(caption, add_name=None, remove_name=None):
+            if name:
 
-    # ---------- суббота ----------
-    sb_pattern = r"(Предварительный список \(всего 10 мест\):\n)(.*?)(2️⃣)"
-    sb_match = re.search(sb_pattern, caption, re.S)
+                if current == "sb":
+                    sb.append(name)
 
-    if sb_match:
+                elif current == "vs":
+                    vs.append(name)
 
-        prefix = sb_match.group(1)
-        list_block = sb_match.group(2)
-        suffix = sb_match.group(3)
-
-        names = parse_names(list_block)
-
-        if add_name and add_name not in names:
-            names.append(add_name)
-
-        if remove_name and remove_name in names:
-            names.remove(remove_name)
-
-        new_block = build_numbered(names)
-
-        caption = (
-            caption[:sb_match.start()]
-            + prefix
-            + new_block
-            + suffix
-            + caption[sb_match.end():]
-        )
-
-        return caption
-
-    # ---------- воскресенье ----------
-    vs_pattern = r"(Предварительный список \(места без ограничений\) 110\+:\s*)(.*?)(3️⃣)"
-    vs_match = re.search(vs_pattern, caption, re.S)
-
-    if vs_match:
-
-        prefix = vs_match.group(1)
-        list_block = vs_match.group(2)
-        suffix = vs_match.group(3)
-
-        names = parse_names(list_block)
-
-        if add_name and add_name not in names:
-            names.append(add_name)
-
-        if remove_name and remove_name in names:
-            names.remove(remove_name)
-
-        new_block = build_numbered(names)
-
-        caption = (
-            caption[:vs_match.start()]
-            + prefix
-            + new_block
-            + suffix
-            + caption[vs_match.end():]
-        )
-
-        return caption
-
-    return caption
+    return sb, vs
 
 
-# ==========================
-# Команда /bless
-# ==========================
+# =================================
+# СБОРКА ТЕКСТА
+# =================================
+
+def format_block(title, collector, participants):
+
+    visible = 5
+
+    text = f"{title}\n\n"
+
+    text += f"Собирает: {collector}\n\n"
+
+    text += "Предварительный список:\n\n"
+
+    for i in range(visible):
+
+        if i < len(participants):
+            text += f"{i+1}. {participants[i]}\n"
+        else:
+            text += f"{i+1}.\n"
+
+    if len(participants) > visible:
+
+        text += "\n"
+
+        for i in range(visible, len(participants)):
+            text += f"{i+1}. {participants[i]}\n"
+
+    return text
+
+
+def build_caption(sb, vs):
+
+    text = ""
+
+    text += format_block(
+        "📌📌📌 СУББОТА — 16:00 (РУНА)",
+        "Павел",
+        sb
+    )
+
+    text += "\n"
+
+    text += "2️⃣ Блески первый заход — 110+\n\n"
+    text += "3️⃣ После блесок — ТАРАС (115+)\n\n\n"
+
+    text += format_block(
+        "📌📌📌 ВОСКРЕСЕНЬЕ — 11:30",
+        "Влад",
+        vs
+    )
+
+    return text
+
+
+# =================================
+# КОМАНДА
+# =================================
+
 @router.message(Command("bless"))
-async def bless_event(message: types.Message):
+async def bless(message: types.Message):
 
     text, photo = get_bless_data()
 
-    keyboard = create_keyboard()
+    caption = build_caption([], [])
 
-    sent = await message.bot.send_photo(
-        chat_id=message.chat.id,
-        photo=photo,
-        caption=text,
-        reply_markup=keyboard
-    )
+    keyboard = create_bless_keyboard()
+
+    if photo:
+        sent = await message.bot.send_photo(
+            message.chat.id,
+            photo,
+            caption=caption,
+            reply_markup=keyboard
+        )
+    else:
+        sent = await message.answer(
+            caption,
+            reply_markup=keyboard
+        )
 
     try:
         await message.chat.pin_message(sent.message_id)
@@ -150,51 +156,107 @@ async def bless_event(message: types.Message):
     await message.delete()
 
 
-# ==========================
-# Callback +
-# ==========================
-@router.callback_query(lambda c: c.data == "join_plus")
-async def join_plus(callback: types.CallbackQuery):
+# =================================
+# ЛОГИКА
+# =================================
 
-    user_id = callback.from_user.id
-    name = get_name(user_id, callback.from_user.first_name)
+async def process_action(callback, day, action, name):
 
     message = callback.message
-    caption = message.caption
 
-    new_caption = update_caption_text(
-        caption,
-        add_name=name
+    text = message.caption or message.text
+
+    sb, vs = parse_lists(text)
+
+    participants = sb if day == "sb" else vs
+
+    if action == "plus":
+
+        if name not in participants:
+            participants.append(name)
+
+    else:
+
+        if name in participants:
+            participants.remove(name)
+
+    caption = build_caption(sb, vs)
+
+    try:
+
+        await message.edit_caption(
+            caption=caption,
+            reply_markup=create_bless_keyboard()
+        )
+
+        await callback.answer()
+
+    except Exception as e:
+        logging.error(e)
+
+
+# =================================
+# CALLBACK
+# =================================
+
+@router.callback_query(lambda c: c.data.startswith("bless_"))
+async def bless_callback(callback: types.CallbackQuery):
+
+    data = callback.data.split("_")
+
+    action = data[1]
+    day = data[2]
+
+    name = get_name(
+        callback.from_user.id,
+        callback.from_user.first_name
     )
 
-    await message.edit_caption(
-        caption=new_caption,
-        reply_markup=create_keyboard()
+    await process_action(callback, day, action, name)
+
+
+# =================================
+# ТЕКСТОВЫЕ КОМАНДЫ
+# =================================
+
+@router.message(lambda m: m.reply_to_message and m.text)
+async def bless_text_control(message: types.Message):
+
+    text = message.text.lower()
+
+    if not text.startswith(("+", "-")):
+        return
+
+    parts = text.split()
+
+    if len(parts) < 2:
+        return
+
+    action = "plus" if parts[0] == "+" else "minus"
+
+    day = "sb" if "сб" in parts[1] else "vs"
+
+    target_name = None
+
+    if len(parts) > 2:
+
+        if message.from_user.id in get_allowed_user_ids():
+            target_name = " ".join(parts[2:])
+
+    if not target_name:
+
+        target_name = get_name(
+            message.from_user.id,
+            message.from_user.first_name
+        )
+
+    callback = types.CallbackQuery(
+        id="manual",
+        from_user=message.from_user,
+        chat_instance="",
+        message=message.reply_to_message
     )
 
-    await callback.answer("Вы добавлены")
+    await process_action(callback, day, action, target_name)
 
-
-# ==========================
-# Callback -
-# ==========================
-@router.callback_query(lambda c: c.data == "join_minus")
-async def join_minus(callback: types.CallbackQuery):
-
-    user_id = callback.from_user.id
-    name = get_name(user_id, callback.from_user.first_name)
-
-    message = callback.message
-    caption = message.caption
-
-    new_caption = update_caption_text(
-        caption,
-        remove_name=name
-    )
-
-    await message.edit_caption(
-        caption=new_caption,
-        reply_markup=create_keyboard()
-    )
-
-    await callback.answer("Вы удалены")
+    await message.delete()
