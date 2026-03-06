@@ -216,63 +216,121 @@ async def bless_callback(callback: types.CallbackQuery):
 
 
 # =================================
-# ТЕКСТОВЫЕ КОМАНДЫ
+# ПРОВЕРКА ЧТО ЭТО НУЖНОЕ СООБЩЕНИЕ
 # =================================
 
-@router.message(lambda m: m.reply_to_message and m.text and (
-    m.text.lower().startswith(("+ сб", "- сб", "+ вс", "- вс"))
-))
-async def bless_text_control(message: types.Message):
+def is_bless_message(message: types.Message):
 
-    text = message.text.lower()
+    if not message:
+        return False
 
-    if not text.startswith(("+", "-")):
-        return
+    if not message.reply_markup:
+        return False
 
-    parts = text.split()
-    if len(parts) < 2:
-        return
+    for row in message.reply_markup.inline_keyboard:
+        for button in row:
 
-    action = "plus" if parts[0] == "+" else "minus"
-    day = "sb" if "сб" in parts[1] else "vs" if "вс" in parts[1] else None
+            if button.callback_data and button.callback_data.startswith("bless_"):
+                return True
 
-    if not day:
+    return False
+
+
+# =================================
+# РУЧНОЕ ДОБАВЛЕНИЕ
+# =================================
+
+@router.message(lambda m: m.text and m.text.lower().startswith("+"))
+async def bless_manual_plus(message: types.Message):
+
+    user_id = message.from_user.id
+
+    if user_id not in get_allowed_user_ids():
         return
 
     reply = message.reply_to_message
-    if not reply:
+
+    if not is_bless_message(reply):
         return
 
-    # Определяем имя
-    if len(parts) > 2 and message.from_user.id in get_allowed_user_ids():
-        target_name = " ".join(parts[2:])
-    else:
-        target_name = get_name(message.from_user.id, message.from_user.first_name)
+    text = message.text.lower()
 
-    # Парсим и меняем список напрямую
-    text_src = reply.caption or reply.text or ""
-    sb, vs = parse_lists(text_src)
+    parts = message.text.split(maxsplit=2)
 
-    participants = sb if day == "sb" else vs
+    if len(parts) < 3:
+        return
 
-    if action == "plus":
-        if target_name not in participants:
-            participants.append(target_name)
-    else:
-        if target_name in participants:
-            participants.remove(target_name)
+    day = parts[1].lower()
+    name = parts[2].strip()
 
-    caption = build_caption(sb, vs)
+    if day not in ["сб", "вс"]:
+        return
 
-    try:
-        await reply.edit_caption(
-            caption=caption,
-            reply_markup=create_bless_keyboard()
-        )
-    except Exception as e:
-        logging.error(f"Ошибка ручного управления bless: {e}")
+    day_key = "sb" if day == "сб" else "vs"
+
+    await process_action(
+        types.CallbackQuery(
+            id="manual",
+            from_user=message.from_user,
+            chat_instance="manual",
+            message=reply,
+            data="manual"
+        ),
+        day_key,
+        "plus",
+        name
+    )
 
     try:
         await message.delete()
-    except Exception:
+    except:
+        pass
+
+
+# =================================
+# РУЧНОЕ УДАЛЕНИЕ
+# =================================
+
+@router.message(lambda m: m.text and m.text.lower().startswith("-"))
+async def bless_manual_minus(message: types.Message):
+
+    user_id = message.from_user.id
+
+    if user_id not in get_allowed_user_ids():
+        return
+
+    reply = message.reply_to_message
+
+    if not is_bless_message(reply):
+        return
+
+    parts = message.text.split(maxsplit=2)
+
+    if len(parts) < 3:
+        return
+
+    day = parts[1].lower()
+    name = parts[2].strip()
+
+    if day not in ["сб", "вс"]:
+        return
+
+    day_key = "sb" if day == "сб" else "vs"
+
+    await process_action(
+        types.CallbackQuery(
+            id="manual",
+            from_user=message.from_user,
+            chat_instance="manual",
+            message=reply,
+            data="manual"
+        ),
+        day_key,
+        "minus",
+        name
+    )
+
+    try:
+        await message.delete()
+    except:
         pass
