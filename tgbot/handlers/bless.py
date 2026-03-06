@@ -76,9 +76,7 @@ def format_block(title, collector, participants):
     visible = 5
 
     text = f"{title}\n\n"
-
     text += f"Собирает: {collector}\n\n"
-
     text += "Предварительный список:\n\n"
 
     for i in range(visible):
@@ -160,25 +158,54 @@ async def bless(message: types.Message):
 # ЛОГИКА
 # =================================
 
-async def process_action(callback, day, action, name):
+async def process_action(callback, day, action, name=None):
 
     message = callback.message
-
     text = message.caption or message.text
 
     sb, vs = parse_lists(text)
 
     participants = sb if day == "sb" else vs
 
+    manual = callback.id == "manual"
+
+    if not name:
+        name = get_name(
+            callback.from_user.id,
+            callback.from_user.first_name
+        )
+
+    # ===============================
+    # ДОБАВЛЕНИЕ
+    # ===============================
     if action == "plus":
 
-        if name not in participants:
-            participants.append(name)
+        if name in participants:
 
+            if not manual:
+                await callback.answer("Вы уже участвуете!")
+            return
+
+        participants.append(name)
+
+        if not manual:
+            await callback.answer("Вы добавлены!")
+
+    # ===============================
+    # УДАЛЕНИЕ
+    # ===============================
     else:
 
-        if name in participants:
-            participants.remove(name)
+        if name not in participants:
+
+            if not manual:
+                await callback.answer("Вы не участвуете.")
+            return
+
+        participants.remove(name)
+
+        if not manual:
+            await callback.answer("Вы удалены.")
 
     caption = build_caption(sb, vs)
 
@@ -188,8 +215,6 @@ async def process_action(callback, day, action, name):
             caption=caption,
             reply_markup=create_bless_keyboard()
         )
-
-        await callback.answer()
 
     except Exception as e:
         logging.error(e)
@@ -252,8 +277,6 @@ async def bless_manual_plus(message: types.Message):
 
     if not is_bless_message(reply):
         return
-
-    text = message.text.lower()
 
     parts = message.text.split(maxsplit=2)
 
