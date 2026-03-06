@@ -84,17 +84,38 @@ def build_bless_caption(template: str, sb_participants: list, vs_participants: l
     return template.replace(sb_marker, sb_lines).replace(vs_marker, vs_block)
 
 
+# ==========================
+# Команда /bless
+# ==========================
 @router.message(Command("bless"))
 async def bless_handler(message: types.Message):
+    template, photo_url = get_bless_data()
+    caption = build_bless_caption(template, [], [])
+    keyboard = create_bless_keyboard()
+
     try:
-        template, photo_url = get_bless_data()
-        logging.debug(f"photo_url: {repr(photo_url)}")
-        logging.debug(f"template: {repr(template)}")
-        caption = build_bless_caption(template, [], [])
-        logging.debug(f"caption: {repr(caption)}")
+        if photo_url:
+            sent = await message.bot.send_photo(
+                chat_id=message.chat.id,
+                photo=photo_url,
+                caption=caption,
+                reply_markup=keyboard
+            )
+        else:
+            sent = await message.answer(caption, reply_markup=keyboard)
+
+        try:
+            await message.chat.pin_message(sent.message_id)
+        except Exception as e:
+            logging.warning(f"Не удалось закрепить: {e}")
+
     except Exception as e:
-        logging.error(f"Ошибка подготовки данных: {e}")
-        return
+        logging.error(f"Ошибка отправки /bless: {e}")
+
+    try:
+        await message.delete()
+    except Exception:
+        pass
 
 
 # ==========================
