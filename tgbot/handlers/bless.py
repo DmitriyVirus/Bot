@@ -41,14 +41,20 @@ def parse_lists(text: str):
     sb = []
     vs = []
     current = None
+    in_extra = False
 
     for line in text.splitlines():
 
         if "СУББОТА" in line:
             current = "sb"
+            in_extra = False
 
         elif "ВОСКРЕСЕНЬЕ" in line:
             current = "vs"
+            in_extra = False
+
+        elif "Доп. Желающие" in line and current == "sb":
+            in_extra = True
 
         match = re.match(r"\d+\.\s*(.+)", line)
 
@@ -68,15 +74,32 @@ def parse_lists(text: str):
 # =================================
 # ФОРМАТИРОВАНИЕ СПИСКОВ
 # =================================
+SB_LIMIT = 10
+
+
 def format_sb_list(participants: list, min_rows: int = 5) -> str:
-    """Нумерованный список для СБ, минимум min_rows пустых строк"""
-    total = max(len(participants), min_rows)
+    """
+    Нумерованный список для СБ.
+    Основной список — до SB_LIMIT мест (минимум min_rows пустых строк).
+    Если участников больше SB_LIMIT — добавляется блок 'Доп. Желающие'.
+    """
+    main = participants[:SB_LIMIT]
+    extra = participants[SB_LIMIT:]
+
+    total = max(len(main), min_rows)
     lines = []
     for i in range(total):
-        if i < len(participants):
-            lines.append(f"{i+1}. {participants[i]}")
+        if i < len(main):
+            lines.append(f"{i+1}. {main[i]}")
         else:
             lines.append(f"{i+1}.")
+
+    if extra:
+        lines.append("")
+        lines.append("Доп. Желающие:")
+        for i, name in enumerate(extra, 1):
+            lines.append(f"{i}. {name}")
+
     return "\n".join(lines)
 
 
