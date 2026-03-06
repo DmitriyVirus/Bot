@@ -76,15 +76,32 @@ def parse_lists(text: str):
 # =================================
 SB_LIMIT = 10
 
+SB_DEFAULT = [
+    "Павел(Обезгномливание)",
+    "Влад (Аркхелия)",
+    "Александр(Piuv)",
+]
+
+VS_DEFAULT = [
+    "Влад (Аркхелия)",
+    "Евгений(ХныкКи) - твины",
+    "Александр(Piuv) - твины",
+]
+
 
 def format_sb_list(participants: list, min_rows: int = 5) -> str:
     """
     Нумерованный список для СБ.
+    Первые места — SB_DEFAULT, затем остальные участники.
     Основной список — до SB_LIMIT мест (минимум min_rows пустых строк).
     Если участников больше SB_LIMIT — добавляется блок 'Доп. Желающие'.
     """
-    main = participants[:SB_LIMIT]
-    extra = participants[SB_LIMIT:]
+    # Дефолтные всегда первые, остальные после них без дублей
+    extra_participants = [p for p in participants if p not in SB_DEFAULT]
+    full = SB_DEFAULT + extra_participants
+
+    main = full[:SB_LIMIT]
+    extra = full[SB_LIMIT:]
 
     total = max(len(main), min_rows)
     lines = []
@@ -104,12 +121,19 @@ def format_sb_list(participants: list, min_rows: int = 5) -> str:
 
 
 def format_vs_list(participants: list, min_rows: int = 5) -> str:
-    """Нумерованный список для ВС, минимум min_rows пустых строк"""
-    total = max(len(participants), min_rows)
+    """
+    Нумерованный список для ВС.
+    Первые места — VS_DEFAULT, затем остальные участники.
+    Минимум min_rows строк.
+    """
+    extra_participants = [p for p in participants if p not in VS_DEFAULT]
+    full = VS_DEFAULT + extra_participants
+
+    total = max(len(full), min_rows)
     lines = []
     for i in range(total):
-        if i < len(participants):
-            lines.append(f"{i+1}. {participants[i]}")
+        if i < len(full):
+            lines.append(f"{i+1}. {full[i]}")
         else:
             lines.append(f"{i+1}.")
     return "\n".join(lines)
