@@ -228,35 +228,49 @@ async def bless_text_control(message: types.Message):
         return
 
     parts = text.split()
-
     if len(parts) < 2:
         return
 
     action = "plus" if parts[0] == "+" else "minus"
+    day = "sb" if "сб" in parts[1] else "vs" if "вс" in parts[1] else None
 
-    day = "sb" if "сб" in parts[1] else "vs"
+    if not day:
+        return
 
-    target_name = None
+    reply = message.reply_to_message
+    if not reply:
+        return
 
-    if len(parts) > 2:
+    # Определяем имя
+    if len(parts) > 2 and message.from_user.id in get_allowed_user_ids():
+        target_name = " ".join(parts[2:])
+    else:
+        target_name = get_name(message.from_user.id, message.from_user.first_name)
 
-        if message.from_user.id in get_allowed_user_ids():
-            target_name = " ".join(parts[2:])
+    # Парсим и меняем список напрямую
+    text_src = reply.caption or reply.text or ""
+    sb, vs = parse_lists(text_src)
 
-    if not target_name:
+    participants = sb if day == "sb" else vs
 
-        target_name = get_name(
-            message.from_user.id,
-            message.from_user.first_name
+    if action == "plus":
+        if target_name not in participants:
+            participants.append(target_name)
+    else:
+        if target_name in participants:
+            participants.remove(target_name)
+
+    caption = build_caption(sb, vs)
+
+    try:
+        await reply.edit_caption(
+            caption=caption,
+            reply_markup=create_bless_keyboard()
         )
+    except Exception as e:
+        logging.error(f"Ошибка ручного управления bless: {e}")
 
-    callback = types.CallbackQuery(
-        id="manual",
-        from_user=message.from_user,
-        chat_instance="",
-        message=message.reply_to_message
-    )
-
-    await process_action(callback, day, action, target_name)
-
-    await message.delete()
+    try:
+        await message.delete()
+    except Exception:
+        pass
