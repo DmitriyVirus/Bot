@@ -151,13 +151,13 @@ async def bless(message: types.Message):
 # =================================
 # ЛОГИКА
 # =================================
-async def process_action(callback, day, action, name):
+async def process_action(message: types.Message, day: str, action: str, name: str):
     """
+    message: сообщение которое нужно отредактировать
     day: "sb" или "vs"
     action: "plus" или "minus"
     name: имя участника
     """
-    message = callback.message
     text = message.caption or message.text
 
     sb, vs = parse_lists(text)
@@ -173,7 +173,6 @@ async def process_action(callback, day, action, name):
     caption = build_caption(sb, vs)
 
     try:
-        # Проверяем тип сообщения и обновляем
         if message.photo:
             await message.edit_caption(
                 caption=caption,
@@ -184,7 +183,6 @@ async def process_action(callback, day, action, name):
                 text=caption,
                 reply_markup=create_bless_keyboard()
             )
-        await callback.answer()
     except Exception as e:
         logging.error(e)
 
@@ -205,7 +203,8 @@ async def bless_callback(callback: types.CallbackQuery):
         callback.from_user.first_name
     )
 
-    await process_action(callback, day, action, name)
+    await process_action(callback.message, day, action, name)
+    await callback.answer()
 
 
 # =================================
@@ -260,18 +259,7 @@ async def bless_manual_plus(message: types.Message):
 
     day_key = "sb" if day == "сб" else "vs"
 
-    await process_action(
-        types.CallbackQuery(
-            id="manual",
-            from_user=message.from_user,
-            chat_instance="manual",
-            message=reply,
-            data="manual"
-        ),
-        day_key,
-        "plus",
-        name
-    )
+    await process_action(reply, day_key, "plus", name)
 
     try:
         await message.delete()
@@ -308,18 +296,7 @@ async def bless_manual_minus(message: types.Message):
 
     day_key = "sb" if day == "сб" else "vs"
 
-    await process_action(
-        types.CallbackQuery(
-            id="manual",
-            from_user=message.from_user,
-            chat_instance="manual",
-            message=reply,
-            data="manual"
-        ),
-        day_key,
-        "minus",
-        name
-    )
+    await process_action(reply, day_key, "minus", name)
 
     try:
         await message.delete()
