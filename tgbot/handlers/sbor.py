@@ -16,6 +16,8 @@ from tgbot.redis.redis_cash import (
     get_name_username_dict,
     get_column_data_from_autosbor
 )
+from tgbot.handlers.bless import process_action, is_bless_message
+
 logging.basicConfig(level=logging.DEBUG)
 router = Router()
 
@@ -113,13 +115,11 @@ async def send_event_photo(message: types.Message, photo_url: str, header_prefix
     keyboard = create_keyboard()
     text = message.text
 
-    # --- Старый алгоритм извлечения времени ---
     time_match = re.search(r"\b\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})?\b", text)
     time = time_match.group(0) if time_match else "когда соберемся"
 
-    # --- Старый алгоритм извлечения одной колонки ---
     col_index = None
-    after_text = text  # будем искать букву l после команды, кроме первого слова
+    after_text = text
     if time_match:
         after_text = text[time_match.end():]
         col_match = re.search(r"\b\d+\b", after_text)
@@ -130,9 +130,8 @@ async def send_event_photo(message: types.Message, photo_url: str, header_prefix
         if col_match:
             col_index = int(col_match.group(0))
 
-    # --- Проверка буквы "l" в тексте после команды ---
     parts = text.split()
-    after_command = " ".join(parts[1:])  # всё кроме первого слова (команды)
+    after_command = " ".join(parts[1:])
     include_list = "l" in after_command.lower()
 
     user_id = message.from_user.id
@@ -140,17 +139,14 @@ async def send_event_photo(message: types.Message, photo_url: str, header_prefix
 
     participants = []
 
-    # --- Получение участников из колонки ---
     if col_index and user_id in allowed_ids:
         participants = get_column_data_from_autosbor(col_index)
 
-    # --- Если есть буква "l", добавляем участников из листа ---
     if include_list and user_id in allowed_ids:
         redis_key = f"list_{user_id}"
         try:
             existing_list = redis.lrange(redis_key, 0, -1)
             if existing_list:
-                # декодируем и добавляем всех участников из листа (включая создателя)
                 existing_list = [
                     v.decode() if isinstance(v, bytes) else v
                     for v in existing_list
@@ -159,7 +155,6 @@ async def send_event_photo(message: types.Message, photo_url: str, header_prefix
                     if name not in participants:
                         participants.append(name)
             else:
-                # листа нет
                 await message.answer("ℹ️ Листа у тебя нет, используем обычный набор участников.")
         except Exception as e:
             logging.error(f"Ошибка при получении листа {redis_key}: {e}")
@@ -206,6 +201,7 @@ async def send_event_photo(message: types.Message, photo_url: str, header_prefix
     except Exception:
         pass
 
+
 # ==========================
 # Универсальный хендлер команд
 # ==========================
@@ -231,8 +227,6 @@ async def handle_plus_reaction(callback: types.CallbackQuery):
     message = callback.message
 
     participants = parse_participants(message.caption)
-
-    # 🔥 Берём имя из Redis
     display_name = get_name(user_id, telegram_name)
 
     if display_name in participants:
@@ -264,8 +258,6 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
     message = callback.message
 
     participants = parse_participants(message.caption)
-
-    # 🔥 Берём имя из Redis
     display_name = get_name(user_id, telegram_name)
 
     if display_name not in participants:
@@ -286,6 +278,7 @@ async def handle_minus_reaction(callback: types.CallbackQuery):
         keyboard
     )
 
+
 # ==========================
 # Проверка целевого сообщения бота
 # ==========================
@@ -293,15 +286,12 @@ def is_target_bot_message(message: types.Message) -> bool:
     if not message:
         return False
 
-    # сообщение должно быть от бота
     if not message.from_user or not message.from_user.is_bot:
         return False
 
-    # должна быть inline клавиатура
     if not message.reply_markup or not message.reply_markup.inline_keyboard:
         return False
 
-    # проверяем callback_data кнопок
     for row in message.reply_markup.inline_keyboard:
         for button in row:
             if button.callback_data in ("join_plus", "join_minus"):
@@ -319,14 +309,33 @@ async def handle_plus_message(message: types.Message):
     if user_id not in get_allowed_user_ids():
         return
 
-    message_obj = message.reply_to_message
-    if not is_target_bot_message(message_obj):
+    reply = message.reply_to_message
+
+    # --- Bless-сообщение: + сб/вс Имя ---
+    if is_bless_message(reply):
+        parts = message.text.split(maxsplit=2)
+        if len(parts) < 3:
+            return
+        day = parts[1].lower()
+        name = parts[2].strip()
+        if day not in ["сб", "вс"]:
+            return
+        day_key = "sb" if day == "сб" else "vs"
+        await process_action(reply, day_key, "plus", name)
+        try:
+            await message.delete()
+        except Exception:
+            pass
+        return
+
+    # --- Обычное событие: + Имя ---
+    if not is_target_bot_message(reply):
         return
 
     username = message.text[2:].strip()
-
-    caption = message_obj.caption or message_obj.text
+    caption = reply.caption or reply.text
     participants = parse_participants(caption)
+
     if username in participants:
         await message.answer(f"{username} уже участвует!")
         return
@@ -335,14 +344,7 @@ async def handle_plus_message(message: types.Message):
     time = extract_time_from_caption(caption)
     keyboard = create_keyboard()
 
-    await update_caption(
-        message_obj,
-        participants,
-        None,
-        f"{username} добавлен!",
-        time,
-        keyboard
-    )
+    await update_caption(reply, participants, None, f"{username} добавлен!", time, keyboard)
 
     try:
         await message.delete()
@@ -359,14 +361,33 @@ async def handle_minus_message(message: types.Message):
     if user_id not in get_allowed_user_ids():
         return
 
-    message_obj = message.reply_to_message
-    if not is_target_bot_message(message_obj):
+    reply = message.reply_to_message
+
+    # --- Bless-сообщение: - сб/вс Имя ---
+    if is_bless_message(reply):
+        parts = message.text.split(maxsplit=2)
+        if len(parts) < 3:
+            return
+        day = parts[1].lower()
+        name = parts[2].strip()
+        if day not in ["сб", "вс"]:
+            return
+        day_key = "sb" if day == "сб" else "vs"
+        await process_action(reply, day_key, "minus", name)
+        try:
+            await message.delete()
+        except Exception:
+            pass
+        return
+
+    # --- Обычное событие: - Имя ---
+    if not is_target_bot_message(reply):
         return
 
     username = message.text[2:].strip()
-
-    caption = message_obj.caption or message_obj.text
+    caption = reply.caption or reply.text
     participants = parse_participants(caption)
+
     if username not in participants:
         await message.answer(f"{username} не участвует.")
         return
@@ -375,14 +396,7 @@ async def handle_minus_message(message: types.Message):
     time = extract_time_from_caption(caption)
     keyboard = create_keyboard()
 
-    await update_caption(
-        message_obj,
-        participants,
-        None,
-        f"{username} удален!",
-        time,
-        keyboard
-    )
+    await update_caption(reply, participants, None, f"{username} удален!", time, keyboard)
 
     try:
         await message.delete()
