@@ -115,6 +115,11 @@ def get_ramona_data() -> tuple[str, str]:
     media_url = redis.hget(REDIS_KEY_ALL_DATA, "ramona_media") or ""
     return text, media_url
 
+def get_bless_data() -> tuple[str, str]:
+    text = redis.hget(REDIS_KEY_ALL_DATA, "bless_text") or "Данные недоступны"
+    media_url = redis.hget(REDIS_KEY_ALL_DATA, "bless_media") or ""
+    return text, media_url
+
 def get_fu_data() -> tuple[str, str]:
     text = redis.hget(REDIS_KEY_ALL_DATA, "fu_text") or "Данные недоступны"
     media_url = redis.hget(REDIS_KEY_ALL_DATA, "fu_media") or ""
@@ -268,7 +273,7 @@ def load_all_data_to_redis():
     pipe_all.delete(REDIS_KEY_ALL_DATA)
 
     # Events
-    events_map = {"bal": ("J2","J3"), "inn":("J5","J6"), "ork":("J8","J9"), "inst":("J11","J12"), "freya":("J14","J15"), "ramona":("J17","J18")}
+    events_map = {"bal": ("J2","J3"), "inn":("J5","J6"), "ork":("J8","J9"), "inst":("J11","J12"), "freya":("J14","J15"), "ramona":("J17","J18"), "bless": ("J20","J21")}
     for event, (text_cell, media_cell) in events_map.items():
         text = sheet_info.acell(text_cell).value or ""
         media_url = convert_drive_url(sheet_info.acell(media_cell).value or "")
