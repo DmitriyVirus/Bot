@@ -92,6 +92,9 @@ async def bless_handler(message: types.Message):
     template, photo_url = get_bless_data()
     caption = build_bless_caption(template, [], [])
     keyboard = create_bless_keyboard()
+    
+    logging.debug(f"photo_url: {photo_url}")
+    logging.debug(f"caption: {repr(caption)}")
 
     try:
         if photo_url:
