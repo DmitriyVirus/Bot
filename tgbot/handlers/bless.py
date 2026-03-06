@@ -66,36 +66,54 @@ def parse_lists(text: str):
 
 
 # =================================
-# ФОРМАТИРОВАНИЕ СПИСКОВ
+# СБОРКА ТЕКСТА
 # =================================
-def format_sb_list(participants: list, total: int = 10) -> str:
-    """Нумерованный список для СБ, всего total строк"""
-    lines = []
-    for i in range(total):
+def format_block(title, collector, participants):
+    visible = 5
+
+    text = f"{title}\n\n"
+    text += f"Собирает: {collector}\n\n"
+    text += "Предварительный список:\n\n"
+
+    for i in range(visible):
+
         if i < len(participants):
-            lines.append(f"{i+1}. {participants[i]}")
+            text += f"{i+1}. {participants[i]}\n"
+
         else:
-            lines.append(f"{i+1}.")
-    return "\n".join(lines)
+            text += f"{i+1}.\n"
+
+    if len(participants) > visible:
+
+        text += "\n"
+
+        for i in range(visible, len(participants)):
+            text += f"{i+1}. {participants[i]}\n"
+
+    return text
 
 
-def format_vs_list(participants: list) -> str:
-    """Список через запятую для ВС"""
-    if not participants:
-        return ""
-    return ", ".join(participants)
+def build_caption(sb, vs):
 
+    text = ""
 
-# =================================
-# СБОРКА ТЕКСТА из шаблона Redis
-# =================================
-def build_caption(sb: list, vs: list) -> str:
-    template, _ = get_bless_data()
+    text += format_block(
+        "📌📌📌 СУББОТА — 16:00 (РУНА)",
+        "Павел",
+        sb
+    )
 
-    sb_list = format_sb_list(sb)
-    vs_list = format_vs_list(vs)
+    text += "\n"
+    text += "2️⃣ Блески первый заход — 110+\n\n"
+    text += "3️⃣ После блесок — ТАРАС (115+)\n\n\n"
 
-    return template.replace("{sb_list}", sb_list).replace("{vs_list}", vs_list)
+    text += format_block(
+        "📌📌📌 ВОСКРЕСЕНЬЕ — 11:30",
+        "Влад",
+        vs
+    )
+
+    return text
 
 
 # =================================
@@ -104,7 +122,7 @@ def build_caption(sb: list, vs: list) -> str:
 @router.message(Command("bless"))
 async def bless(message: types.Message):
 
-    _, photo = get_bless_data()
+    text, photo = get_bless_data()
 
     caption = build_caption([], [])
     keyboard = create_bless_keyboard()
@@ -210,3 +228,77 @@ def is_bless_message(message: types.Message):
                 return True
 
     return False
+
+
+# =================================
+# РУЧНОЕ ДОБАВЛЕНИЕ
+# =================================
+@router.message(lambda m: m.text and m.text.lower().startswith("+"))
+async def bless_manual_plus(message: types.Message):
+
+    user_id = message.from_user.id
+    allowed = get_allowed_user_ids()
+
+    logging.info(f"Manual plus: user_id={user_id}, allowed={allowed}")
+
+    if user_id not in allowed:
+        logging.info(f"User {user_id} not in allowed list — exit")
+        return
+
+    reply = message.reply_to_message
+
+    if not is_bless_message(reply):
+        logging.info("Reply is not bless message — exit")
+        return
+
+    parts = message.text.split(maxsplit=2)
+    logging.info(f"Parts: {parts}")
+
+    if len(parts) < 3:
+        logging.info("Not enough parts — exit")
+        return
+
+    day = parts[1].lower()
+    name = parts[2].strip()
+    logging.info(f"Day: {day}, Name: {name}")
+
+    if day not in ["сб", "вс"]:
+        logging.info(f"Day '{day}' not valid — exit")
+        return
+ 
+
+# =================================
+# РУЧНОЕ УДАЛЕНИЕ
+# =================================
+@router.message(lambda m: m.text and m.text.lower().startswith("-"))
+async def bless_manual_minus(message: types.Message):
+
+    user_id = message.from_user.id
+
+    if user_id not in get_allowed_user_ids():
+        return
+
+    reply = message.reply_to_message
+
+    if not is_bless_message(reply):
+        return
+
+    parts = message.text.split(maxsplit=2)
+
+    if len(parts) < 3:
+        return
+
+    day = parts[1].lower()
+    name = parts[2].strip()
+
+    if day not in ["сб", "вс"]:
+        return
+
+    day_key = "sb" if day == "сб" else "vs"
+
+    await process_action(reply, day_key, "minus", name)
+
+    try:
+        await message.delete()
+    except:
+        pass
