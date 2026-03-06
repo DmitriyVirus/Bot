@@ -237,35 +237,35 @@ def is_bless_message(message: types.Message):
 async def bless_manual_plus(message: types.Message):
 
     user_id = message.from_user.id
+    allowed = get_allowed_user_ids()
 
-    if user_id not in get_allowed_user_ids():
+    logging.info(f"Manual plus: user_id={user_id}, allowed={allowed}")
+
+    if user_id not in allowed:
+        logging.info(f"User {user_id} not in allowed list — exit")
         return
 
     reply = message.reply_to_message
 
     if not is_bless_message(reply):
+        logging.info("Reply is not bless message — exit")
         return
 
     parts = message.text.split(maxsplit=2)
+    logging.info(f"Parts: {parts}")
 
     if len(parts) < 3:
+        logging.info("Not enough parts — exit")
         return
 
     day = parts[1].lower()
     name = parts[2].strip()
+    logging.info(f"Day: {day}, Name: {name}")
 
     if day not in ["сб", "вс"]:
+        logging.info(f"Day '{day}' not valid — exit")
         return
-
-    day_key = "sb" if day == "сб" else "vs"
-
-    await process_action(reply, day_key, "plus", name)
-
-    try:
-        await message.delete()
-    except:
-        pass
-
+ 
 
 # =================================
 # РУЧНОЕ УДАЛЕНИЕ
