@@ -14,6 +14,8 @@ from tgbot.sheets.gspread_client import get_gspread_client
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, HTMLResponse
 from .backupbot import router as backup_router
 from .morning import router as morning_router
+from tgbot.handlers.bless import build_caption, create_bless_keyboard
+
 from tgbot.redis.redis_cash import (
     redis,
     LAST_UPDATE_KEY,
@@ -21,7 +23,8 @@ from tgbot.redis.redis_cash import (
     load_allowed_to_redis,
     load_all_data_to_redis,
     load_autosbor_to_redis,
-    load_admins_to_redis
+    load_admins_to_redis,
+    get_bless_data
 )
 
 
@@ -260,3 +263,42 @@ async def cron_refresh_admins():
         return JSONResponse({"status": "error", "message": str(e)})
 
 
+
+@app.get("/api/cron/bless")
+async def cron_bless():
+
+    try:
+        chat_id = os.getenv("CHAT_ID")
+        if not chat_id:
+            return JSONResponse({"status": "error", "message": "CHAT_ID не задан"})
+
+        _, photo = get_bless_data()
+        caption = build_caption([], [])
+        keyboard = create_bless_keyboard()
+
+        if photo:
+            sent = await tgbot.bot.send_photo(
+                chat_id=int(chat_id),
+                photo=photo,
+                caption=caption,
+                reply_markup=keyboard
+            )
+        else:
+            sent = await tgbot.bot.send_message(
+                chat_id=int(chat_id),
+                text=caption,
+                reply_markup=keyboard
+            )
+
+        try:
+            await tgbot.bot.pin_chat_message(
+                chat_id=int(chat_id),
+                message_id=sent.message_id
+            )
+        except Exception:
+            pass
+
+        return JSONResponse({"status": "ok", "message": "✅ Bless сообщение отправлено"})
+
+    except Exception as e:
+        return JSONResponse({"status": "error", "message": str(e)})
