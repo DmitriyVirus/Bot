@@ -219,7 +219,9 @@ async def bless_callback(callback: types.CallbackQuery):
 # ТЕКСТОВЫЕ КОМАНДЫ
 # =================================
 
-@router.message(lambda m: m.reply_to_message and m.text)
+@router.message(lambda m: m.reply_to_message and m.text and (
+    m.text.lower().startswith(("+ сб", "- сб", "+ вс", "- вс"))
+))
 async def bless_text_control(message: types.Message):
 
     text = message.text.lower()
