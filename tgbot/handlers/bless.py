@@ -5,269 +5,258 @@ from aiogram.filters import Command
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from tgbot.redis.redis_cash import (
     get_name,
-    get_bless_data,
+    get_allowed_user_ids,
+    get_bless_data
 )
 
-logging.basicConfig(level=logging.DEBUG)
 router = Router()
+logging.basicConfig(level=logging.INFO)
 
 
-# ==========================
-# Клавиатура
-# ==========================
+# =================================
+# КНОПКИ
+# =================================
+
 def create_bless_keyboard():
-    return InlineKeyboardMarkup(inline_keyboard=[[
-        InlineKeyboardButton(text="➕ Сб", callback_data="bless_plus_sb"),
-        InlineKeyboardButton(text="➖ Сб", callback_data="bless_minus_sb"),
-        InlineKeyboardButton(text="➕ Вс", callback_data="bless_plus_vs"),
-        InlineKeyboardButton(text="➖ Вс", callback_data="bless_minus_vs"),
-    ]])
-
-
-# ==========================
-# Парсинг участников
-# ==========================
-def parse_bless_participants(caption: str):
-
-    sb_participants = []
-    vs_participants = []
-
-    # ---------- СУББОТА ----------
-    sb_block_match = re.search(
-        r"СУББОТА.+?Предварительный список[^\n]*\n((?:\d+\..*\n?)+)(?:\nСкамейка:\n((?:\d+\..*\n?)+))?",
-        caption,
-        re.DOTALL
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="➕ Сб", callback_data="bless_plus_sb"),
+                InlineKeyboardButton(text="➖ Сб", callback_data="bless_minus_sb"),
+            ],
+            [
+                InlineKeyboardButton(text="➕ Вс", callback_data="bless_plus_vs"),
+                InlineKeyboardButton(text="➖ Вс", callback_data="bless_minus_vs"),
+            ],
+        ]
     )
 
-    if sb_block_match:
 
-        main_block = sb_block_match.group(1)
+# =================================
+# ПАРСИНГ
+# =================================
 
-        for line in main_block.splitlines():
-            match = re.match(r"\d+\.\s*(.+)", line.strip())
-            if match:
-                name = match.group(1).strip()
-                if name:
-                    sb_participants.append(name)
+def parse_lists(text: str):
 
-        bench_block = sb_block_match.group(2)
+    sb = []
+    vs = []
 
-        if bench_block:
-            for line in bench_block.splitlines():
-                match = re.match(r"\d+\.\s*(.+)", line.strip())
-                if match:
-                    name = match.group(1).strip()
-                    if name:
-                        sb_participants.append(name)
+    current = None
 
-    # ---------- ВОСКРЕСЕНЬЕ ----------
-    vs_block_match = re.search(
-        r"ВОСКРЕСЕНЬЕ.+?Предварительный список[^\n]*:\s*([^\n]+)",
-        caption,
-        re.DOTALL
-    )
+    for line in text.splitlines():
 
-    if vs_block_match:
+        if "СУББОТА" in line:
+            current = "sb"
 
-        raw = vs_block_match.group(1)
+        elif "ВОСКРЕСЕНЬЕ" in line:
+            current = "vs"
 
-        raw = raw.replace("... + ВСАДНИКИ", "")
-        raw = raw.replace("+ ВСАДНИКИ", "")
-        raw = raw.strip().rstrip(",")
+        match = re.match(r"\d+\.\s*(.+)", line)
 
-        names = [n.strip() for n in re.split(r",\s*", raw) if n.strip()]
+        if match:
+            name = match.group(1).strip()
 
-        vs_participants = names
+            if name:
 
-    return sb_participants, vs_participants
+                if current == "sb":
+                    sb.append(name)
+
+                elif current == "vs":
+                    vs.append(name)
+
+    return sb, vs
 
 
-# ==========================
-# Сборка caption
-# ==========================
-def build_bless_caption(template: str, sb_participants: list, vs_participants: list, limit: int = 10):
+# =================================
+# СБОРКА ТЕКСТА
+# =================================
 
-    sb_marker = "{sb_list}"
-    vs_marker = "{vs_list}"
+def format_block(title, collector, participants):
 
-    # ---------- СУББОТА ----------
-    sb_main = sb_participants[:limit]
-    sb_bench = sb_participants[limit:]
+    visible = 5
 
-    sb_lines = ""
+    text = f"{title}\n\n"
 
-    for i in range(1, limit + 1):
-        if i <= len(sb_main):
-            sb_lines += f"{i}. {sb_main[i-1]}\n"
+    text += f"Собирает: {collector}\n\n"
+
+    text += "Предварительный список:\n\n"
+
+    for i in range(visible):
+
+        if i < len(participants):
+            text += f"{i+1}. {participants[i]}\n"
         else:
-            sb_lines += f"{i}. \n"
+            text += f"{i+1}.\n"
 
-    if sb_bench:
+    if len(participants) > visible:
 
-        sb_lines += "\nСкамейка:\n"
+        text += "\n"
 
-        for i, name in enumerate(sb_bench, 1):
-            sb_lines += f"{i}. {name}\n"
+        for i in range(visible, len(participants)):
+            text += f"{i+1}. {participants[i]}\n"
 
-    # ---------- ВОСКРЕСЕНЬЕ ----------
-    if vs_participants:
-        vs_list = ", ".join(vs_participants)
-        vs_block = f"{vs_list}... + ВСАДНИКИ"
-    else:
-        vs_block = "... + ВСАДНИКИ"
-
-    return template.replace(sb_marker, sb_lines).replace(vs_marker, vs_block)
+    return text
 
 
-# ==========================
-# Команда /bless
-# ==========================
+def build_caption(sb, vs):
+
+    text = ""
+
+    text += format_block(
+        "📌📌📌 СУББОТА — 16:00 (РУНА)",
+        "Павел",
+        sb
+    )
+
+    text += "\n"
+
+    text += "2️⃣ Блески первый заход — 110+\n\n"
+    text += "3️⃣ После блесок — ТАРАС (115+)\n\n\n"
+
+    text += format_block(
+        "📌📌📌 ВОСКРЕСЕНЬЕ — 11:30",
+        "Влад",
+        vs
+    )
+
+    return text
+
+
+# =================================
+# КОМАНДА
+# =================================
+
 @router.message(Command("bless"))
-async def bless_handler(message: types.Message):
+async def bless(message: types.Message):
 
-    template, photo_url = get_bless_data()
+    text, photo = get_bless_data()
 
-    caption = build_bless_caption(template, [], [])
+    caption = build_caption([], [])
 
     keyboard = create_bless_keyboard()
 
-    try:
-
-        if photo_url:
-
-            sent = await message.bot.send_photo(
-                chat_id=message.chat.id,
-                photo=photo_url,
-                caption=caption,
-                reply_markup=keyboard
-            )
-
-        else:
-
-            sent = await message.answer(
-                caption,
-                reply_markup=keyboard
-            )
-
-        try:
-            await message.chat.pin_message(sent.message_id)
-        except Exception as e:
-            logging.warning(f"Не удалось закрепить: {e}")
-
-    except Exception as e:
-        logging.error(f"Ошибка отправки /bless: {e}")
+    if photo:
+        sent = await message.bot.send_photo(
+            message.chat.id,
+            photo,
+            caption=caption,
+            reply_markup=keyboard
+        )
+    else:
+        sent = await message.answer(
+            caption,
+            reply_markup=keyboard
+        )
 
     try:
-        await message.delete()
-    except Exception:
+        await message.chat.pin_message(sent.message_id)
+    except:
         pass
 
+    await message.delete()
 
-# ==========================
-# Универсальный обработчик
-# ==========================
-async def handle_bless_callback(callback: types.CallbackQuery, day: str, action: str, limit: int = 10):
 
-    user_id = callback.from_user.id
-    telegram_name = callback.from_user.first_name or callback.from_user.username or "Unknown"
+# =================================
+# ЛОГИКА
+# =================================
+
+async def process_action(callback, day, action, name):
 
     message = callback.message
 
-    caption = message.caption or message.text or ""
+    text = message.caption or message.text
 
-    sb_participants, vs_participants = parse_bless_participants(caption)
+    sb, vs = parse_lists(text)
 
-    display_name = get_name(user_id, telegram_name)
+    participants = sb if day == "sb" else vs
 
-    participants = sb_participants if day == "sb" else vs_participants
-
-    day_label = "субботу" if day == "sb" else "воскресенье"
-
-    # ---------- ДОБАВЛЕНИЕ ----------
     if action == "plus":
 
-        if display_name in participants:
-            await callback.answer("Вы уже в списке!")
-            return
+        if name not in participants:
+            participants.append(name)
 
-        participants.append(display_name)
-
-        if day == "sb":
-
-            if len(participants) <= limit:
-                position = len(participants)
-                answer_text = f"Вы записаны на место №{position}, {display_name}."
-            else:
-                bench_position = len(participants) - limit
-                answer_text = f"Основные места заняты. Вы на скамейке №{bench_position}, {display_name}."
-
-        else:
-
-            answer_text = f"Вы записаны на {day_label}, {display_name}!"
-
-    # ---------- УДАЛЕНИЕ ----------
     else:
 
-        if display_name not in participants:
-            await callback.answer("Вас нет в списке.")
-            return
+        if name in participants:
+            participants.remove(name)
 
-        participants.remove(display_name)
-
-        answer_text = f"Вы убраны из списка на {day_label}, {display_name}."
-
-    if day == "sb":
-        sb_participants = participants
-    else:
-        vs_participants = participants
-
-    template, _ = get_bless_data()
-
-    new_caption = build_bless_caption(template, sb_participants, vs_participants)
+    caption = build_caption(sb, vs)
 
     try:
 
-        if message.photo:
+        await message.edit_caption(
+            caption=caption,
+            reply_markup=create_bless_keyboard()
+        )
 
-            await message.edit_caption(
-                caption=new_caption,
-                reply_markup=create_bless_keyboard()
-            )
-
-        else:
-
-            await message.edit_text(
-                new_caption,
-                reply_markup=create_bless_keyboard()
-            )
-
-        await callback.answer(answer_text)
+        await callback.answer()
 
     except Exception as e:
-
-        logging.error(f"Ошибка обновления bless caption: {e}")
-
-        await callback.answer("Не удалось обновить список.")
+        logging.error(e)
 
 
-# ==========================
-# Callback handlers
-# ==========================
-@router.callback_query(lambda c: c.data == "bless_plus_sb")
-async def bless_plus_sb(callback: types.CallbackQuery):
-    await handle_bless_callback(callback, day="sb", action="plus")
+# =================================
+# CALLBACK
+# =================================
+
+@router.callback_query(lambda c: c.data.startswith("bless_"))
+async def bless_callback(callback: types.CallbackQuery):
+
+    data = callback.data.split("_")
+
+    action = data[1]
+    day = data[2]
+
+    name = get_name(
+        callback.from_user.id,
+        callback.from_user.first_name
+    )
+
+    await process_action(callback, day, action, name)
 
 
-@router.callback_query(lambda c: c.data == "bless_minus_sb")
-async def bless_minus_sb(callback: types.CallbackQuery):
-    await handle_bless_callback(callback, day="sb", action="minus")
+# =================================
+# ТЕКСТОВЫЕ КОМАНДЫ
+# =================================
 
+@router.message(lambda m: m.reply_to_message and m.text)
+async def bless_text_control(message: types.Message):
 
-@router.callback_query(lambda c: c.data == "bless_plus_vs")
-async def bless_plus_vs(callback: types.CallbackQuery):
-    await handle_bless_callback(callback, day="vs", action="plus")
+    text = message.text.lower()
 
+    if not text.startswith(("+", "-")):
+        return
 
-@router.callback_query(lambda c: c.data == "bless_minus_vs")
-async def bless_minus_vs(callback: types.CallbackQuery):
-    await handle_bless_callback(callback, day="vs", action="minus")
+    parts = text.split()
+
+    if len(parts) < 2:
+        return
+
+    action = "plus" if parts[0] == "+" else "minus"
+
+    day = "sb" if "сб" in parts[1] else "vs"
+
+    target_name = None
+
+    if len(parts) > 2:
+
+        if message.from_user.id in get_allowed_user_ids():
+            target_name = " ".join(parts[2:])
+
+    if not target_name:
+
+        target_name = get_name(
+            message.from_user.id,
+            message.from_user.first_name
+        )
+
+    callback = types.CallbackQuery(
+        id="manual",
+        from_user=message.from_user,
+        chat_instance="",
+        message=message.reply_to_message
+    )
+
+    await process_action(callback, day, action, target_name)
+
+    await message.delete()
