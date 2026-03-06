@@ -68,8 +68,9 @@ def parse_lists(text: str):
 # =================================
 # ФОРМАТИРОВАНИЕ СПИСКОВ
 # =================================
-def format_sb_list(participants: list, total: int = 10) -> str:
-    """Нумерованный список для СБ, всего total строк"""
+def format_sb_list(participants: list, min_rows: int = 5) -> str:
+    """Нумерованный список для СБ, минимум min_rows пустых строк"""
+    total = max(len(participants), min_rows)
     lines = []
     for i in range(total):
         if i < len(participants):
@@ -79,11 +80,16 @@ def format_sb_list(participants: list, total: int = 10) -> str:
     return "\n".join(lines)
 
 
-def format_vs_list(participants: list) -> str:
-    """Список через запятую для ВС"""
-    if not participants:
-        return ""
-    return ", ".join(participants)
+def format_vs_list(participants: list, min_rows: int = 5) -> str:
+    """Нумерованный список для ВС, минимум min_rows пустых строк"""
+    total = max(len(participants), min_rows)
+    lines = []
+    for i in range(total):
+        if i < len(participants):
+            lines.append(f"{i+1}. {participants[i]}")
+        else:
+            lines.append(f"{i+1}.")
+    return "\n".join(lines)
 
 
 # =================================
