@@ -17,7 +17,7 @@ router = Router()
 
 SHEET_NAME = os.environ.get("SHEET_NAME")
 SAVES_WORKSHEET = "Сохранения"
-COBALT_API = "https://cobaltvirusbot.onrender.com"
+YTDLP_API = "https://web-production-8cf1f3.up.railway.app"
 
 YOUTUBE_PATTERN = re.compile(
     r"(https?://)?(www\.)?(youtube\.com/watch\?v=|youtu\.be/)[\w\-]+"
@@ -64,51 +64,30 @@ def add_save_record(name: str, file_type: str, file_id: str) -> bool:
         return False
 
 
-# ─── YouTube (cobalt.tools) ───────────────────────────────────────────────────
+# ─── YouTube (yt-dlp на Railway) ─────────────────────────────────────────────
 
 async def get_youtube_direct_url(url: str) -> str | None:
     """
-    Получает прямую ссылку на видео через cobalt API.
-    Telegram сам скачает видео по этой ссылке — Vercel не участвует в скачивании.
+    Получает прямую ссылку на видео через yt-dlp сервис на Railway.
+    Telegram сам скачает видео по этой ссылке.
     """
-    headers = {
-        "Accept": "application/json",
-        "Content-Type": "application/json",
-    }
-    payload = {
-        "url": url,
-        "videoQuality": "720",
-        "filenameStyle": "basic",
-        "youtubeVideoCodec": "h264",
-        "downloadMode": "auto",
-    }
-
     async with aiohttp.ClientSession() as session:
-        async with session.post(COBALT_API, json=payload, headers=headers) as resp:
+        async with session.get(
+            f"{YTDLP_API}/get_url",
+            params={"url": url, "quality": "720"},
+            timeout=aiohttp.ClientTimeout(total=30),
+        ) as resp:
             if resp.status != 200:
                 text = await resp.text()
-                logger.error(f"Cobalt API статус: {resp.status}, тело: {text}")
+                logger.error(f"yt-dlp сервис статус: {resp.status}, тело: {text}")
                 return None
 
             data = await resp.json()
-            status = data.get("status")
-
-            if status == "error":
-                logger.error(f"Cobalt ошибка: {data.get('error', {}).get('code')}")
+            if data.get("status") != "ok":
+                logger.error(f"yt-dlp ошибка: {data.get('error')}")
                 return None
 
-            if status not in ("tunnel", "redirect"):
-                logger.error(f"Cobalt неожиданный статус: {status}, данные: {data}")
-                return None
-
-            download_url = data.get("url")
-            if not download_url:
-                logger.error("Cobalt не вернул url")
-                return None
-
-            return download_url
-
-        logger.error(f"Ошибка удаления файла: {e}")
+            return data.get("url")
 
 
 # ─── Вспомогательные ─────────────────────────────────────────────────────────
