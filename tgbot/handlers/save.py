@@ -9,7 +9,7 @@ from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 
-from sheets.gspread_client import get_gspread_client  # ← поправь путь если нужно
+from tgbot.sheets.gspread_client import get_gspread_client
 
 logger = logging.getLogger(__name__)
 router = Router()
