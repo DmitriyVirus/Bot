@@ -66,28 +66,22 @@ def add_save_record(name: str, file_type: str, file_id: str) -> bool:
 
 # ─── YouTube (yt-dlp на Railway) ─────────────────────────────────────────────
 
-async def get_youtube_direct_url(url: str) -> str | None:
+async def download_from_railway(url: str) -> bytes | None:
     """
-    Получает прямую ссылку на видео через yt-dlp сервис на Railway.
-    Telegram сам скачает видео по этой ссылке.
+    Скачивает видео с Railway сервиса и возвращает байты.
+    Railway качает с YouTube, мы качаем с Railway — IP проблема решена.
     """
     async with aiohttp.ClientSession() as session:
         async with session.get(
-            f"{YTDLP_API}/get_url",
+            f"{YTDLP_API}/download",
             params={"url": url, "quality": "720"},
-            timeout=aiohttp.ClientTimeout(total=30),
+            timeout=aiohttp.ClientTimeout(total=120),
         ) as resp:
             if resp.status != 200:
                 text = await resp.text()
-                logger.error(f"yt-dlp сервис статус: {resp.status}, тело: {text}")
+                logger.error(f"Railway сервис статус: {resp.status}, тело: {text}")
                 return None
-
-            data = await resp.json()
-            if data.get("status") != "ok":
-                logger.error(f"yt-dlp ошибка: {data.get('error')}")
-                return None
-
-            return data.get("url")
+            return await resp.read()
 
 
 # ─── Вспомогательные ─────────────────────────────────────────────────────────
@@ -190,18 +184,18 @@ async def handle_save_name(message: Message, state: FSMContext):
     # ── YouTube ───────────────────────────────────────────────────────────────
     elif source == "youtube":
         youtube_url = data.get("youtube_url")
-        processing_msg = await message.answer("⏳ Получаю ссылку на видео...")
+        processing_msg = await message.answer("⏳ Скачиваю видео, подождите...")
 
-        direct_url = await get_youtube_direct_url(youtube_url)
+        video_bytes = await download_from_railway(youtube_url)
 
-        if not direct_url:
-            await processing_msg.edit_text("❌ Не удалось получить ссылку на видео.")
+        if not video_bytes:
+            await processing_msg.edit_text("❌ Не удалось скачать видео.")
             return
 
-        # Telegram сам скачивает видео по прямой ссылке — Vercel не участвует
+        from aiogram.types import BufferedInputFile
         sent = await message.bot.send_video(
             chat_id=message.chat.id,
-            video=direct_url,
+            video=BufferedInputFile(video_bytes, filename="video.mp4"),
         )
 
         tg_file_id = sent.video.file_id
