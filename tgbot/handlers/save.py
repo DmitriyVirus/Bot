@@ -20,7 +20,7 @@ SHEET_NAME = os.environ.get("SHEET_NAME")
 SAVES_WORKSHEET = "Сохранения"
 # Публичный сторонний инстанс (api.cobalt.tools закрыт от ботов)
 # Актуальный список инстансов: https://instances.cobalt.best
-COBALT_API = "https://cobalt.api.timelessnesses.me"
+COBALT_API = "https://cobaltvirusbot.onrender.com"
 TEMP_DIR = "/tmp/yt_downloads"
 
 os.makedirs(TEMP_DIR, exist_ok=True)
