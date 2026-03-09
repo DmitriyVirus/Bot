@@ -2,7 +2,6 @@ import os
 import re
 import logging
 import aiohttp
-import aiofiles
 
 from aiogram import Router, F
 from aiogram.types import Message
@@ -18,12 +17,7 @@ router = Router()
 
 SHEET_NAME = os.environ.get("SHEET_NAME")
 SAVES_WORKSHEET = "Сохранения"
-# Публичный сторонний инстанс (api.cobalt.tools закрыт от ботов)
-# Актуальный список инстансов: https://instances.cobalt.best
 COBALT_API = "https://cobaltvirusbot.onrender.com"
-TEMP_DIR = "/tmp/yt_downloads"
-
-os.makedirs(TEMP_DIR, exist_ok=True)
 
 YOUTUBE_PATTERN = re.compile(
     r"(https?://)?(www\.)?(youtube\.com/watch\?v=|youtu\.be/)[\w\-]+"
@@ -72,16 +66,19 @@ def add_save_record(name: str, file_type: str, file_id: str) -> bool:
 
 # ─── YouTube (cobalt.tools) ───────────────────────────────────────────────────
 
-async def download_youtube_video(url: str, filename: str) -> str | None:
-    # Новый формат API cobalt (v10+)
+async def get_youtube_direct_url(url: str) -> str | None:
+    """
+    Получает прямую ссылку на видео через cobalt API.
+    Telegram сам скачает видео по этой ссылке — Vercel не участвует в скачивании.
+    """
     headers = {
         "Accept": "application/json",
         "Content-Type": "application/json",
     }
     payload = {
         "url": url,
-        "videoQuality": "720",   # новое поле (было vQuality)
-        "filenameStyle": "basic", # новое поле (было filenamePattern)
+        "videoQuality": "720",
+        "filenameStyle": "basic",
         "youtubeVideoCodec": "h264",
         "downloadMode": "auto",
     }
@@ -100,7 +97,6 @@ async def download_youtube_video(url: str, filename: str) -> str | None:
                 logger.error(f"Cobalt ошибка: {data.get('error', {}).get('code')}")
                 return None
 
-            # статусы tunnel/redirect — оба возвращают url
             if status not in ("tunnel", "redirect"):
                 logger.error(f"Cobalt неожиданный статус: {status}, данные: {data}")
                 return None
@@ -110,24 +106,8 @@ async def download_youtube_video(url: str, filename: str) -> str | None:
                 logger.error("Cobalt не вернул url")
                 return None
 
-        file_path = os.path.join(TEMP_DIR, f"{filename}.mp4")
-        async with session.get(download_url) as file_resp:
-            if file_resp.status != 200:
-                logger.error(f"Ошибка скачивания: {file_resp.status}")
-                return None
+            return download_url
 
-            async with aiofiles.open(file_path, "wb") as f:
-                async for chunk in file_resp.content.iter_chunked(1024 * 64):
-                    await f.write(chunk)
-
-    return file_path
-
-
-def cleanup_file(file_path: str):
-    try:
-        if file_path and os.path.exists(file_path):
-            os.remove(file_path)
-    except Exception as e:
         logger.error(f"Ошибка удаления файла: {e}")
 
 
@@ -231,32 +211,28 @@ async def handle_save_name(message: Message, state: FSMContext):
     # ── YouTube ───────────────────────────────────────────────────────────────
     elif source == "youtube":
         youtube_url = data.get("youtube_url")
-        processing_msg = await message.answer("⏳ Скачиваю видео, подождите...")
+        processing_msg = await message.answer("⏳ Получаю ссылку на видео...")
 
-        file_path = await download_youtube_video(youtube_url, name)
+        direct_url = await get_youtube_direct_url(youtube_url)
 
-        if not file_path:
-            await processing_msg.edit_text("❌ Не удалось скачать видео.")
+        if not direct_url:
+            await processing_msg.edit_text("❌ Не удалось получить ссылку на видео.")
             return
 
-        try:
-            with open(file_path, "rb") as video_file:
-                sent = await message.bot.send_video(
-                    chat_id=message.chat.id,
-                    video=video_file,
-                )
+        # Telegram сам скачивает видео по прямой ссылке — Vercel не участвует
+        sent = await message.bot.send_video(
+            chat_id=message.chat.id,
+            video=direct_url,
+        )
 
-            tg_file_id = sent.video.file_id
-            type_label = FILE_TYPE_MAP.get("youtube", "youtube видео")
-            success = add_save_record(name, type_label, tg_file_id)
+        tg_file_id = sent.video.file_id
+        type_label = FILE_TYPE_MAP.get("youtube", "youtube видео")
+        success = add_save_record(name, type_label, tg_file_id)
 
-            if success:
-                await message.answer(f'Файл "{name}" добавлен ✅')
-            else:
-                await message.answer("❌ Видео загружено, но ошибка при записи в таблицу.")
-
-        finally:
-            cleanup_file(file_path)
+        if success:
+            await message.answer(f'Файл "{name}" добавлен ✅')
+        else:
+            await message.answer("❌ Видео загружено, но ошибка при записи в таблицу.")
 
         await delete_messages(
             message.bot, message.chat.id,
