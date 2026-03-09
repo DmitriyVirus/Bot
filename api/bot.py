@@ -302,3 +302,45 @@ async def cron_bless():
 
     except Exception as e:
         return JSONResponse({"status": "error", "message": str(e)})
+
+# ==============================
+# Крон: рандомная отправка из листа Сохранения
+# ==============================
+
+@app.get("/api/cron/random_send")
+async def cron_random_send():
+    try:
+        client = get_gspread_client()
+        sheet = client.open(os.getenv("SHEET_NAME")).worksheet("Сохранения")
+        records = sheet.get_all_records()
+
+        if not records:
+            return JSONResponse({"status": "error", "message": "Таблица пустая"})
+
+        record = random.choice(records)
+        name = record.get("Имя", "Без названия")
+        file_type_ru = str(record.get("Тип", "")).lower()
+        file_id = record.get("ID")
+
+        if not file_id:
+            return JSONResponse({"status": "error", "message": "Не найден ID в записи"})
+
+        chat_id = 559273200  # тест — твой личный чат
+
+        if file_type_ru == "фото":
+            await tgbot.bot.send_photo(chat_id=chat_id, photo=file_id, caption=name)
+        elif file_type_ru == "видео":
+            await tgbot.bot.send_video(chat_id=chat_id, video=file_id, caption=name)
+        elif file_type_ru == "гиф":
+            await tgbot.bot.send_animation(chat_id=chat_id, animation=file_id)
+            await tgbot.bot.send_message(chat_id=chat_id, text=name)
+        else:
+            await tgbot.bot.send_document(chat_id=chat_id, document=file_id, caption=name)
+
+        return JSONResponse({"status": "ok", "sent": name, "type": file_type_ru})
+
+    except Exception as e:
+        logger.error(f"Ошибка random_send: {e}")
+        return JSONResponse({"status": "error", "message": str(e)})
+
+
