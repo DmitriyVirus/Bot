@@ -18,7 +18,9 @@ router = Router()
 
 SHEET_NAME = os.environ.get("SHEET_NAME")
 SAVES_WORKSHEET = "Сохранения"
-COBALT_API = "https://api.cobalt.tools/api/json"
+# Публичный сторонний инстанс (api.cobalt.tools закрыт от ботов)
+# Актуальный список инстансов: https://instances.cobalt.best
+COBALT_API = "https://cobalt.api.timelessnesses.me"
 TEMP_DIR = "/tmp/yt_downloads"
 
 os.makedirs(TEMP_DIR, exist_ok=True)
@@ -71,32 +73,36 @@ def add_save_record(name: str, file_type: str, file_id: str) -> bool:
 # ─── YouTube (cobalt.tools) ───────────────────────────────────────────────────
 
 async def download_youtube_video(url: str, filename: str) -> str | None:
+    # Новый формат API cobalt (v10+)
     headers = {
         "Accept": "application/json",
         "Content-Type": "application/json",
     }
     payload = {
         "url": url,
-        "vQuality": "720",
-        "filenamePattern": "basic",
-        "isNoTTWatermark": True,
+        "videoQuality": "720",   # новое поле (было vQuality)
+        "filenameStyle": "basic", # новое поле (было filenamePattern)
+        "youtubeVideoCodec": "h264",
+        "downloadMode": "auto",
     }
 
     async with aiohttp.ClientSession() as session:
         async with session.post(COBALT_API, json=payload, headers=headers) as resp:
             if resp.status != 200:
-                logger.error(f"Cobalt API статус: {resp.status}")
+                text = await resp.text()
+                logger.error(f"Cobalt API статус: {resp.status}, тело: {text}")
                 return None
 
             data = await resp.json()
             status = data.get("status")
 
             if status == "error":
-                logger.error(f"Cobalt ошибка: {data.get('text')}")
+                logger.error(f"Cobalt ошибка: {data.get('error', {}).get('code')}")
                 return None
 
-            if status not in ("stream", "redirect", "tunnel"):
-                logger.error(f"Cobalt неожиданный статус: {status}")
+            # статусы tunnel/redirect — оба возвращают url
+            if status not in ("tunnel", "redirect"):
+                logger.error(f"Cobalt неожиданный статус: {status}, данные: {data}")
                 return None
 
             download_url = data.get("url")
