@@ -1,7 +1,6 @@
 import os
 import re
 import logging
-import aiohttp
 
 from aiogram import Router, F
 from aiogram.types import Message
@@ -17,19 +16,16 @@ router = Router()
 
 SHEET_NAME = os.environ.get("SHEET_NAME")
 SAVES_WORKSHEET = "Сохранения"
-YTDLP_API = "https://web-production-8cf1f3.up.railway.app"
-
-YOUTUBE_PATTERN = re.compile(
-    r"(https?://)?(www\.)?(youtube\.com/watch\?v=|youtu\.be/)[\w\-]+"
-)
+LINKS_WORKSHEET = "Ссылки"
 
 FILE_TYPE_MAP = {
     "photo": "фото",
     "video": "видео",
     "animation": "гиф",
     "document": "документ",
-    "youtube": "youtube видео",
 }
+
+URL_PATTERN = re.compile(r"https?://\S+")
 
 
 # ─── FSM States ───────────────────────────────────────────────────────────────
@@ -40,48 +36,41 @@ class SaveStates(StatesGroup):
 
 # ─── Google Sheets ────────────────────────────────────────────────────────────
 
-def get_saves_sheet():
+def get_sheet(worksheet_name: str):
     client = get_gspread_client()
     if not client:
         return None
     try:
-        return client.open(SHEET_NAME).worksheet(SAVES_WORKSHEET)
+        return client.open(SHEET_NAME).worksheet(worksheet_name)
     except Exception as e:
-        logger.error(f"Ошибка открытия листа '{SAVES_WORKSHEET}': {e}")
+        logger.error(f"Ошибка открытия листа '{worksheet_name}': {e}")
         return None
 
 
 def add_save_record(name: str, file_type: str, file_id: str) -> bool:
-    sheet = get_saves_sheet()
+    sheet = get_sheet(SAVES_WORKSHEET)
     if not sheet:
         return False
     try:
         sheet.append_row([name, file_type, file_id])
-        logger.info(f"Запись добавлена: {name} | {file_type} | {file_id}")
+        logger.info(f"Сохранения: {name} | {file_type} | {file_id}")
         return True
     except Exception as e:
-        logger.error(f"Ошибка записи в таблицу: {e}")
+        logger.error(f"Ошибка записи в Сохранения: {e}")
         return False
 
 
-# ─── YouTube (yt-dlp на Railway) ─────────────────────────────────────────────
-
-async def download_from_railway(url: str) -> bytes | None:
-    """
-    Скачивает видео с Railway сервиса и возвращает байты.
-    Railway качает с YouTube, мы качаем с Railway — IP проблема решена.
-    """
-    async with aiohttp.ClientSession() as session:
-        async with session.get(
-            f"{YTDLP_API}/download",
-            params={"url": url, "quality": "720"},
-            timeout=aiohttp.ClientTimeout(total=120),
-        ) as resp:
-            if resp.status != 200:
-                text = await resp.text()
-                logger.error(f"Railway сервис статус: {resp.status}, тело: {text}")
-                return None
-            return await resp.read()
+def add_link_record(name: str, url: str) -> bool:
+    sheet = get_sheet(LINKS_WORKSHEET)
+    if not sheet:
+        return False
+    try:
+        sheet.append_row([name, url])
+        logger.info(f"Ссылки: {name} | {url}")
+        return True
+    except Exception as e:
+        logger.error(f"Ошибка записи в Ссылки: {e}")
+        return False
 
 
 # ─── Вспомогательные ─────────────────────────────────────────────────────────
@@ -98,14 +87,10 @@ def detect_content(message: Message) -> tuple[str, str] | tuple[None, None]:
     return None, None
 
 
-def is_youtube_link(text: str | None) -> bool:
+def extract_url(text: str | None) -> str | None:
     if not text:
-        return False
-    return bool(YOUTUBE_PATTERN.search(text))
-
-
-def extract_youtube_url(text: str) -> str | None:
-    match = YOUTUBE_PATTERN.search(text)
+        return None
+    match = URL_PATTERN.search(text)
     return match.group(0) if match else None
 
 
@@ -137,18 +122,15 @@ async def handle_media(message: Message, state: FSMContext):
     )
 
 
-@router.message(F.chat.type == "private", F.text.regexp(YOUTUBE_PATTERN))
-async def handle_youtube_link(message: Message, state: FSMContext):
-    url = extract_youtube_url(message.text)
-    if not url:
-        return
+@router.message(F.chat.type == "private", F.text, lambda m: bool(extract_url(m.text)))
+async def handle_link(message: Message, state: FSMContext):
+    url = extract_url(message.text)
 
-    prompt = await message.answer("Как назвать это видео?")
+    prompt = await message.answer("Как назвать эту ссылку?")
     await state.set_state(SaveStates.waiting_for_name)
     await state.update_data(
-        source="youtube",
-        file_type="youtube",
-        youtube_url=url,
+        source="link",
+        url=url,
         source_msg_id=message.message_id,
         prompt_msg_id=prompt.message_id,
     )
@@ -159,7 +141,6 @@ async def handle_save_name(message: Message, state: FSMContext):
     data = await state.get_data()
     name = message.text.strip()
     source = data.get("source")
-    file_type = data.get("file_type")
     source_msg_id = data.get("source_msg_id")
     prompt_msg_id = data.get("prompt_msg_id")
 
@@ -167,6 +148,7 @@ async def handle_save_name(message: Message, state: FSMContext):
 
     # ── Telegram файл ─────────────────────────────────────────────────────────
     if source == "telegram":
+        file_type = data.get("file_type")
         file_id = data.get("file_id")
         type_label = FILE_TYPE_MAP.get(file_type, file_type)
         success = add_save_record(name, type_label, file_id)
@@ -176,38 +158,17 @@ async def handle_save_name(message: Message, state: FSMContext):
         else:
             await message.answer("❌ Ошибка при записи в таблицу.")
 
-        await delete_messages(
-            message.bot, message.chat.id,
-            source_msg_id, prompt_msg_id, message.message_id
-        )
-
-    # ── YouTube ───────────────────────────────────────────────────────────────
-    elif source == "youtube":
-        youtube_url = data.get("youtube_url")
-        processing_msg = await message.answer("⏳ Скачиваю видео, подождите...")
-
-        video_bytes = await download_from_railway(youtube_url)
-
-        if not video_bytes:
-            await processing_msg.edit_text("❌ Не удалось скачать видео.")
-            return
-
-        from aiogram.types import BufferedInputFile
-        sent = await message.bot.send_video(
-            chat_id=message.chat.id,
-            video=BufferedInputFile(video_bytes, filename="video.mp4"),
-        )
-
-        tg_file_id = sent.video.file_id
-        type_label = FILE_TYPE_MAP.get("youtube", "youtube видео")
-        success = add_save_record(name, type_label, tg_file_id)
+    # ── Ссылка ────────────────────────────────────────────────────────────────
+    elif source == "link":
+        url = data.get("url")
+        success = add_link_record(name, url)
 
         if success:
-            await message.answer(f'Файл "{name}" добавлен ✅')
+            await message.answer(f'Ссылка "{name}" добавлена ✅')
         else:
-            await message.answer("❌ Видео загружено, но ошибка при записи в таблицу.")
+            await message.answer("❌ Ошибка при записи в таблицу.")
 
-        await delete_messages(
-            message.bot, message.chat.id,
-            source_msg_id, prompt_msg_id, message.message_id, processing_msg.message_id
-        )
+    await delete_messages(
+        message.bot, message.chat.id,
+        source_msg_id, prompt_msg_id, message.message_id
+    )
