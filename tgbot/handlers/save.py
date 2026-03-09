@@ -20,7 +20,7 @@ SHEET_NAME = os.environ.get("SHEET_NAME")
 SAVES_WORKSHEET = "Сохранения"
 # Публичный сторонний инстанс (api.cobalt.tools закрыт от ботов)
 # Актуальный список инстансов: https://instances.cobalt.best
-COBALT_API = "https://cobaltvirusbot.onrender.com"
+COBALT_API = "https://cobalt.api.timelessnesses.me"
 TEMP_DIR = "/tmp/yt_downloads"
 
 os.makedirs(TEMP_DIR, exist_ok=True)
@@ -167,7 +167,7 @@ async def delete_messages(bot, chat_id: int, *msg_ids):
 
 # ─── Хендлеры ────────────────────────────────────────────────────────────────
 
-@router.message(F.content_type.in_({"photo", "video", "animation", "document"}))
+@router.message(F.chat.type == "private", F.content_type.in_({"photo", "video", "animation", "document"}))
 async def handle_media(message: Message, state: FSMContext):
     file_type, file_id = detect_content(message)
     if not file_type:
@@ -184,7 +184,7 @@ async def handle_media(message: Message, state: FSMContext):
     )
 
 
-@router.message(F.text.regexp(YOUTUBE_PATTERN))
+@router.message(F.chat.type == "private", F.text.regexp(YOUTUBE_PATTERN))
 async def handle_youtube_link(message: Message, state: FSMContext):
     url = extract_youtube_url(message.text)
     if not url:
@@ -201,7 +201,7 @@ async def handle_youtube_link(message: Message, state: FSMContext):
     )
 
 
-@router.message(SaveStates.waiting_for_name, F.text)
+@router.message(F.chat.type == "private", SaveStates.waiting_for_name, F.text)
 async def handle_save_name(message: Message, state: FSMContext):
     data = await state.get_data()
     name = message.text.strip()
