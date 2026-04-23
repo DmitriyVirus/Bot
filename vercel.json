@@ -12,6 +12,8 @@
     { "src": "/admins", "dest": "/webapp/admins.html" },
     { "src": "/permissions", "dest": "/webapp/permissions.html" },
     { "src": "/autosbor", "dest": "/webapp/autosbor.html" },
+    { "src": "/smena", "dest": "/webapp/work_schedule.html" },
+
 
     { "src": "/webapp/(.*)", "dest": "/webapp/$1" },
     { "src": "/(.*)", "dest": "/api/bot.py" }
