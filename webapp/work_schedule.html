@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Работа SmartComp — Смена А</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f5f4f0;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      padding: 1.5rem;
+    }
+
+    .card {
+      background: #ffffff;
+      border: 1px solid #e0ddd6;
+      border-radius: 16px;
+      padding: 2rem 2rem 1.75rem;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+    }
+
+    .card-header {
+      margin-bottom: 1.5rem;
+    }
+
+    .card-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: #1a1a1a;
+      letter-spacing: -0.01em;
+      margin-bottom: 4px;
+    }
+
+    .card-sub {
+      font-size: 12px;
+      color: #999;
+      letter-spacing: 0.02em;
+    }
+
+    .divider {
+      height: 1px;
+      background: #f0ede8;
+      margin-bottom: 1.5rem;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 1rem;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      height: 42px;
+      border: 1px solid #e0ddd6;
+      border-radius: 10px;
+      padding: 0 14px;
+      font-size: 16px;
+      color: #1a1a1a;
+      background: #fafaf8;
+      outline: none;
+      transition: border-color 0.15s;
+      font-family: inherit;
+    }
+    input[type="text"]:focus { border-color: #aaa; background: #fff; }
+    input[type="text"]::placeholder { color: #c0bdb8; }
+
+    button {
+      height: 42px;
+      padding: 0 18px;
+      border: none;
+      border-radius: 10px;
+      background: #1a1a1a;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.12s, transform 0.08s;
+      white-space: nowrap;
+    }
+    button:hover { background: #333; }
+    button:active { transform: scale(0.97); }
+
+    .result {
+      background: #fafaf8;
+      border: 1px solid #e8e5e0;
+      border-radius: 12px;
+      padding: 1.1rem 1.25rem;
+      min-height: 84px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .res-idle {
+      font-size: 13px;
+      color: #bbb;
+    }
+
+    .res-date-label {
+      font-size: 11px;
+      color: #aaa;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+    }
+
+    .res-date-full {
+      font-size: 20px;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-bottom: 2px;
+      letter-spacing: -0.02em;
+    }
+
+    .res-weekday {
+      font-size: 13px;
+      color: #888;
+      margin-bottom: 12px;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 5px 14px;
+      border-radius: 20px;
+      letter-spacing: 0.02em;
+    }
+
+    .badge-work {
+      background: #e8f5e0;
+      color: #3a7a1a;
+    }
+
+    .badge-off {
+      background: #f0ede8;
+      color: #6a6660;
+    }
+
+    .error-text {
+      font-size: 13px;
+      color: #c04040;
+    }
+
+    .hint {
+      margin-top: 12px;
+      font-size: 11px;
+      color: #bbb;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Работа SmartComp — Смена А</div>
+      <div class="card-sub">График 2/2 · Смена А</div>
+    </div>
+    <div class="divider"></div>
+
+    <div class="input-row">
+      <input type="text" id="dateInput" placeholder="25.06.2026 или 25.06 или 26" autocomplete="off" />
+      <button onclick="check()">Проверить</button>
+    </div>
+
+    <div class="result" id="result">
+      <span class="res-idle">Введите дату для проверки</span>
+    </div>
+
+    <div class="hint">Форматы: дд.мм.гггг · дд.мм · дд</div>
+  </div>
+
+  <script>
+    const WEEKDAYS_RU = ['воскресенье','понедельник','вторник','среда','четверг','пятница','суббота'];
+    const MONTHS_RU = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+
+    function toMidnight(d) {
+      return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    }
+
+    function isWorkDay(target) {
+      const anchor = toMidnight(new Date(2026, 3, 22));
+      const t = toMidnight(target);
+      const diff = Math.round((t - anchor) / 86400000);
+      const cycle = ((diff % 4) + 4) % 4;
+      return cycle === 0 || cycle === 1;
+    }
+
+    function parseDate(raw) {
+      const s = raw.trim();
+      const today = new Date();
+      let m;
+      m = s.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+      if (m) return new Date(+m[3], +m[2] - 1, +m[1]);
+      m = s.match(/^(\d{1,2})\.(\d{1,2})$/);
+      if (m) return new Date(today.getFullYear(), +m[2] - 1, +m[1]);
+      m = s.match(/^(\d{1,2})$/);
+      if (m) {
+        const day = +m[1];
+        if (day >= today.getDate()) return new Date(today.getFullYear(), today.getMonth(), day);
+        const next = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+        return new Date(next.getFullYear(), next.getMonth(), day);
+      }
+      return null;
+    }
+
+    function check() {
+      const raw = document.getElementById('dateInput').value;
+      const box = document.getElementById('result');
+      if (!raw.trim()) {
+        box.innerHTML = '<span class="error-text">Введите дату</span>';
+        return;
+      }
+      const date = parseDate(raw);
+      if (!date || isNaN(date)) {
+        box.innerHTML = '<span class="error-text">Не могу распознать дату. Попробуй: 25.06.2026, 25.06 или 26</span>';
+        return;
+      }
+      const work = isWorkDay(date);
+      const wd = WEEKDAYS_RU[date.getDay()];
+      const dateStr = date.getDate() + ' ' + MONTHS_RU[date.getMonth()] + ' ' + date.getFullYear();
+      const cap = wd.charAt(0).toUpperCase() + wd.slice(1);
+      box.innerHTML = `
+        <div class="res-date-label">Дата</div>
+        <div class="res-date-full">${dateStr}</div>
+        <div class="res-weekday">${cap}</div>
+        <span class="badge ${work ? 'badge-work' : 'badge-off'}">${work ? 'Рабочий день' : 'Выходной'}</span>
+      `;
+    }
+
+    document.getElementById('dateInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') check();
+    });
+  </script>
+</body>
+</html>
