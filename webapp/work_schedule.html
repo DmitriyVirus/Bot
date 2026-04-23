@@ -14,7 +14,7 @@
       justify-content: center;
       background: #f5f4f0;
       font-family: 'Segoe UI', system-ui, sans-serif;
-      padding: 1.5rem;
+      padding: 1rem;
     }
 
     .wrap {
@@ -25,28 +25,33 @@
       gap: 16px;
     }
 
-    /* ── Top checker card ── */
     .card {
       background: #ffffff;
       border: 1px solid #e0ddd6;
       border-radius: 16px;
-      padding: 2rem 2rem 1.75rem;
+      padding: 1.5rem;
       width: 100%;
       max-width: 460px;
       box-shadow: 0 2px 16px rgba(0,0,0,0.06);
       align-self: center;
     }
 
-    .card-header { margin-bottom: 1.5rem; }
+    .card-header { margin-bottom: 1.25rem; }
     .card-title { font-size: 17px; font-weight: 600; color: #1a1a1a; letter-spacing: -0.01em; margin-bottom: 4px; }
-    .card-sub   { font-size: 12px; color: #999; letter-spacing: 0.02em; }
+    .card-sub   { font-size: 12px; color: #999; }
 
-    .divider { height: 1px; background: #f0ede8; margin-bottom: 1.5rem; }
+    .divider { height: 1px; background: #f0ede8; margin-bottom: 1.25rem; }
 
-    .input-row { display: flex; gap: 8px; margin-bottom: 1rem; }
+    .input-row {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 1rem;
+    }
 
     input[type="text"] {
-      flex: 1; height: 42px;
+      width: 100%;
+      height: 44px;
       border: 1px solid #e0ddd6; border-radius: 10px;
       padding: 0 14px; font-size: 16px; color: #1a1a1a;
       background: #fafaf8; outline: none;
@@ -56,30 +61,32 @@
     input[type="text"]::placeholder { color: #c0bdb8; }
 
     button {
-      height: 42px; padding: 0 18px; border: none; border-radius: 10px;
-      background: #1a1a1a; color: #fff; font-size: 14px; font-weight: 500;
+      width: 100%;
+      height: 44px;
+      border: none; border-radius: 10px;
+      background: #1a1a1a; color: #fff; font-size: 15px; font-weight: 500;
       cursor: pointer; font-family: inherit;
-      transition: background 0.12s, transform 0.08s; white-space: nowrap;
+      transition: background 0.12s, transform 0.08s;
     }
     button:hover  { background: #333; }
     button:active { transform: scale(0.97); }
 
     .result {
       background: #fafaf8; border: 1px solid #e8e5e0; border-radius: 12px;
-      padding: 1.1rem 1.25rem; min-height: 84px;
+      padding: 1rem 1.25rem; min-height: 84px;
       display: flex; flex-direction: column; justify-content: center;
     }
     .res-idle        { font-size: 13px; color: #bbb; }
     .res-date-label  { font-size: 11px; color: #aaa; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
     .res-date-full   { font-size: 20px; font-weight: 600; color: #1a1a1a; margin-bottom: 2px; letter-spacing: -0.02em; }
     .res-weekday     { font-size: 13px; color: #888; margin-bottom: 12px; }
-    .badge           { display: inline-block; font-size: 12px; font-weight: 500; padding: 5px 14px; border-radius: 20px; letter-spacing: 0.02em; }
+    .badge           { display: inline-block; font-size: 12px; font-weight: 500; padding: 5px 14px; border-radius: 20px; }
     .badge-work      { background: #e8f5e0; color: #3a7a1a; }
     .badge-off       { background: #f0ede8; color: #6a6660; }
     .error-text      { font-size: 13px; color: #c04040; }
-    .hint            { margin-top: 12px; font-size: 11px; color: #bbb; text-align: center; }
+    .hint            { margin-top: 10px; font-size: 11px; color: #bbb; text-align: center; }
 
-    /* ── Calendars row ── */
+    /* ── Calendars ── */
     .calendars {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -93,7 +100,7 @@
       background: #ffffff;
       border: 1px solid #ccddf5;
       border-radius: 16px;
-      padding: 1.25rem 1.25rem 1.5rem;
+      padding: 1.25rem 1rem 1.5rem;
       box-shadow: 0 2px 12px rgba(30,100,200,0.07);
     }
 
@@ -101,68 +108,46 @@
       display: flex; align-items: center; justify-content: space-between;
       margin-bottom: 1rem;
     }
-    .cal-month-name { font-size: 15px; font-weight: 600; color: #1a3a6a; }
+    .cal-month-name { font-size: 16px; font-weight: 600; color: #1a3a6a; }
     .cal-legend     { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #7a9ac0; }
     .legend-dot     { width: 8px; height: 8px; border-radius: 50%; background: #3a7adf; flex-shrink: 0; }
 
     .cal-grid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
-      gap: 2px;
+      gap: 3px;
     }
 
     .cal-dow {
-      text-align: center; font-size: 11px; font-weight: 600;
-      color: #9ab0cc; padding-bottom: 5px; letter-spacing: 0.03em;
+      text-align: center; font-size: 12px; font-weight: 600;
+      color: #9ab0cc; padding-bottom: 6px;
     }
-    /* weekend header labels red */
-    .cal-dow.dow-sat,
-    .cal-dow.dow-sun { color: #c04040; }
+    .cal-dow.dow-sat { color: #c04040; }
 
     .cal-day {
       aspect-ratio: 1;
       display: flex; align-items: center; justify-content: center;
-      font-size: 12px; border-radius: 7px; position: relative;
+      font-size: 14px; border-radius: 8px;
     }
 
-    .cal-day.empty { background: transparent; }
-
-    /* Weekend numbers always red */
+    .cal-day.empty   { background: transparent; }
     .cal-day.weekend { color: #c04040; }
-
-    /* Work day highlight */
-    .cal-day.work {
-      background: #ddeeff;
-      color: #1a4a9a;
-      font-weight: 600;
-    }
-    .cal-day.work.weekend {
-      background: #ddeeff;
-      color: #b03090;
-      font-weight: 600;
-    }
-
-    /* Off days */
-    .cal-day.off { background: #f4f8fd; }
+    .cal-day.work    { background: #ddeeff; color: #1a4a9a; font-weight: 700; }
+    .cal-day.work.weekend { background: #ddeeff; color: #b03090; font-weight: 700; }
+    .cal-day.off     { background: #f4f8fd; }
     .cal-day.off.weekend { background: #f4f8fd; color: #c04040; }
 
-    /* Past work days — strikethrough */
+    /* Past work — grey out, no strikethrough */
     .cal-day.past-work {
-      background: #eaf2ff;
-      color: #7a9ac0;
+      background: #f0f4f8;
+      color: #aabbd0;
       font-weight: 600;
-      text-decoration: line-through;
-      text-decoration-color: #5588cc;
-      opacity: 0.75;
     }
     .cal-day.past-work.weekend {
-      background: #eaf2ff;
-      color: #c07090;
-      text-decoration-color: #c07090;
-      opacity: 0.75;
+      background: #f0f4f8;
+      color: #d0a0b0;
     }
 
-    /* Today ring */
     .cal-day.today {
       outline: 2px solid #3a7adf;
       outline-offset: -2px;
@@ -258,7 +243,7 @@
       const todayMid = toMidnight(new Date());
       const daysInMonth = new Date(year, month + 1, 0).getDate();
       let firstDow = new Date(year, month, 1).getDay();
-      firstDow = (firstDow + 6) % 7; // Mon=0 … Sun=6
+      firstDow = (firstDow + 6) % 7;
 
       let html = `<div class="cal-card">
         <div class="cal-header">
@@ -267,20 +252,18 @@
         </div>
         <div class="cal-grid">`;
 
-      // Day-of-week headers (Сб, Вс = index 5,6 → red)
       DOW_LABELS.forEach((d, i) => {
         const cls = i >= 5 ? ' dow-sat' : '';
         html += `<div class="cal-dow${cls}">${d}</div>`;
       });
 
-      // Empty cells
       for (let i = 0; i < firstDow; i++) {
         html += `<div class="cal-day empty"></div>`;
       }
 
       for (let day = 1; day <= daysInMonth; day++) {
         const date = new Date(year, month, day);
-        const dow = date.getDay(); // 0=Sun, 6=Sat
+        const dow = date.getDay();
         const isWeekend = dow === 0 || dow === 6;
         const work = isWorkDay(date);
         const dateMid = toMidnight(date);
@@ -289,15 +272,9 @@
 
         let cls = 'cal-day';
         if (isWeekend) cls += ' weekend';
-
-        if (work && isPast) {
-          cls += ' past-work';
-        } else if (work) {
-          cls += ' work';
-        } else {
-          cls += ' off';
-        }
-
+        if (work && isPast) cls += ' past-work';
+        else if (work)      cls += ' work';
+        else                cls += ' off';
         if (isToday) cls += ' today';
 
         html += `<div class="${cls}">${day}</div>`;
