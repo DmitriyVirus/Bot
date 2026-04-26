@@ -41,12 +41,3 @@ class TGBot:
 
 
 tgbot = TGBot(router)
-
-
-
-
-
-
-
-
-
