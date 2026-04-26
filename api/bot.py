@@ -1,346 +1,74 @@
 import os
 import json
-import time
-import random
-import asyncio
-from tgbot import tgbot
-from fastapi import FastAPI
-from decouple import config
-from pydantic import BaseModel
-from aiogram import Bot, Router, types
-from fastapi.staticfiles import StaticFiles
+import logging
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Request, HTTPException
-from tgbot.sheets.gspread_client import get_gspread_client
-from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, HTMLResponse
-from .backupbot import router as backup_router
-from .morning import router as morning_router
-from tgbot.handlers.bless import build_caption, create_bless_keyboard
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
-from tgbot.redis.redis_cash import (
-    redis,
-    LAST_UPDATE_KEY,
-    load_users_to_redis,
-    load_allowed_to_redis,
-    load_all_data_to_redis,
-    load_autosbor_to_redis,
-    load_admins_to_redis,
-    get_bless_data
-)
+from tgbot import tgbot
+from api.cron import router as cron_router
+from api.sheets_api import router as sheets_router
+from api.backupbot import router as backup_router
+from api.morning import router as morning_router
+
+logger = logging.getLogger(__name__)
+
+# ==============================
+# Lifespan (вместо устаревших on_event)
+# ==============================
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    try:
+        logger.info("Setting webhook...")
+        await tgbot.set_webhook()
+    except Exception as e:
+        logger.error(f"Error setting webhook: {e}")
+    yield
+    # Shutdown
+    await tgbot.bot.session.close()
+    logger.info("Bot session closed.")
 
 
+app = FastAPI(lifespan=lifespan)
 
-app = FastAPI()
+app.include_router(cron_router)
+app.include_router(sheets_router)
 app.include_router(backup_router)
 app.include_router(morning_router)
 
-
-# Монтируем директорию для статических файлов
 app.mount("/static", StaticFiles(directory="static"), name="static")
-      
-# Установка webhook при старте
-@app.on_event("startup")
-async def on_startup():
-    try:
-        print("Setting webhook...")
-        await tgbot.set_webhook()
-    except Exception as e:
-        print(f"Error setting webhook: {e}")
 
-@app.on_event("shutdown")
-async def on_shutdown():
-    await tgbot.bot.session.close()
-    print("Bot session closed.")
 
-# Главная страница
+# ==============================
+# Страница
+# ==============================
 @app.get("/", include_in_schema=False)
 @app.head("/", include_in_schema=False)
 async def read_root():
     return FileResponse(os.path.join(os.getcwd(), "index.html"))
 
-# Обработка webhook-запросов от Telegram
-@app.post('/api/bot')
+
+# ==============================
+# Webhook — с проверкой secret_token
+# ==============================
+TELEGRAM_SECRET = os.getenv("TELEGRAM_WEBHOOK_SECRET", "")
+
+@app.post("/api/bot")
 async def tgbot_webhook_route(request: Request):
+    # Проверка secret_token от Telegram (если задан в env)
+    if TELEGRAM_SECRET:
+        token = request.headers.get("X-Telegram-Bot-Api-Secret-Token", "")
+        if token != TELEGRAM_SECRET:
+            raise HTTPException(status_code=403, detail="Forbidden")
+
     try:
         update_dict = await request.json()
-        print("Received update:", json.dumps(update_dict, indent=4))
+        logger.debug(f"Received update: {json.dumps(update_dict, indent=2)}")
         await tgbot.update_bot(update_dict)
-        return ''
+        return ""
     except Exception as e:
-        print(f"Error processing update: {e}")
+        logger.error(f"Error processing update: {e}")
         return {"error": str(e)}
-
-# ==============================
-# Основной лист "ID" в DareDevils
-# ==============================
-@app.get("/api/get_sheet")
-async def get_sheet():
-    client = get_gspread_client()
-    sheet = client.open("DareDevils").worksheet("ID")  # ← Явное открытие листа "ID"
-    records = sheet.get_all_records()
-    return JSONResponse(records)
-
-@app.post("/api/update_sheet")
-async def update_sheet(request: Request):
-    data = await request.json()
-    sheet = get_gspread_client().open("DareDevils").worksheet("ID")  # ← Явное открытие листа "ID"
-    headers = sheet.row_values(1)
-
-    for i, row in enumerate(data):
-        row_index = i + 2  # строки начинаются со второй
-        for key, value in row.items():
-            if key in headers:
-                col_index = headers.index(key) + 1
-                sheet.update_cell(row_index, col_index, value)
-
-    return JSONResponse({"message": "Данные успешно сохранены!"})
-
-@app.post("/api/delete_row")
-async def delete_row(request: Request):
-    data = await request.json()
-    row_index = data.get("row_index")
-
-    if not row_index:
-        raise HTTPException(status_code=400, detail="row_index required")
-
-    sheet = get_gspread_client().open("DareDevils").worksheet("ID")  # ← Явное открытие листа "ID"
-    sheet.delete_rows(row_index)
-    return JSONResponse({"message": "Строка удалена"})
-
-# ==============================
-# Лист Админы
-# ==============================
-@app.get("/api/get_admins")
-def get_admins():
-    client = get_gspread_client()
-    sheet = client.open("DareDevils").worksheet("Админы")
-    return sheet.get_all_records()
-
-@app.post("/api/delete_admin")
-def delete_admin(data: dict):
-    row_index = data["row_index"]
-    client = get_gspread_client()
-    sheet = client.open("DareDevils").worksheet("Админы")
-    sheet.delete_rows(row_index)
-    return {"status": "ok"}
-
-@app.post("/api/add_admin")
-def add_admin(data: dict):
-    client = get_gspread_client()
-    sheet = client.open("DareDevils").worksheet("Админы")
-    sheet.append_row([data["id"], data["name"]])
-    return {"status": "ok"}
-
-# ==============================
-# Лист Добавление
-# ==============================
-@app.get("/api/get_permissions")
-def get_permissions():
-    client = get_gspread_client()
-    sheet = client.open("DareDevils").worksheet("Добавление")
-    return sheet.get_all_records()
-
-@app.post("/api/delete_permission")
-def delete_permission(data: dict):
-    row_index = data["row_index"]
-    client = get_gspread_client()
-    sheet = client.open("DareDevils").worksheet("Добавление")
-    sheet.delete_rows(row_index)
-    return {"status": "ok"}
-
-@app.post("/api/add_permission")
-def add_permission(data: dict):
-    client = get_gspread_client()
-    sheet = client.open("DareDevils").worksheet("Добавление")
-    sheet.append_row([data["id"], data["name"]])
-    return {"status": "ok"}
-
-
-# ==============================
-# Лист Автосбор
-# ==============================
-
-@app.get("/api/get_autosbor")
-def get_autosbor():
-    sheet = get_gspread_client().open("DareDevils").worksheet("Автосбор")
-    all_values = sheet.get_all_values()
-
-    if not all_values or len(all_values[0]) == 0:
-        return JSONResponse([])
-
-    num_rows = 7  # <<< изменено: теперь берём 7 строк, включая первую
-    num_cols = len(all_values[0])  # количество колонок по первой строке
-    result = []
-
-    for col_index in range(num_cols):
-        values = []
-        for row_index in range(num_rows):
-            row = all_values[row_index] if row_index < len(all_values) else []
-            values.append(row[col_index] if col_index < len(row) else "")
-
-        result.append({
-            "name": f"Пачка {col_index + 1}",  # <<< изменено: динамический заголовок
-            "values": values
-        })
-
-    return JSONResponse(result)
-
-
-# ===== POST сохранение =====
-@app.post("/api/save_autosbor")
-async def save_autosbor(request: Request):
-    data = await request.json()
-
-    column_index = data.get("column_index")
-    values = data.get("values")
-
-    if column_index is None or not isinstance(values, list) or len(values) != 7:  # <<< изменено: 7 строк
-        raise HTTPException(400)
-
-    sheet = get_gspread_client().open("DareDevils").worksheet("Автосбор")
-
-    for i, value in enumerate(values):
-        sheet.update_cell(i + 1, column_index + 1, value)  # <<< изменено: включаем первую строку
-
-    return JSONResponse({"status": "ok"})
-
-
-# ==============================
-# Крон/внешний вызов обновления Redis
-# ==============================
-
-@app.get("/api/cron/refresh_users")
-async def cron_refresh_users():
-    from tgbot.redis.redis_cash import load_users_to_redis
-    try:
-        count = await asyncio.to_thread(load_users_to_redis)
-        redis.set(LAST_UPDATE_KEY, int(time.time()))
-        return JSONResponse({"status": "ok", "message": f"✅ Пользователи обновлены ({count})"})
-    except Exception as e:
-        return JSONResponse({"status": "error", "message": str(e)})
-
-
-@app.get("/api/cron/refresh_allowed")
-async def cron_refresh_allowed():
-    from tgbot.redis.redis_cash import load_allowed_to_redis
-    try:
-        count = await asyncio.to_thread(load_allowed_to_redis)
-        redis.set(LAST_UPDATE_KEY, int(time.time()))
-        return JSONResponse({"status": "ok", "message": f"✅ Allowed users обновлены ({count})"})
-    except Exception as e:
-        return JSONResponse({"status": "error", "message": str(e)})
-
-
-@app.get("/api/cron/refresh_all_data")
-async def cron_refresh_all_data():
-    from tgbot.redis.redis_cash import load_all_data_to_redis
-    try:
-        await asyncio.to_thread(load_all_data_to_redis)
-        redis.set(LAST_UPDATE_KEY, int(time.time()))
-        return JSONResponse({"status": "ok", "message": "✅ Events, Menu и Bot Commands обновлены"})
-    except Exception as e:
-        return JSONResponse({"status": "error", "message": str(e)})
-
-
-@app.get("/api/cron/refresh_autosbor")
-async def cron_refresh_autosbor():
-    from tgbot.redis.redis_cash import load_autosbor_to_redis
-    try:
-        count = await asyncio.to_thread(load_autosbor_to_redis)
-        redis.set(LAST_UPDATE_KEY, int(time.time()))
-        return JSONResponse({"status": "ok", "message": f"✅ Автосбор обновлён ({count})"})
-    except Exception as e:
-        return JSONResponse({"status": "error", "message": str(e)})
-
-
-@app.get("/api/cron/refresh_admins")
-async def cron_refresh_admins():
-    from tgbot.redis.redis_cash import load_admins_to_redis
-    try:
-        count = await asyncio.to_thread(load_admins_to_redis)
-        redis.set(LAST_UPDATE_KEY, int(time.time()))
-        return JSONResponse({"status": "ok", "message": f"✅ Админы обновлены ({count})"})
-    except Exception as e:
-        return JSONResponse({"status": "error", "message": str(e)})
-
-
-
-@app.get("/api/cron/bless")
-async def cron_bless():
-
-    try:
-        chat_id = os.getenv("CHAT_ID")
-        if not chat_id:
-            return JSONResponse({"status": "error", "message": "CHAT_ID не задан"})
-
-        _, photo = get_bless_data()
-        caption = build_caption([], [])
-        keyboard = create_bless_keyboard()
-
-        if photo:
-            sent = await tgbot.bot.send_photo(
-                chat_id=int(chat_id),
-                photo=photo,
-                caption=caption,
-                reply_markup=keyboard
-            )
-        else:
-            sent = await tgbot.bot.send_message(
-                chat_id=int(chat_id),
-                text=caption,
-                reply_markup=keyboard
-            )
-
-        try:
-            await tgbot.bot.pin_chat_message(
-                chat_id=int(chat_id),
-                message_id=sent.message_id
-            )
-        except Exception:
-            pass
-
-        return JSONResponse({"status": "ok", "message": "✅ Bless сообщение отправлено"})
-
-    except Exception as e:
-        return JSONResponse({"status": "error", "message": str(e)})
-
-# ==============================
-# Крон: рандомная отправка из листа Сохранения
-# ==============================
-
-@app.get("/api/cron/random_send")
-async def cron_random_send():
-    try:
-        client = get_gspread_client()
-        sheet = client.open(os.getenv("SHEET_NAME")).worksheet("Сохранения")
-        records = sheet.get_all_records()
-
-        if not records:
-            return JSONResponse({"status": "error", "message": "Таблица пустая"})
-
-        record = random.choice(records)
-        name = record.get("Имя", "Без названия")
-        file_type_ru = str(record.get("Тип", "")).lower()
-        file_id = record.get("ID")
-
-        if not file_id:
-            return JSONResponse({"status": "error", "message": "Не найден ID в записи"})
-
-        chat_id = 559273200  # тест — твой личный чат
-
-        if file_type_ru == "фото":
-            await tgbot.bot.send_photo(chat_id=chat_id, photo=file_id, caption=name)
-        elif file_type_ru == "видео":
-            await tgbot.bot.send_video(chat_id=chat_id, video=file_id, caption=name)
-        elif file_type_ru == "гиф":
-            await tgbot.bot.send_animation(chat_id=chat_id, animation=file_id)
-            await tgbot.bot.send_message(chat_id=chat_id, text=name)
-        else:
-            await tgbot.bot.send_document(chat_id=chat_id, document=file_id, caption=name)
-
-        return JSONResponse({"status": "ok", "sent": name, "type": file_type_ru})
-
-    except Exception as e:
-        logger.error(f"Ошибка random_send: {e}")
-        return JSONResponse({"status": "error", "message": str(e)})
-
-
