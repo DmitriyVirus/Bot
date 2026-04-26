@@ -405,11 +405,18 @@ def _build_chart(column_type: str) -> io.BytesIO:
     label = "PVP" if column_type == "pvp" else "PC"
     ax.set_title(f"График {label} по времени", fontsize=14, color="white")
     ax.set_ylabel(label, color="white")
+
+    # Логарифмическая шкала — одинаково показывает изменения и у 30, и у 12000
+    ax.set_yscale("log")
+    from matplotlib.ticker import ScalarFormatter
+    formatter = ScalarFormatter()
+    formatter.set_scientific(False)
+    ax.yaxis.set_major_formatter(formatter)
+
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%d.%m"))
     ax.xaxis.set_major_locator(mdates.DayLocator(interval=2))
     plt.xticks(rotation=45, color="white")
     plt.yticks(color="white")
-    ax.yaxis.set_major_locator(plt.MaxNLocator(integer=True))
     ncols = 2 if len(series) > 15 else 1
     ax.legend(fontsize=7, facecolor="#2a2a3e", labelcolor="white", framealpha=0.8, ncols=ncols)
     ax.grid(color="#444", linestyle="--", linewidth=0.5, alpha=0.5)
