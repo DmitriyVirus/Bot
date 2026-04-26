@@ -12,6 +12,7 @@ from api.cron import router as cron_router
 from api.sheets_api import router as sheets_router
 from api.backupbot import router as backup_router
 from api.morning import router as morning_router
+from tgbot.handlers.pvp import cron_router as pvp_cron_router
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +39,7 @@ app.include_router(cron_router)
 app.include_router(sheets_router)
 app.include_router(backup_router)
 app.include_router(morning_router)
+app.include_router(pvp_cron_router)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 

@@ -32,7 +32,11 @@ class TGBot:
         await self.bot.session.close()
 
     async def set_webhook(self) -> None:
-        await self.bot.set_webhook(self.webhook_url)
+        secret = os.getenv("TELEGRAM_WEBHOOK_SECRET")
+        await self.bot.set_webhook(
+            self.webhook_url,
+            secret_token=secret
+        )
         print(f"Webhook set to {self.webhook_url}")
 
 

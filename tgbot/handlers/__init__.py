@@ -5,8 +5,7 @@ from .save import router as save_router
 from .bless import router as bless_router
 from .commands import router as commands_router
 from .greetings import router as greetings_router
-
-
+from .pvp import router as pvp_router
 
 router = Router()
 router.include_router(menu_router)
@@ -15,3 +14,4 @@ router.include_router(sbor_router)
 router.include_router(bless_router)
 router.include_router(commands_router)
 router.include_router(greetings_router)
+router.include_router(pvp_router)
