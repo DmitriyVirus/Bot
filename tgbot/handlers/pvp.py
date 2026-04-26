@@ -28,7 +28,7 @@ from aiogram.filters import Command
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
-from tgbot import tgbot
+
 from tgbot.sheets.gspread_client import get_gspread_client
 from tgbot.redis.redis_cash import get_name, get_admins_records
 
@@ -453,6 +453,7 @@ async def cron_pvp_check(request: Request):
         absent_week = await asyncio.to_thread(fill_missing_pvp)
 
         if absent_week and CHAT_ID:
+            from tgbot import tgbot
             names_str = ", ".join(absent_week)
             mention   = f"@{ALERT_USERNAME} " if ALERT_USERNAME else ""
             await tgbot.bot.send_message(
@@ -473,6 +474,7 @@ async def cron_pvp_chart(request: Request):
     try:
         if not CHAT_ID:
             return JSONResponse({"status": "error", "message": "CHAT_ID не задан"})
+        from tgbot import tgbot
         buf = await asyncio.to_thread(build_pvp_chart)
         await tgbot.bot.send_photo(
             chat_id=int(CHAT_ID),
