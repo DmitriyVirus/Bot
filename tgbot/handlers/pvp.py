@@ -409,7 +409,9 @@ def _build_chart(column_type: str) -> io.BytesIO:
     ax.xaxis.set_major_locator(mdates.DayLocator(interval=2))
     plt.xticks(rotation=45, color="white")
     plt.yticks(color="white")
-    ax.legend(fontsize=9, facecolor="#2a2a3e", labelcolor="white", framealpha=0.8)
+    ax.yaxis.set_major_locator(plt.MaxNLocator(integer=True))
+    ncols = 2 if len(series) > 15 else 1
+    ax.legend(fontsize=7, facecolor="#2a2a3e", labelcolor="white", framealpha=0.8, ncols=ncols)
     ax.grid(color="#444", linestyle="--", linewidth=0.5, alpha=0.5)
 
     plt.tight_layout()
