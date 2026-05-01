@@ -162,3 +162,62 @@ async def cron_random_send(request: Request):
     except Exception as e:
         logger.error(f"Ошибка random_send: {e}")
         return JSONResponse({"status": "error", "message": str(e)})
+
+# ==============================
+# Голем близко
+# ==============================
+GOLEM_TEXT  = "Голем близко"
+GOLEM_PHOTO = "https://r2wiki.ru/upload/full/2020/02/22/ff48292699b83be148e8b23b426a4a49.png"
+
+@router.get("/api/cron/golem")
+async def cron_golem(request: Request):
+    verify_cron_secret(request)
+    try:
+        if not CHAT_ID:
+            return JSONResponse({"status": "error", "message": "CHAT_ID не задан"})
+
+        sent = await tgbot.bot.send_photo(
+            chat_id=int(CHAT_ID),
+            photo=GOLEM_PHOTO,
+            caption=GOLEM_TEXT,
+        )
+
+        try:
+            await tgbot.bot.pin_chat_message(chat_id=int(CHAT_ID), message_id=sent.message_id)
+        except Exception:
+            pass
+
+        return JSONResponse({"status": "ok", "message": "✅ Голем сообщение отправлено и закреплено"})
+    except Exception as e:
+        logger.error(f"Ошибка cron_golem: {e}")
+        return JSONResponse({"status": "error", "message": str(e)})
+
+
+# ==============================
+# Очки свержения
+# ==============================
+OVERTHROW_TEXT  = "Очки свержения надо потратить"
+OVERTHROW_PHOTO = "https://thumbs.dreamstime.com/b/%D0%B6%D0%B0%D0%B4%D0%BD%D0%BE%D1%81%D1%82%D1%8C-16088482.jpg"
+
+@router.get("/api/cron/overthrow")
+async def cron_overthrow(request: Request):
+    verify_cron_secret(request)
+    try:
+        if not CHAT_ID:
+            return JSONResponse({"status": "error", "message": "CHAT_ID не задан"})
+
+        sent = await tgbot.bot.send_photo(
+            chat_id=int(CHAT_ID),
+            photo=OVERTHROW_PHOTO,
+            caption=OVERTHROW_TEXT,
+        )
+
+        try:
+            await tgbot.bot.pin_chat_message(chat_id=int(CHAT_ID), message_id=sent.message_id)
+        except Exception:
+            pass
+
+        return JSONResponse({"status": "ok", "message": "✅ Очки свержения сообщение отправлено и закреплено"})
+    except Exception as e:
+        logger.error(f"Ошибка cron_overthrow: {e}")
+        return JSONResponse({"status": "error", "message": str(e)})
