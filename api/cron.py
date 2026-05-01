@@ -184,6 +184,8 @@ async def cron_golem(request: Request):
 
         try:
             await tgbot.bot.pin_chat_message(chat_id=int(CHAT_ID), message_id=sent.message_id)
+            await asyncio.sleep(5)
+            await tgbot.bot.unpin_chat_message(chat_id=int(CHAT_ID), message_id=sent.message_id)
         except Exception:
             pass
 
@@ -214,6 +216,8 @@ async def cron_overthrow(request: Request):
 
         try:
             await tgbot.bot.pin_chat_message(chat_id=int(CHAT_ID), message_id=sent.message_id)
+            await asyncio.sleep(5)
+            await tgbot.bot.unpin_chat_message(chat_id=int(CHAT_ID), message_id=sent.message_id)
         except Exception:
             pass
 
