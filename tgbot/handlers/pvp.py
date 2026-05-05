@@ -119,6 +119,10 @@ def _add_user_columns(sheet, name: str) -> int:
     col_pvp = next_col
     col_pc  = next_col + 1
 
+    # Расширяем лист если столбцов не хватает
+    if col_pc > sheet.col_count:
+        sheet.resize(cols=col_pc + 20)
+
     sheet.update_cell(ROW_HEADERS,  col_pvp, name)
     sheet.update_cell(ROW_HEADERS,  col_pc,  "")
     sheet.update_cell(ROW_SUBHEADS, col_pvp, "pvp")
